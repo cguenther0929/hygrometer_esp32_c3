@@ -23,3 +23,4 @@ The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper co
 ### VERSIONS ###
 * V0.0.1 -- This version compiles.  This is really just a skelton of what is needed and was initially put together for testing purposes.  Specific .h and .cpp files were successfully created (for the sensor).    
 
+* v0.0.2 -- This could be a candidate image, but the LED doesn't blink as there is something wrong with the function that toggles the pin.  

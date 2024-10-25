@@ -40,7 +40,7 @@
 #include <pgmspace.h>
 // #include <avr/pgmspace.h>
 
-const uint8_t Font36_Table [] PROGMEM = 
+const uint8_t SevenSeg_Font36_Table [] PROGMEM = 
 {
 	// @0 ' ' (36 high x 32 wide pixels   ) //TODO update
 	0x00,0x00,0x00,0x00,
@@ -2836,8 +2836,8 @@ const uint8_t Font36_Table [] PROGMEM =
 	// 0x00, 0x00, 0x00, //                  
 };
 
-sFONT Font36 = {
-  Font36_Table,
+sFONT SevenSeg_Font36 = {
+  SevenSeg_Font36_Table,
   32, /* Width */
   36, /* Height */
 };
