@@ -54,7 +54,7 @@
 #define SENSOR_1                  1
 #define SENSOR_2                  2
 
-#define SW_VER_STRING             "0.0.1"
+#define SW_VER_STRING             "0.0.3"
 #define SERIAL_BAUD_RATE          57600
 
 #define LOCAL_BTN_GPIO_PIN        1
@@ -70,30 +70,18 @@
 /**
  * Timer parameters
  */
-//TODO: remove? // unsigned int    tmr1_write_val  = 3030;   // Empirically derived to generate a 1ms tick timer.
-// unsigned int    ms_ticks_1      =0;
 unsigned int    ms_ticks_50           =0;
 unsigned int    ms_ticks_100          =0;
 unsigned int    ms_ticks_500          =0;
 unsigned int    ms_ticks_1000         =0;
 
-// bool            Timer1msFlag        = false;
 bool            Timer50msFlag         = false;
 bool            Timer100msFlag        = false;
 bool            Timer500msFlag        = false;
 bool            Timer1000msFlag       = false;
-// bool            timer_running       = false;
-
-// long            seconds_counter     = 0;        //32bit value 4.264....e9
-// long            tick_1ms_counter    = 0;        //32bit value.  At 20ms, this can count to 8.5899e7 seconds
-
-// uint16_t        timeout_seconds     = 4.0;
-// uint16_t        timeout_1ms_ticks   = (uint16_t)(timeout_seconds/0.001);
 
 
 hw_timer_t *IntTmr = NULL;
-
-//TODO: here are notes on using the EEPROM
 
 /**
  * Note for using Deep Sleep Mode
@@ -180,13 +168,15 @@ hw_timer_t *IntTmr = NULL;
 unsigned char image[1024];
 Paint paint(image, 0, 0);    // width should be the multiple of 8 
 Epd epd;
-I2C sensor;
+I2C i2c;
 
 
 
 /**
- * The name of this function cannot be 
- * changed
+ * @brief Timer interrupt
+ * @details This function has to live 
+ * up above the setup routine
+ * 
  */
 void IRAM_ATTR onTimer()
 {
@@ -220,11 +210,9 @@ void IRAM_ATTR onTimer()
   }
 }
 
-
-
-
-
-
+/**
+ * @brief Arduino Setup routine
+ */
 void setup() {
 
  /**
@@ -320,10 +308,10 @@ void setup() {
    */
 
   //Initialize timer interrupt
-  //                       Timer to use (0 through 3)
-  //                           | Prescaler of 160 to run the timer at 1MHz (see note above)       
-  //                           |   |   true = count up
-  //                           |   |     |  
+  //                  Timer to use (0 through 3)
+  //                      | Prescaler of 160 to run the timer at 1MHz (see note above)       
+  //                      |   |true = count up
+  //                      |   |  |  
   IntTmr = timerBegin(0, 160, true);
   
   //                 Name of timer (from above) 
@@ -342,9 +330,15 @@ void setup() {
   timerAlarmEnable(IntTmr);
 }
 
+/**
+ * @brief Arduino main loop
+ */
 void loop() {
   
   //TODO: this is just a test.  Need to move/update/etc.
+  //TODO: this note was confirmed on 10/24/24
+  //                               Value in uS  
+  //                                 |  
   // esp_sleep_enable_timer_wakeup(1000);
   // esp_deep_sleep_start();  //This will put the module into deep sleep
 
@@ -365,7 +359,7 @@ void loop() {
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
-    // toggle_io_expander(GPIO_EXPANDER_HLTH_LED); //TODO: we wan this line in 
+    i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED); //TODO: we wan this line in 
   }
 
   if(Timer1000msFlag == true) 
@@ -384,5 +378,9 @@ void loop() {
 //   //TODO: need statements here
 //   __asm__("nop\n\t");  //TODO: eventually need to remove this line
 // }
+
+
+
+
 
 
