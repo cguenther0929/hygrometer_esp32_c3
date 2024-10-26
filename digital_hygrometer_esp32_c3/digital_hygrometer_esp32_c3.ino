@@ -29,14 +29,11 @@
  * TODO: read temperature
  * TODO: read relative humidity
  * TODO: wake up processor from deep sleep with timer
- * TODO: interrupt times and a tick system
  * TODO: button press algorithm 
  * TODO: establish the command line interface
  * TODO: adc for measuring battery voltage
  * TODO: get email features tested and working
- * TODO: paint line at bottom of screen
- * 
- * 
+ * TODO: Establish text notification at bottom of screen 
  * 
  */
 
@@ -54,12 +51,16 @@
 #define SENSOR_1                  1
 #define SENSOR_2                  2
 
-#define SW_VER_STRING             "0.0.3"
+#define SW_VER_STRING             "0.0.5"
 #define SERIAL_BAUD_RATE          57600
 
 #define LOCAL_BTN_GPIO_PIN        1
 #define WAKEUP_GPIO               GPIO_NUM_1
 #define GPIO_EXPANDER_HLTH_LED    8
+#define INTERRUPT_PIN             1    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
+
+
+#define ANALOG_BATT_PIN           0
 
 /**
  * Uncomment the following 
@@ -81,10 +82,21 @@ bool            Timer500msFlag        = false;
 bool            Timer1000msFlag       = false;
 
 
+
+char rx_char                          = '\n';
+
+
+
+float ADC_REFERENCE     = 1.10;         // ESP32-C3 ADC reference
+float ADC_BIT_VALUE     = 4096.0;       // ESP32-C3 bit value (12 bit ADC)
+
+
+
+
 hw_timer_t *IntTmr = NULL;
 
 /**
- * Note for using Deep Sleep Mode
+ * Wake from deep sleep using a timer
  * ================================
  * ESP32 Deep Sleep Mode Discussion
  * https://randomnerdtutorials.com/esp32-deep-sleep-arduino-ide-wake-up-sources/
@@ -108,14 +120,26 @@ hw_timer_t *IntTmr = NULL;
  * esp_sleep_enable_timer_wakeup(time_in_us)
  * 
  * 
- * Here is an article about waking the processor from deep sleep, note that the 
- * GPIO source shall be of the RTC type -- which I don't know what that means for 
- * the version of ESP32 we are using.  
- * https://randomnerdtutorials.com/esp32-external-wake-up-deep-sleep/
+ * ================================
+ * Wake from deep sleep using an IO pin
+ * ================================
  * 
- * According to a Google search, these are the RTC pins on the ESP32-C3
- * GPIO0, GPIO1, GPIO2, and GPIO3 -- I assume this means we are good 
- * since our button feeds into IO1
+ * https://hutscape.com/tutorials/external-wakeup-arduino-esp32c3
+ * 
+ * There is some incorrect information floating around about waking the processor.  
+ * The aforementioned article points out that we shall use 
+ * esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);
+ * instead of sp_sleep_enable_ext0_wakeup(WAKEUP_GPIO, 1); 
+ * to wake the processor.  
+ * 
+ * The ESP32-C3 will wake up from an interrupt that can be caused
+ * by an RTC pin.  According to a Google search, these are pins
+ * GPIO0, GPIO1, GPIO2, and GPIO3.  On the hygrometer, the calibration 
+ * button feeds into IO1.
+ * 
+ * Since the wakeup IO needs to be defined as a mask,
+ * the "INTERRUPT PIN" value mentioned above, I assume, would be 0 for GPIO0, 1 for GPIO1, 
+ * and so on and so forth.  
  * 
  */
 
@@ -170,11 +194,9 @@ Paint paint(image, 0, 0);    // width should be the multiple of 8
 Epd epd;
 I2C i2c;
 
-
-
 /**
  * @brief Timer interrupt
- * @details This function has to live 
+ * @details This function has to 'live' 
  * up above the setup routine
  * 
  */
@@ -211,6 +233,18 @@ void IRAM_ATTR onTimer()
 }
 
 /**
+ * @brief Button Press Interrupt 
+ * @details This function has to 'live' 
+ * up above the setup routine
+ * 
+ */
+void IRAM_ATTR button_press() 
+{
+  //TODO: need statements here
+  __asm__("nop\n\t");  //TODO: eventually need to remove this line
+}
+
+/**
  * @brief Arduino Setup routine
  */
 void setup() {
@@ -222,9 +256,10 @@ void setup() {
   //                      |         Name of the call back function               
   //                      |               |     Type of signal edge to detect    
   //                      |               |         |
-  // attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); //TODO: we want this back in
+  attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
 
   /**
+   * TODO: we will likely need to update this comment ...
    * This will allow this pin to 
    * wake the processor from deep sleep mode
    * A high value (1) will wake the processor from 
@@ -232,7 +267,10 @@ void setup() {
    * awoken from deep sleep in the manor eats more 
    * power, so we may need to look into this.  
    */
-  // esp_sleep_enable_ext0_wakeup(WAKEUP_GPIO, 1);  //TODO: we want this back in
+  // esp_sleep_enable_ext0_wakeup(WAKEUP_GPIO, 1);
+
+
+  esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);  
 
   Serial.begin(SERIAL_BAUD_RATE);
   Serial.print("Reset.");
@@ -349,6 +387,13 @@ void loop() {
   if(Timer50msFlag == true) 
   {
     Timer50msFlag = false;
+    rx_char = Serial.read();
+    if (rx_char == 'z'){
+      console();
+      Timer100msFlag = false;
+      Timer500msFlag = false;
+      Timer1000msFlag = false;
+    }
   }
   
   if(Timer100msFlag == true) 
@@ -359,7 +404,7 @@ void loop() {
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
-    i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED); //TODO: we wan this line in 
+    i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED); 
   }
 
   if(Timer1000msFlag == true) 
@@ -367,20 +412,4 @@ void loop() {
     Timer1000msFlag = false;
   }
 
-
 }
-
-
-
-//TODO: we want this function back in.
-// void IRAM_ATTR button_press() 
-// {
-//   //TODO: need statements here
-//   __asm__("nop\n\t");  //TODO: eventually need to remove this line
-// }
-
-
-
-
-
-

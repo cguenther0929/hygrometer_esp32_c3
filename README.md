@@ -25,4 +25,8 @@ The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper co
 
 * v0.0.2 -- This could be a candidate image, but the LED doesn't blink as there is something wrong with the function that toggles the pin.  
 
-* v0.0.3 -- Candidate test image.  The LED should toggle.  The SW string has been updated to reflect this version
+* v0.0.3 -- Candidate test image.  The LED should toggle.  The SW string has been updated to reflect this version.
+
+* v0.0.4 -- Issues related to interrupt routines have been addressed.
+
+* v0.0.5 -- A feature to read an analog value has been added in.  This version has gotten a good start on adding in the console version.  
