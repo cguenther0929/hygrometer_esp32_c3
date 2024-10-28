@@ -249,7 +249,8 @@ void Epd::SetMemoryPointer(int x, int y) {
 }
 
 /**
- *  @brief: After this command is transmitted, the chip would enter the 
+ * @brief: Put the display to sleep
+ * @details: After this command is transmitted, the chip would enter the 
  *          deep-sleep mode to save power. 
  *          The deep sleep mode would return to standby by hardware reset. 
  *          You can use Epd::Init() to awaken

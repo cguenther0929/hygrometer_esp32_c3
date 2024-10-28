@@ -2,8 +2,13 @@
 #include <Wire.h>
 
 void I2C::init(void) {
-    //TODO: this function is not supported.  Remove the NOP?
-    __asm__("nop\n\t");
+    //TODO: Do we want to modify these lines?
+    //TODO: for example, do we instead want to grab 
+    //TODO: rhoffset values from EEPROM
+    this -> sensor_number = 0;
+    this -> rhoffset_1 = 0;
+    this -> rhoffset_2 = 0;
+
 
 }
 
@@ -171,40 +176,61 @@ void I2C::toggle_io_expander(uint8_t io_num)
 
 }
 
+
+
 void I2C::choose_sensor(int sensor_number){
-    //TODO: need to define what to write here...
+    uint8_t channel_number = 0x00;
     this -> sensor_number = sensor_number;
 
-    if(sensor_number == 1) {
-        mux_data = 0xAA;
-        __asm__("nop\n\t"); //TODO: need to set the sensor's address accordingly
-    }
-    else {
-        mux_data = 0xFF;
-        __asm__("nop\n\t"); //TODO: need to set the sensor's address accordingly
-    }
-
-    Wire.beginTransmission(0xFF); 
-    Wire.write(0xFF);        
+    (sensor_number == 1) ? (channel_number = I2C_MUX_CH0_SELECT):(channel_number = I2C_MUX_CH1_SELECT);
+    
+    Wire.beginTransmission(I2C_MUX_ADDRESS); 
+    Wire.write(channel_number);        
     Wire.endTransmission();
 }
 
-int I2C::get_humidity() {
-    //TODO: need to define what to write here...
+float I2C::get_humidity() {
+    uint16_t    temp_uint16t    = 0x0000;  
+    float       temp_float      = 0.0; 
+
+    //TODO: remove the notes below this ...
     
-    Wire.beginTransmission(0xFF); 
-    Wire.write(0xFF);        
+    /**
+     * 
+     * temp_data = I2CRead_16b(SI7020_BASE_ADDRESS, SI7020_MEAS_HUM_HOLD_MASTER);   
+            sensor.rh_value_1 = (float)((125.0 * temp_data / 65536) - 6 + sensor.rh_offset_1);
+     * 
+     * 
+     * 
+     */
+
+
+
+
+    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
+    temp_uint16t = Wire.requestFrom(SI7020_MEAS_HUM_HOLD_MASTER, 1);    // Request 1 byte from the address  
     Wire.endTransmission();
-    return 0xFF;
+    //TODO: need to define the offsets
+    temp_float = (float)((125.0 * temp_uint16t / 65536) - 6 + 0);
+    // temp_float = (float)((125.0 * temp_uint16t / 65536) - 6 + sensor.rh_offset_1);
+    
+    return temp_float;
 
 }
 
-int I2C::get_temperature() {
-    //TODO: need to define what to write here...
-    
-    Wire.beginTransmission(0xFF); 
-    Wire.write(0xFF);        
+float I2C::get_temperature() {
+    uint16_t    temp_uint16t    = 0x0000;  
+    float       temp_float      = 0.0; 
+
+    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
+    temp_uint16t = Wire.requestFrom(SI7020_MEAS_TMP_PREV_RH_MEAS, 1);    // Request 1 byte from the address  
     Wire.endTransmission();
-    return 0xFF;
+    
+    /**
+     * Value is in fahrenheit
+     */
+    temp_float = (uint8_t)((temp_uint16t / 207.1952) - 52.24); 
+    
+    return temp_float;
 
 }

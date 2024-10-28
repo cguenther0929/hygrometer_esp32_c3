@@ -45,22 +45,61 @@
 #include "imagedata.h"
 #include "i2c.h"
 
+// ==============================
+// ==============================
+// SW version string 
+#define SW_VER_STRING             "0.0.6"
+// ==============================
+// ==============================
+
+/**
+ * Button related
+ */
+ uint16_t btn_press_ctr           = 0x000;
+ bool btn_interrupt_triggered     = false;
+ bool btn_short_press_flag        = false;
+ bool btn_long_press_flag         = false;
+#define LOCAL_BTN_GPIO_PIN        1
+#define SHORT_PRESS_50MS_EVENTS   10
+#define LONG_PRESS_50MS_EVENTS    20
+
+
+/**
+ * Eink parameters
+ */
 #define COLORED                   0
 #define UNCOLORED                 1
 
+/**
+ * Sensor parameters
+ */
 #define SENSOR_1                  1
 #define SENSOR_2                  2
+bool calibrate_sensors            = false;
 
-#define SW_VER_STRING             "0.0.5"
+/**
+ * Serial parameters
+ */
 #define SERIAL_BAUD_RATE          57600
 
-#define LOCAL_BTN_GPIO_PIN        1
-#define WAKEUP_GPIO               GPIO_NUM_1
+/**
+ * Interrupt / button pin
+ */
 #define GPIO_EXPANDER_HLTH_LED    8
 #define INTERRUPT_PIN             1    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
 
+/**
+ * Analog and battery parameters
+ */
+#define MIN_BATT_VOLTAGE          3.0
 
-#define ANALOG_BATT_PIN           0
+typedef enum State {
+  IDLE,
+  READ_SENSORS,
+  UPDATE_DISPLAY,
+  SEND_EMAIL
+};
+
 
 /**
  * Uncomment the following 
@@ -81,19 +120,22 @@ bool            Timer100msFlag        = false;
 bool            Timer500msFlag        = false;
 bool            Timer1000msFlag       = false;
 
-
-
 char rx_char                          = '\n';
 
-
-
-float ADC_REFERENCE     = 1.10;         // ESP32-C3 ADC reference
-float ADC_BIT_VALUE     = 4096.0;       // ESP32-C3 bit value (12 bit ADC)
-
-
-
-
 hw_timer_t *IntTmr = NULL;
+
+//TODO: is the image buffer used or can it be deleted?  
+/**
+  * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
+  * In this case, a smaller image buffer is allocated and you have to 
+  * update a partial display several times.
+  * 1 byte = 8 pixels, therefore you have to set 8*N pixels at a time.
+  */
+unsigned char image[1024];
+Paint paint(image, 0, 0);    // width should be the multiple of 8 
+Epd epd;
+
+I2C i2c;
 
 /**
  * Wake from deep sleep using a timer
@@ -182,17 +224,7 @@ hw_timer_t *IntTmr = NULL;
  **/
 
 
-//TODO: is the image buffer used or can it be deleted?  
-/**
-  * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
-  * In this case, a smaller image buffer is allocated and you have to 
-  * update a partial display several times.
-  * 1 byte = 8 pixels, therefore you have to set 8*N pixels at a time.
-  */
-unsigned char image[1024];
-Paint paint(image, 0, 0);    // width should be the multiple of 8 
-Epd epd;
-I2C i2c;
+
 
 /**
  * @brief Timer interrupt
@@ -242,6 +274,13 @@ void IRAM_ATTR button_press()
 {
   //TODO: need statements here
   __asm__("nop\n\t");  //TODO: eventually need to remove this line
+  /**
+   * If the button is pushed
+   * update the button counter
+   */
+  btn_interrupt_triggered  = true;
+
+
 }
 
 /**
@@ -249,27 +288,38 @@ void IRAM_ATTR button_press()
  */
 void setup() {
 
+  State idle;
+
+  /**
+   * Initialization functions
+   */
+  i2c.init();
+
+
  /**
-  * Attach the button interrupt
+  * @brief Define IO interrupt for push button input 
   */
   //           IO Pin number that shall trigger the interrupt                              
-  //                      |         Name of the call back function               
+  //                      |         Name of the callback function               
   //                      |               |     Type of signal edge to detect    
   //                      |               |         |
   attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
 
   /**
-   * TODO: we will likely need to update this comment ...
-   * This will allow this pin to 
-   * wake the processor from deep sleep mode
-   * A high value (1) will wake the processor from 
-   * deep sleep.  It's unclear if allowing the processor to be
+   * @brief Function for Defining which IO shall wake the MCU from deep sleep
+   * @details This function will allow an IO pin (RTC1-5) 
+   * to wake the processor from deep sleep mode
+   * It's unclear if allowing the processor to be
    * awoken from deep sleep in the manor eats more 
-   * power, so we may need to look into this.  
+   * power. 
+   * For more information on this routine, see
+   * the notes and the web link that is pased up 
+   * above 
    */
-  // esp_sleep_enable_ext0_wakeup(WAKEUP_GPIO, 1);
-
-
+  //                                  A mask value needs to be passed in
+  //                                     |                Parameter for the input signal   
+  //                                     |                   |
+  //                                     |                   |
   esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);  
 
   Serial.begin(SERIAL_BAUD_RATE);
@@ -292,6 +342,8 @@ void setup() {
 
   paint.SetRotate(ROTATE_0);  
 
+  //TODO: how do we want to initialize the display
+
   paint.SetWidth(200);
   paint.SetHeight(36);
   epd.SetFrameMemory(IMAGE_DATA);  
@@ -303,34 +355,34 @@ void setup() {
   paint.SetWidth(4);
   paint.SetHeight(80);
   paint.Clear(UNCOLORED);
-  paint.DrawLine(0, 0, 1, 160, COLORED);
-  paint.DrawLine(1, 0, 2, 160, COLORED);
-  paint.DrawLine(2, 0, 3, 160, COLORED);
-  paint.DrawLine(3, 0, 4, 160, COLORED);
+  paint.DrawLine(0, 0, 1, 160, UNCOLORED);
+  paint.DrawLine(1, 0, 2, 160, UNCOLORED);
+  paint.DrawLine(2, 0, 3, 160, UNCOLORED);
+  paint.DrawLine(3, 0, 4, 160, UNCOLORED);
   epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
 
   paint.SetWidth(56);
   paint.SetHeight(12);
   paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);    // Font12 is seven pixels wide
+  paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
   epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
   
   paint.SetWidth(77);
   paint.SetHeight(12);
   paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);    // Font12 is seven pixels wide
+  paint.DrawStringAt(0, 0, "Temperature", &Font12, UNCOLORED);    // Font12 is seven pixels wide
   epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
   
   paint.SetWidth(64);
   paint.SetHeight(36);
   paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
+  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, UNCOLORED);
   epd.SetFrameMemory(paint.GetImage(), 17, 142 , paint.GetWidth(), paint.GetHeight());
   
   paint.SetWidth(64);
   paint.SetHeight(36);
   paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED);
+  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, UNCOLORED);
   epd.SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
   /* END OF WORKING EXAMPLE WRITTEN BY CJG*/
 
@@ -372,8 +424,7 @@ void setup() {
  * @brief Arduino main loop
  */
 void loop() {
-  
-  //TODO: this is just a test.  Need to move/update/etc.
+  //TODO: This is how we put the the unit in to deep sleep mode
   //TODO: this note was confirmed on 10/24/24
   //                               Value in uS  
   //                                 |  
@@ -394,6 +445,9 @@ void loop() {
       Timer500msFlag = false;
       Timer1000msFlag = false;
     }
+
+    button_handler();
+
   }
   
   if(Timer100msFlag == true) 

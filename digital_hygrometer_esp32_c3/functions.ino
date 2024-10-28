@@ -5,7 +5,58 @@
  *
 */
 
+/**
+ * Analog related parameters
+ */
+#define ANALOG_BATT_PIN           0
+float ADC_REFERENCE     = 1.10;         // ESP32-C3 ADC reference
+float ADC_BIT_VALUE     = 4096.0;       // ESP32-C3 bit value (12 bit ADC)
+
 uint8_t user_option = 0x00;
+
+void button_handler ( void )
+{
+  //TODO: do we want to do something with this flag?
+  //TODO:  "btn_interrupt_triggered "
+
+  /**
+   * if the button is pushed, simply
+   * update the counter
+   */
+  if(digitalRead(LOCAL_BTN_GPIO_PIN &&
+      !btn_short_press_flag && 
+      !btn_long_press_flag))
+  {
+    btn_press_ctr++;
+  }
+  else 
+  {
+    btn_press_ctr=0;
+  }
+
+  /**
+   * Determine if we need to define 
+   * a short or long press flag
+   */
+  if(btn_press_ctr >= SHORT_PRESS_50MS_EVENTS &&
+    btn_press_ctr <= LONG_PRESS_50MS_EVENTS &&
+    !btn_short_press_flag)
+    {
+      btn_short_press_flag  = true;
+    }
+  else if(btn_press_ctr >= LONG_PRESS_50MS_EVENTS &&
+          !btn_short_press_flag)
+    {
+      btn_long_press_flag  = true;
+      calibrate_sensors = true;
+    }
+}
+
+void state_handler( void )
+{
+  //TODO: need to define this routine
+  __asm__("nop\n\t");
+}
 
 float get_battery_voltage (void) 
 {

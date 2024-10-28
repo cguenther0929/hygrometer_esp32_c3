@@ -58,13 +58,16 @@ void Paint::DrawAbsolutePixel(int x, int y, int colored) {
     if (x < 0 || x >= this->width || y < 0 || y >= this->height) {
         return;
     }
-    if (IF_INVERT_COLOR) {
+    if (IF_INVERT_COLOR) 
+    {
         if (colored) {
             image[(x + y * this->width) / 8] |= 0x80 >> (x % 8);
         } else {
             image[(x + y * this->width) / 8] &= ~(0x80 >> (x % 8));
         }
-    } else {
+    } 
+    else 
+    {
         if (colored) {
             image[(x + y * this->width) / 8] &= ~(0x80 >> (x % 8));
         } else {
@@ -181,6 +184,68 @@ void Paint::DrawStringAt(int x, int y, const char* text, sFONT* font, int colore
         p_text++;
         counter++;
     }
+}
+
+// void Paint::DrawStringBottom(int x, int y, const char* text, sFONT* font, int colored) {
+void Paint::DrawStringBottom(const char* string) {
+
+    //TODO: Need to clean this routine up a lot
+    Epd epd;
+
+    // paint.SetWidth(200);
+    // paint.SetHeight(18);
+    SetWidth(200);
+    SetHeight(18);
+
+    //TODO: At the time of writing this, 
+    //TODO: I'm not sure how these number
+    //TODO: (16 and 3) were derived.  
+    //TODO: This might start 16 pixels in (X=16)
+    //TODO: and 183 down (SetFrameMemory defines the 
+    //TODO: y-dimension at 180).
+    //TODO: Therefore, a person could assume 
+    //TODO: 180+3+12 for a total height of 
+    //TODO: 195 pixels.   
+    //TODO: for colored/uncolored, we need to do something 
+    //TODO: more elaborate here
+    DrawStringAt(16, 3, string, &Font12, 1);
+    // paint.DrawStringAt(16, 3, string, &Font12, COLORED)
+
+    /**
+     * Set the absolute Y pixel location near
+     * the bottom of the screen.
+     * Y = 180 out of 200 pixels tall.  
+     * Since the height of the text is 12 pixels
+     * we can discern the following :180 + 12 = 192,
+     * then 200-192 = 8 so we have 
+     * 8 pixels worth of spacing at the 
+     * bottom of the screen.  
+     */
+    epd.SetFrameMemory(GetImage(), 0, 180, this->width, this->height);  
+    // paint.SetFrameMemory(paint.GetImage(), 0, 180, this->width, this->height);  
+    // TODO: can we remove the following ?
+    // paint.SetFrameMemory(image.frame_buffer, 0, 180, this->width, this->height);  
+
+    epd.DisplayFrame();
+    
+    // EinkSleep(); //TODO: we might want this in!
+    
+    
+    //TODO: can we clean up the following?
+    // DisplayFrame();
+    
+    // EinkSleep();
+    
+    // /* Send the string character by character on EPD */
+    // while (*p_text != 0) {
+    //     /* Display one character on EPD */
+    //     DrawCharAt(refcolumn, y, *p_text, font, colored);
+    //     /* Decrement the column position by 16 */
+    //     refcolumn += font->Width;
+    //     /* Point on the next character */
+    //     p_text++;
+    //     counter++;
+    // }
 }
 
 /**

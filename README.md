@@ -30,3 +30,5 @@ The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper co
 * v0.0.4 -- Issues related to interrupt routines have been addressed.
 
 * v0.0.5 -- A feature to read an analog value has been added in.  This version has gotten a good start on adding in the console version.  
+
+* v0.0.6 -- Many features were added.  Features included, but are not necessarily limited to: printing a string at the bottom of the display; reading temperature; reading humidity; selecting the sensor; fsm state enumeration; sw string updated; general cleanup; etc. 
