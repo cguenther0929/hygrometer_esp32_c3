@@ -57,8 +57,6 @@
 #define SI7020_HTRE_51D69MA             0x08
 #define SI7020_HTRE_94D20MA             0x0F
 
-
-
 class I2C {
     private:
         uint8_t sensor_number   = 0;

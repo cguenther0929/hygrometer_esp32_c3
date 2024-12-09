@@ -37,20 +37,37 @@
  * 
  */
 
+// ==============================
+// ==============================
+// SW version string 
+#define SW_VER_STRING             "0.0.7"
+// ==============================
+// ==============================
+
+// #include <ESP8266WiFi.h>  //TODO: is there a file specific to the ESP32?
+// #include <soc/xxx_caps.h>  //TODO: is there a file specific to the ESP32?
+#include <Arduino.h>
+#include <WiFi.h>
+#include <ESP_Mail_Client.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <EEPROM.h>
+#include <esp_timer.h>
 #include "epd1in54.h"
 #include "epdpaint.h"
 #include "imagedata.h"
 #include "i2c.h"
+#include "console.h"
 
-// ==============================
-// ==============================
-// SW version string 
-#define SW_VER_STRING             "0.0.6"
-// ==============================
-// ==============================
+
+/**
+ * Email related
+ * 
+ * Declare the global used SMTPSession 
+ * object for SMTP transport 
+ */
+SMTPSession smtp;
+
 
 /**
  * Button related
@@ -122,7 +139,16 @@ bool            Timer1000msFlag       = false;
 
 char rx_char                          = '\n';
 
-hw_timer_t *IntTmr = NULL;
+/**
+ * Original timer method
+ * TODO: do we need to remove?  
+ */
+// hw_timer_t *IntTmr = NULL;
+
+/**
+ * Time structure 
+ */
+hw_timer_t *Timer1_Cfg = NULL;
 
 //TODO: is the image buffer used or can it be deleted?  
 /**
@@ -132,11 +158,10 @@ hw_timer_t *IntTmr = NULL;
   * 1 byte = 8 pixels, therefore you have to set 8*N pixels at a time.
   */
 unsigned char image[1024];
-Paint paint(image, 0, 0);    // width should be the multiple of 8 
-Epd epd;
-
-I2C i2c;
-
+Paint   paint(image, 0, 0);    // width should be the multiple of 8 
+Epd     epd;
+I2C     i2c;
+CONSOLE console;
 /**
  * Wake from deep sleep using a timer
  * ================================
@@ -294,6 +319,8 @@ void setup() {
    * Initialization functions
    */
   i2c.init();
+  console.init();
+
 
 
  /**
@@ -388,9 +415,41 @@ void setup() {
 
   epd.DisplayFrame();
 
-  // delay(2000);
-
+/**
+ * ~~~  TIMER and 
+ *      TIMER INTERRUPT ~~~
+ * 
+ * There is good information in the docs:
+ * https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/timer.html
+ */
   /**
+   * TODO: the following example code 
+   * needs to be removed.
+   * 
+   */
+            /* ~~~ BEFORE ESP API UPDATE ~~~ */
+        // #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
+        //      void RH_INTERRUPT_ATTR esp32_timer_interrupt_handler(); // Forward declaration
+        //      timer = timerBegin(0, 80, true); // Alarm value will be in in us
+        //      timerAttachInterrupt(timer, &esp32_timer_interrupt_handler, true);
+        //      timerAlarmWrite(timer, 1000000 / _speed / 8, true);
+        //      timerAlarmEnable(timer);
+        //  #endif
+
+
+            /* ~~~ AFTER ESP API UPDATE ~~~ */
+        // #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
+        //     void RH_INTERRUPT_ATTR esp32_timer_interrupt_handler(); // Forward declaration
+        //     timer = timerBegin(1000000);
+        //     timerAttachInterrupt(timer, &esp32_timer_interrupt_handler);
+        //     timerAlarm(timer, 1000000 / _speed / 8, true, 0);
+        // #endif
+
+/**
+ * ========== ORIGINAL TIMER STUFF ==================
+ */
+
+    /**
    * The ESP32-C3 close frequency is 
    * assumed to be 160MHz, so to get
    * to a frequency of 1000000, the 
@@ -398,26 +457,64 @@ void setup() {
    */
 
   //Initialize timer interrupt
-  //                  Timer to use (0 through 3)
-  //                      | Prescaler of 160 to run the timer at 1MHz (see note above)       
-  //                      |   |true = count up
-  //                      |   |  |  
-  IntTmr = timerBegin(0, 160, true);
+  //               Timer to use (0 through 3)
+  //                   | Prescaler of 160 to run the timer at 1MHz (see note above)       
+  //                   |   |true = count up
+  //                   |   |  |  
+  // IntTmr = timerBegin(0, 160, true);   //TODO: original line of code
   
   //                 Name of timer (from above) 
   //                     |      Name of callback function       
   //                     |        |     true (the tutorial did not indicate what this mans)
   //                     |        |        |     
-  timerAttachInterrupt(IntTmr, &onTimer, true);
+  // timerAttachInterrupt(IntTmr, &onTimer, true);     //TODO: original line of code
 
   //              Name of timer (from above) 
   //                  |   Interrupt time value in microseconds (I think we want the timer to run at 1MHz (see notes above))       
   //                  |     |    true = to tell the timer to reload 
   //                  |     |      |  
-  timerAlarmWrite(IntTmr, 50000, true);
+  // timerAlarmWrite(IntTmr, 50000, true);   //TODO: original line of code
   
   // Enable the timer 
-  timerAlarmEnable(IntTmr);
+  // timerAlarmEnable(IntTmr);  //TODO: original line of code
+
+
+/**
+ * ========== NEW TIMER CODE (BETA) ==================
+ */
+
+  //Initialize timer interrupt
+  //                 The frequency of the timer   
+  //                   |     
+  Timer1_Cfg = timerBegin(1000000);
+  
+  //                 Name of timer (from above) 
+  //                     |      Name of callback function       
+  //                     |        |     true (the tutorial did not indicate what this mans)
+  //                     |        |        |     
+  timerAttachInterrupt(Timer1_Cfg,&onTimer);
+
+  //       This is the timer struct 
+  //           |        This is the alarm value (so alarm when we count up to this value)       
+  //           |          |    true = to tell the timer to reload 
+  //           |          |      |  Value to reload into the timer when auto reloading
+  //           |          |      |   |
+  timerAlarm(Timer1_Cfg, 50000, true,0);
+  
+  // // Enable the timer 
+  // timerAlarmEnable(IntTmr);
+
+
+
+
+
+
+
+
+
+
+
+  
 }
 
 /**
@@ -440,7 +537,7 @@ void loop() {
     Timer50msFlag = false;
     rx_char = Serial.read();
     if (rx_char == 'z'){
-      console();
+      console.console();
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;

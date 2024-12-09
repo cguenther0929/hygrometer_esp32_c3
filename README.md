@@ -18,7 +18,10 @@ The ESP32-C3 SOM can be bootloaded over the USB-to-serial interface.  In additio
 The source file(s) are to be compiled using Arduino IDE v1.8.8, or newer.   <br>
 
 ### COMPILING ###
-The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper compilation, the target board shall be *ESP32C3 Dev Module*.  
+The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper compilation, the target board shall be *ESP32C3 Dev Module*.  <br><br>
+
+It is necessary to install the ESP Mail Client library in order for proper compilation.  The following instructions can be followed to install the library.  
+Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Client**. Install the ESP Mail Client library which was written by **Mobizt**.
 
 ### VERSIONS ###
 * V0.0.1 -- This version compiles.  This is really just a skelton of what is needed and was initially put together for testing purposes.  Specific .h and .cpp files were successfully created (for the sensor).    
@@ -32,3 +35,5 @@ The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper co
 * v0.0.5 -- A feature to read an analog value has been added in.  This version has gotten a good start on adding in the console version.  
 
 * v0.0.6 -- Many features were added.  Features included, but are not necessarily limited to: printing a string at the bottom of the display; reading temperature; reading humidity; selecting the sensor; fsm state enumeration; sw string updated; general cleanup; etc. 
+
+* v0.0.7 -- Timer routines have been updated for the ESP 3.0x API.  The sending of emails has been completely revamped.  The console routine has been implemented by way of separate h and cpp files.  This version compiles, but there is a lot of testing/work that needs to occur.  
