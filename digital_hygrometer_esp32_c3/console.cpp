@@ -54,8 +54,8 @@ void CONSOLE::console ()
             
             // TODO: we need to get the following to work
             // lan.WiFiConnect(buf_for_router_password, buf_for_router_ssid);
-            // lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
-            // lan.send_email();
+            console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
+            console_lan.send_email();
             
             
             __asm__("nop\n\t");
