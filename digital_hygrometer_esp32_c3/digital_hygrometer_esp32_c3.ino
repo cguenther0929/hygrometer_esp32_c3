@@ -23,7 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  * 
- * TODO: Here are a lit of TODOs
  * TODO: Handle the calibration routine (read button and store values)
  * TODO: choose sensors via mux
  * TODO: read temperature
@@ -40,7 +39,7 @@
 // ==============================
 // ==============================
 // SW version string 
-#define SW_VER_STRING             "0.0.7"
+#define SW_VER_STRING        "0.0.8"
 // ==============================
 // ==============================
 
@@ -58,16 +57,7 @@
 #include "imagedata.h"
 #include "i2c.h"
 #include "console.h"
-
-
-/**
- * Email related
- * 
- * Declare the global used SMTPSession 
- * object for SMTP transport 
- */
-SMTPSession smtp;
-
+#include "lan.h"
 
 /**
  * Button related
@@ -140,12 +130,6 @@ bool            Timer1000msFlag       = false;
 char rx_char                          = '\n';
 
 /**
- * Original timer method
- * TODO: do we need to remove?  
- */
-// hw_timer_t *IntTmr = NULL;
-
-/**
  * Time structure 
  */
 hw_timer_t *Timer1_Cfg = NULL;
@@ -162,6 +146,8 @@ Paint   paint(image, 0, 0);    // width should be the multiple of 8
 Epd     epd;
 I2C     i2c;
 CONSOLE console;
+LAN     lan;
+
 /**
  * Wake from deep sleep using a timer
  * ================================
@@ -259,8 +245,6 @@ CONSOLE console;
  */
 void IRAM_ATTR onTimer()
 {
-  // timer1_write(tmr1_write_val);
-
   Timer50msFlag = true;
 
   if(ms_ticks_50 == 2) {
@@ -303,9 +287,9 @@ void IRAM_ATTR button_press()
    * If the button is pushed
    * update the button counter
    */
+  //TODO: need to update the button counter
+  //TODO: and act accordingly
   btn_interrupt_triggered  = true;
-
-
 }
 
 /**
@@ -320,6 +304,7 @@ void setup() {
    */
   i2c.init();
   console.init();
+  lan.init();
 
 
 
@@ -388,20 +373,20 @@ void setup() {
   paint.DrawLine(3, 0, 4, 160, UNCOLORED);
   epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
 
-  paint.SetWidth(56);
-  paint.SetHeight(12);
+  paint.SetWidth(56);         // 7 pixels wide x 8 characters 
+  paint.SetHeight(12);        // 12 pixels tall
   paint.Clear(UNCOLORED);
   paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
   epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
   
-  paint.SetWidth(77);
-  paint.SetHeight(12);
+  paint.SetWidth(77);         // 7 pixels wide x 11 characters 
+  paint.SetHeight(12);        // 12 pixels tall
   paint.Clear(UNCOLORED);
   paint.DrawStringAt(0, 0, "Temperature", &Font12, UNCOLORED);    // Font12 is seven pixels wide
   epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
   
-  paint.SetWidth(64);
-  paint.SetHeight(36);
+  paint.SetWidth(64);         // 32 pixels wide x 2 characters = 64 
+  paint.SetHeight(36);        // 36 pixels tall
   paint.Clear(UNCOLORED);
   paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, UNCOLORED);
   epd.SetFrameMemory(paint.GetImage(), 17, 142 , paint.GetWidth(), paint.GetHeight());

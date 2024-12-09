@@ -1,6 +1,14 @@
 #include "console.h"
+#include "lan.h"
 
-void CONSOLE::init(void) {
+/**
+ * Instantiate classes
+ */
+LAN     console_lan;
+
+
+void CONSOLE::init(void) 
+{
     //TODO: Do we want to modify these lines?
     //TODO: for example, do we instead want to grab 
     //TODO: rhoffset values from EEPROM
@@ -45,8 +53,9 @@ void CONSOLE::console ()
         case 2:
             
             // TODO: we need to get the following to work
-            // WiFiConnect(buf_for_router_password, buf_for_router_ssid);
-            // send_email();
+            // lan.WiFiConnect(buf_for_router_password, buf_for_router_ssid);
+            // lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
+            // lan.send_email();
             
             
             __asm__("nop\n\t");
