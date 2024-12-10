@@ -42,7 +42,7 @@
 
 const uint8_t SevenSeg_Font36_Table [] PROGMEM = 
 {
-	// @0 ' ' (36 high x 32 wide pixels   ) //TODO update
+	// @0 ' ' (36 high x 32 wide pixels   ) 
 	0x00,0x00,0x00,0x00,
     0x07,0xFF,0xFF,0x80,
     0x07,0xFF,0xFF,0x80,

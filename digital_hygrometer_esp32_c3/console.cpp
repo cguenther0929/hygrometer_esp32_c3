@@ -7,6 +7,10 @@
 LAN     console_lan;
 
 
+
+extern String SW_VER_STRING;
+
+
 void CONSOLE::init(void) 
 {
     //TODO: Do we want to modify these lines?
@@ -19,14 +23,33 @@ void CONSOLE::init(void)
 /**
  * @brief Get Number Input From User
  */
-uint8_t CONSOLE::get_user_uint8t_value ( void )  //TODO: need to implement this function
+uint8_t CONSOLE::get_user_uint8t_value ( void )  
 {
-  __asm__("nop\n\t");
-  return 0xFF;
+    String user_input = "";
+    uint16_t return_number = 0;
+    
+    while (Serial.available() <= 0);  //Pause until we start receiving data
+    
+    
+    while (Serial.available() > 0) {
+        char c = Serial.read();             //gets one byte from serial buffer
+        user_input += c;                    
+        delay(1);                           //Allow buffer to fill with next character
+    }
+
+    return_number = user_input.toInt();
+
+    if(return_number > 255) 
+    {
+        return_number = 255;
+    }
+
+    return (return_number);
 }
 
 void CONSOLE::console ()
 {
+
 
     float temporary_voltage_value = 0.0;
     uint8_t user_option = 0;
@@ -38,24 +61,22 @@ void CONSOLE::console ()
     Serial.println("5) View battery voltage");
 
     Serial.println("Enter a value: ");
-    user_option = get_user_uint8t_value();   //TODO: need to implement
+    user_option = get_user_uint8t_value();  
 
     switch (user_option) 
     {
         /* Print the SW version */
         case 1:
-            Serial.print("The SW version: ");
-            // Serial.println(SW_VER_STRING);       //TODO: this is the line we want, but we keep getting errors 
-            Serial.println("CORRECT THIS LINE!");
+            Serial.println("The SW version: " + SW_VER_STRING);
         break;
 
         /* Send test email */
         case 2:
             
-            // TODO: we need to get the following to work
+            // TODO: do the following without hardcoding 
             // lan.WiFiConnect(buf_for_router_password, buf_for_router_ssid);
-            // lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
-            // lan.send_email();
+            console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  
+            console_lan.send_email();
             
             
             __asm__("nop\n\t");
