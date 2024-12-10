@@ -37,3 +37,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.0.6 -- Many features were added.  Features included, but are not necessarily limited to: printing a string at the bottom of the display; reading temperature; reading humidity; selecting the sensor; fsm state enumeration; sw string updated; general cleanup; etc. 
 
 * v0.0.7 -- Timer routines have been updated for the ESP 3.0x API.  The sending of emails has been completely revamped.  The console routine has been implemented by way of separate h and cpp files.  This version compiles, but there is a lot of testing/work that needs to occur.  
+
+* v0.0.8 --  Code compiles.  Much EEPROM-related information has been added.  A good amount of network stuff has been added.  There is now an application header and source file (kind of like a functions ino file).
