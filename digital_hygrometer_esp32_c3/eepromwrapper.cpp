@@ -9,10 +9,15 @@ void MYPROM::init(void)
     __asm__("nop\n\t");
 }
 
-uint8_t eeprom_erase ( void )  
+void MYPROM::eeprom_erase ( void )  
 {
-    //TODO: need to define this function 
-    __asm__("nop\n\t");
+    uint16_t i = 0;             
+    for(i = 0; i < EEPROM_SIZE_IN_BYTES; i++) 
+    {
+        
+        EEPROM.write(i, NULL);  // Write NULL to the EEPROM, one byte at a time
+    }
+    
 
 }
 
@@ -75,7 +80,8 @@ bool MYPROM::eeprom_is_calibrated ( void )
 //    eeprom_get_status_word();
 
     uint8_t i = 0;             
-    for(i = 0; i < 4; i++) {
+    for(i = 0; i < 4; i++)
+     {
         
         convert.eeprom_byte_buffer[i] = EEPROM.read(EEPROM_ADDR_STAT_DWORD + i);  // Grabs one byte of info from the EEPROM
     }

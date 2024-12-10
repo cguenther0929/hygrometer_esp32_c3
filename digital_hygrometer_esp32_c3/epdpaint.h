@@ -42,6 +42,23 @@
 #include "epd1in54.h"
 #include "epdpaint.h"
 
+/**
+ * Eink parameters
+ */
+#define COLORED                   0
+#define UNCOLORED                 1
+
+#define MAX_FRAME_BUFFER    1024
+
+typedef struct ImageParameters    
+{
+    // uint8_t         current_line;        // Start from top.  Top row == 0 / bottom row = 200
+    uint8_t         width;          //TODO: Do we need this?
+    uint8_t         height;             //TODO: do we need this?
+    unsigned char   frame_buffer[MAX_FRAME_BUFFER];
+    
+};
+
 class Paint {
 public:
     Paint(unsigned char* image, int width, int height);
@@ -58,10 +75,7 @@ public:
     void DrawPixel(int x, int y, int colored);
     void DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored);
     void DrawStringAt(int x, int y, const char* text, sFONT* font, int colored);
-    
-    /**
-     * @brief Draw a sting at the bottom of the display
-     */
+    void SplashScreenString(const char* string); 
     void DrawStringBottom(const char* string);
     void DrawLine(int x0, int y0, int x1, int y1, int colored);
     void DrawHorizontalLine(int x, int y, int width, int colored);
@@ -72,10 +86,11 @@ public:
     void DrawFilledCircle(int x, int y, int radius, int colored);
 
 private:
-    unsigned char* image;
-    int width;
-    int height;
-    int rotate;
+    unsigned char*  image;
+    int             width;
+    int             height;
+    int             rotate;
+    uint8_t         current_line;        // Start from top.  Top row == 0 / bottom row = 200
 };
 
 #endif

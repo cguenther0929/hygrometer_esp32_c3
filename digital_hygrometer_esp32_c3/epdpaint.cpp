@@ -33,6 +33,7 @@ Paint::Paint(unsigned char* image, int width, int height) {
     /* 1 byte = 8 pixels, so the width should be the multiple of 8 */
     this->width = width % 8 ? width + 8 - (width % 8) : width;
     this->height = height;
+    this -> current_line = 0;
 }
 
 Paint::~Paint() {
@@ -50,8 +51,9 @@ void Paint::Clear(int colored) {
 }
 
 /**
- *  @brief: this draws a pixel by absolute coordinates.
- *          this function won't be affected by the rotate parameter.
+ * @brief: Lowest subroutine for drawing a pixel to the frame buffer 
+ * @details: this draws a pixel by absolute coordinates.
+ *              this function won't be affected by the rotate parameter.
  */
 void Paint::DrawAbsolutePixel(int x, int y, int colored) {
     if (x < 0 || x >= this->width || y < 0 || y >= this->height) {
@@ -107,7 +109,7 @@ void Paint::SetRotate(int rotate){
 }
 
 /**
- *  @brief: this draws a pixel by the coordinates
+ *  @brief: Place pixel in the frame buffer per the coordinates.  
  */
 void Paint::DrawPixel(int x, int y, int colored) {
     int point_temp;
@@ -143,7 +145,7 @@ void Paint::DrawPixel(int x, int y, int colored) {
 }
 
 /**
- *  @brief: this draws a charactor on the frame buffer but not refresh
+ *  @brief: Place character in frame buffer, not on screen
  */
 void Paint::DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored) {
     int i, j;
@@ -166,7 +168,8 @@ void Paint::DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored) 
 }
 
 /**
-*  @brief: this displays a string on the frame buffer but not refresh
+ * This will put the string in the frame buffer, but 
+ * will not place the string on the display
 */
 void Paint::DrawStringAt(int x, int y, const char* text, sFONT* font, int colored) {
     const char* p_text = text;
@@ -185,19 +188,16 @@ void Paint::DrawStringAt(int x, int y, const char* text, sFONT* font, int colore
     }
 }
 
-// void Paint::DrawStringBottom(int x, int y, const char* text, sFONT* font, int colored) {
 void Paint::DrawStringBottom(const char* string) {
 
     //TODO: Need to clean this routine up a lot
     Epd epd;
 
-    // paint.SetWidth(200);
-    // paint.SetHeight(18);
     SetWidth(200);
     SetHeight(18);
 
     //TODO: At the time of writing this, 
-    //TODO: I'm not sure how these number
+    //TODO: I'm not sure how the parameters =
     //TODO: (16 and 3) were derived.  
     //TODO: This might start 16 pixels in (X=16)
     //TODO: and 183 down (SetFrameMemory defines the 
@@ -207,8 +207,8 @@ void Paint::DrawStringBottom(const char* string) {
     //TODO: 195 pixels.   
     //TODO: for colored/uncolored, we need to do something 
     //TODO: more elaborate here
-    DrawStringAt(16, 3, string, &Font12, 1);
-    // paint.DrawStringAt(16, 3, string, &Font12, COLORED)
+    DrawStringAt(16, 3, string, &Font12, 0);
+    // paint.DrawStringAt(16, 3, string, &Font12, UNCOLORED)
 
     /**
      * Set the absolute Y pixel location near
@@ -246,6 +246,36 @@ void Paint::DrawStringBottom(const char* string) {
     //     counter++;
     // }
 }
+
+
+
+void Paint::SplashScreenString(const char* string) 
+{
+    //TODO: need to define this function
+    //TODO: stopped working on this on 12/10/24 @8:52AM
+    __asm__("nop\n\t");
+
+    SetWidth(200);
+    SetHeight(18);
+    
+    // LDirInit();
+
+    // if(clear_frame_mem || image.current_row >= 183){
+    //     EinkClearDispalyandMem ();
+    //     image.current_row = 0;
+    // }
+
+    // ClearLocalFrameBuffer(UNCOLORED);     
+    // DrawStringAt(16, 3, string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
+    // EinkSetFrameMemory(image.frame_buffer, 0, image.current_row, image.width, image.height);  
+    // image.current_row += 18;
+
+    // DisplayFrame();
+    
+    // EinkSleep();
+}
+
+
 
 /**
 *  @brief: this draws a line on the frame buffer

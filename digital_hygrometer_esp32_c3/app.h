@@ -34,9 +34,14 @@
 #include "eepromwrapper.h"
 
 
+typedef struct sensor_info
+{
+    uint8_t     rh_reading_sensor_one;
+    uint8_t     rh_reading_sensor_two;
+    uint8_t     temp_reading_sensor_one;
+    uint8_t     temp_reading_sensor_two;
+};
 
-
-// TODO: need to add the network structure
 typedef struct network_info
 {
     char hyg_name[HYG_NAME_STR_LEN];
@@ -64,6 +69,13 @@ class APP{
          * @return nothing
          */
         void init(void);
+        
+        /**
+         * @brief Display splash screen (i.e. SW ver)
+         * @param \p none 
+         * @return nothing
+         */
+        void display_splash_screen(void);
         
         /**
          * @brief Determins if network parameters are valid 

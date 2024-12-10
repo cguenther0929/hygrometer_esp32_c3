@@ -69,18 +69,13 @@ String SW_VER_STRING = "0.0.8";
 #define LONG_PRESS_50MS_EVENTS    20
 
 
-/**
- * Eink parameters
- */
-#define COLORED                   0
-#define UNCOLORED                 1
 
 /**
  * Sensor parameters
  */
 #define SENSOR_1                  1
 #define SENSOR_2                  2
-bool calibrate_sensors            = false;
+bool calibrate_sensors            = false;  //TODO we may want to put this in the sensor struct
 
 /**
  * Serial parameters
@@ -99,18 +94,18 @@ bool calibrate_sensors            = false;
 #define MIN_BATT_VOLTAGE          3.0
 
 typedef enum State {
-  IDLE,
-  READ_SENSORS,
-  UPDATE_DISPLAY,
-  SEND_EMAIL
+  STATE_SLEEP,
+  STATE_READ_DATA,
+  STATE_UPDATE_DISPLAY,
+  STATE_SEND_EMAIL
 };
 
 
 /**
- * Uncomment the following 
- * to enable logging
+ * Set to true to 
+ * enable logging
  */
-// #define ENABLE_LOGGING
+#define ENABLE_LOGGING                true
 
 /**
  * Timer parameters
@@ -230,10 +225,7 @@ APP     app;
  * at address 0, the instruction EEPROM.read(0)
  * shall be used.
  * 
- * 
  **/
-
-
 
 
 /**
@@ -296,16 +288,7 @@ void IRAM_ATTR button_press()
  */
 void setup() {
 
-  State idle;
-
-  /**
-   * Initialization functions
-   */
-  i2c.init();
-  console.init();
-  lan.init();
-
-
+  State STATE_READ_DATA;
 
  /**
   * @brief Define IO interrupt for push button input 
@@ -334,14 +317,33 @@ void setup() {
   esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);  
 
   Serial.begin(SERIAL_BAUD_RATE);
-  Serial.print("Reset.");
+  if(ENABLE_LOGGING)
+  {
+    Serial.print("Reset.");
+  }
   if (epd.Init(lut_full_update) != 0) {
+    if(ENABLE_LOGGING)
+    {
       Serial.print("e-Paper init failed");
-      return;
+    }
+    while(true);
   }
 
+  /**
+   * Remaining initialization functions
+   */
+  if(ENABLE_LOGGING)
+  {
+    Serial.print("Calling remaining initialization functions");
+  }
+  i2c.init();
+  console.init();
+  lan.init();
+  eeprom.init();
+  app.init();
+
   /** 
-   *  there are 2 memory areas embedded in the e-paper display
+   *  There are 2 memory areas embedded in the e-paper display
    *  and once the display is refreshed, the memory area will be auto-toggled,
    *  i.e. the next action of SetFrameMemory will set the other memory area
    *  therefore you have to clear the frame memory twice.
@@ -362,42 +364,55 @@ void setup() {
   epd.SetFrameMemory(IMAGE_DATA);   
   epd.DisplayFrame();
 
-  /* The following was written by me and seems to somewhat work*/
-  paint.SetWidth(4);
-  paint.SetHeight(80);
-  paint.Clear(UNCOLORED);
-  paint.DrawLine(0, 0, 1, 160, UNCOLORED);
-  paint.DrawLine(1, 0, 2, 160, UNCOLORED);
-  paint.DrawLine(2, 0, 3, 160, UNCOLORED);
-  paint.DrawLine(3, 0, 4, 160, UNCOLORED);
-  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
 
-  paint.SetWidth(56);         // 7 pixels wide x 8 characters 
-  paint.SetHeight(12);        // 12 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
-  epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
+
+
+
+  /*~~~~~~~~~~~~~~~~~~~~~~~ ORIGINAL DISPLAY STUFF ~~~~~~~~~~~~~~~~~~~~~~~*/
   
-  paint.SetWidth(77);         // 7 pixels wide x 11 characters 
-  paint.SetHeight(12);        // 12 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Temperature", &Font12, UNCOLORED);    // Font12 is seven pixels wide
-  epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
+  /* The following was written by me and seems to somewhat work*/
+  // paint.SetWidth(4);
+  // paint.SetHeight(80);
+  // paint.Clear(UNCOLORED);
+  // paint.DrawLine(0, 0, 1, 160, UNCOLORED);
+  // paint.DrawLine(1, 0, 2, 160, UNCOLORED);
+  // paint.DrawLine(2, 0, 3, 160, UNCOLORED);
+  // paint.DrawLine(3, 0, 4, 160, UNCOLORED);
+  // epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
+
+  // paint.SetWidth(56);         // 7 pixels wide x 8 characters 
+  // paint.SetHeight(12);        // 12 pixels tall
+  // paint.Clear(UNCOLORED);
+  // paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
+  // epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
   
-  paint.SetWidth(64);         // 32 pixels wide x 2 characters = 64 
-  paint.SetHeight(36);        // 36 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, UNCOLORED);
-  epd.SetFrameMemory(paint.GetImage(), 17, 142 , paint.GetWidth(), paint.GetHeight());
+  // paint.SetWidth(77);         // 7 pixels wide x 11 characters 
+  // paint.SetHeight(12);        // 12 pixels tall
+  // paint.Clear(UNCOLORED);
+  // paint.DrawStringAt(0, 0, "Temperature", &Font12, UNCOLORED);    // Font12 is seven pixels wide
+  // epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
   
-  paint.SetWidth(64);
-  paint.SetHeight(36);
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, UNCOLORED);
-  epd.SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
+  // paint.SetWidth(64);         // 32 pixels wide x 2 characters = 64 
+  // paint.SetHeight(36);        // 36 pixels tall
+  // paint.Clear(UNCOLORED);
+  // paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, UNCOLORED);
+  // epd.SetFrameMemory(paint.GetImage(), 17, 142 , paint.GetWidth(), paint.GetHeight());
+  
+  // paint.SetWidth(64);
+  // paint.SetHeight(36);
+  // paint.Clear(UNCOLORED);
+  // paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, UNCOLORED);
+  // epd.SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
   /* END OF WORKING EXAMPLE WRITTEN BY CJG*/
 
-  epd.DisplayFrame();
+  // epd.DisplayFrame();
+
+  /*~~~~~~~~~~~~~~~~~~~~~~~ ORIGINAL DISPLAY STUFF ~~~~~~~~~~~~~~~~~~~~~~~*/
+
+
+
+
+
 
   //Initialize timer interrupt
   //                 The frequency of the timer   
@@ -430,15 +445,15 @@ void loop() {
   // esp_sleep_enable_timer_wakeup(1000);
   // esp_deep_sleep_start();  //This will put the module into deep sleep
 
-  //TODO: This is in just for testing!! 
-  EEPROM.write(0, 9);
-  EEPROM.read(0);
 
   /**
    * Determine if the EEPROM has been
-   * initialized.  If not, we need to erase it
+   * initialized.  If not, it shall be erased 
    */
-  //TODO: erase EEPROM here?
+  if(!eeprom.eeprom_is_initalized() && !eeprom.eeprom_is_calibrated())
+  {
+    eeprom.eeprom_erase();
+  }
   
   if(Timer50msFlag == true) 
   {

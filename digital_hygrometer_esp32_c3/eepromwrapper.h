@@ -34,6 +34,12 @@
 #include <EEPROM.h>
 
 
+
+/**
+ * General EEPROM parameters
+ */
+#define EEPROM_SIZE_IN_BYTES                        512
+
 /**
  * EEPROM start addresses for 
  * the digital hygrometer

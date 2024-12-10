@@ -3,6 +3,11 @@
 
 void APP::init(void) 
 {
+    __asm__("nop\n\t");
+}
+
+void APP::display_splash_screen( void ) 
+{
     //TODO: need to define this function 
     __asm__("nop\n\t");
 }
