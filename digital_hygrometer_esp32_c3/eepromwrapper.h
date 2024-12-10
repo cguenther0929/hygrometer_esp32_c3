@@ -40,7 +40,7 @@
  */
 #define EEPROM_ADDR_RH_ONE_OFFSET                   0x00
 #define EEPROM_ADDR_RH_TWO_OFFSET                   0x04
-#define EEPROM_ADDR_STAT_DWORD                 0x08
+#define EEPROM_ADDR_STAT_DWORD                      0x08
 
 #define EEPROM_ADDR_WIFI_SSID                       0x0B        // The routers SSID name 
 #define WIFI_SSID_STR_LEN                           0x10        // Length of router SSID name (16 bytes here)
