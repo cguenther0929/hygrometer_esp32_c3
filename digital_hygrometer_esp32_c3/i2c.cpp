@@ -193,26 +193,11 @@ float I2C::get_humidity() {
     uint16_t    temp_uint16t    = 0x0000;  
     float       temp_float      = 0.0; 
 
-    //TODO: remove the notes below this ...
-    
-    /**
-     * 
-     * temp_data = I2CRead_16b(SI7020_BASE_ADDRESS, SI7020_MEAS_HUM_HOLD_MASTER);   
-            sensor.rh_value_1 = (float)((125.0 * temp_data / 65536) - 6 + sensor.rh_offset_1);
-     * 
-     * 
-     * 
-     */
-
-
-
-
     Wire.beginTransmission(SI7020_BASE_ADDRESS); 
     temp_uint16t = Wire.requestFrom(SI7020_MEAS_HUM_HOLD_MASTER, 1);    // Request 1 byte from the address  
     Wire.endTransmission();
     //TODO: need to define the offsets
     temp_float = (float)((125.0 * temp_uint16t / 65536) - 6 + 0);
-    // temp_float = (float)((125.0 * temp_uint16t / 65536) - 6 + sensor.rh_offset_1);
     
     return temp_float;
 

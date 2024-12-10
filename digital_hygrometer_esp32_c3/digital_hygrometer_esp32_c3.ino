@@ -25,26 +25,15 @@
  * 
  * TODO: Handle the calibration routine (read button and store values)
  * TODO: choose sensors via mux
- * TODO: read temperature
- * TODO: read relative humidity
  * TODO: wake up processor from deep sleep with timer
  * TODO: button press algorithm 
- * TODO: establish the command line interface
  * TODO: adc for measuring battery voltage
  * TODO: get email features tested and working
  * TODO: Establish text notification at bottom of screen 
  * 
  */
 
-// ==============================
-// ==============================
-// SW version string 
-#define SW_VER_STRING        "0.0.8"
-// ==============================
-// ==============================
 
-// #include <ESP8266WiFi.h>  //TODO: is there a file specific to the ESP32?
-// #include <soc/xxx_caps.h>  //TODO: is there a file specific to the ESP32?
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESP_Mail_Client.h>
@@ -58,6 +47,13 @@
 #include "i2c.h"
 #include "console.h"
 #include "lan.h"
+
+// ==============================
+// ==============================
+// SW version string 
+String SW_VER_STRING = "0.0.8";
+// ==============================
+// ==============================
 
 /**
  * Button related
@@ -134,7 +130,6 @@ char rx_char                          = '\n';
  */
 hw_timer_t *Timer1_Cfg = NULL;
 
-//TODO: is the image buffer used or can it be deleted?  
 /**
   * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
   * In this case, a smaller image buffer is allocated and you have to 
@@ -400,74 +395,6 @@ void setup() {
 
   epd.DisplayFrame();
 
-/**
- * ~~~  TIMER and 
- *      TIMER INTERRUPT ~~~
- * 
- * There is good information in the docs:
- * https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/timer.html
- */
-  /**
-   * TODO: the following example code 
-   * needs to be removed.
-   * 
-   */
-            /* ~~~ BEFORE ESP API UPDATE ~~~ */
-        // #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
-        //      void RH_INTERRUPT_ATTR esp32_timer_interrupt_handler(); // Forward declaration
-        //      timer = timerBegin(0, 80, true); // Alarm value will be in in us
-        //      timerAttachInterrupt(timer, &esp32_timer_interrupt_handler, true);
-        //      timerAlarmWrite(timer, 1000000 / _speed / 8, true);
-        //      timerAlarmEnable(timer);
-        //  #endif
-
-
-            /* ~~~ AFTER ESP API UPDATE ~~~ */
-        // #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
-        //     void RH_INTERRUPT_ATTR esp32_timer_interrupt_handler(); // Forward declaration
-        //     timer = timerBegin(1000000);
-        //     timerAttachInterrupt(timer, &esp32_timer_interrupt_handler);
-        //     timerAlarm(timer, 1000000 / _speed / 8, true, 0);
-        // #endif
-
-/**
- * ========== ORIGINAL TIMER STUFF ==================
- */
-
-    /**
-   * The ESP32-C3 close frequency is 
-   * assumed to be 160MHz, so to get
-   * to a frequency of 1000000, the 
-   * prescaler needs to be 160
-   */
-
-  //Initialize timer interrupt
-  //               Timer to use (0 through 3)
-  //                   | Prescaler of 160 to run the timer at 1MHz (see note above)       
-  //                   |   |true = count up
-  //                   |   |  |  
-  // IntTmr = timerBegin(0, 160, true);   //TODO: original line of code
-  
-  //                 Name of timer (from above) 
-  //                     |      Name of callback function       
-  //                     |        |     true (the tutorial did not indicate what this mans)
-  //                     |        |        |     
-  // timerAttachInterrupt(IntTmr, &onTimer, true);     //TODO: original line of code
-
-  //              Name of timer (from above) 
-  //                  |   Interrupt time value in microseconds (I think we want the timer to run at 1MHz (see notes above))       
-  //                  |     |    true = to tell the timer to reload 
-  //                  |     |      |  
-  // timerAlarmWrite(IntTmr, 50000, true);   //TODO: original line of code
-  
-  // Enable the timer 
-  // timerAlarmEnable(IntTmr);  //TODO: original line of code
-
-
-/**
- * ========== NEW TIMER CODE (BETA) ==================
- */
-
   //Initialize timer interrupt
   //                 The frequency of the timer   
   //                   |     
@@ -485,20 +412,6 @@ void setup() {
   //           |          |      |  Value to reload into the timer when auto reloading
   //           |          |      |   |
   timerAlarm(Timer1_Cfg, 50000, true,0);
-  
-  // // Enable the timer 
-  // timerAlarmEnable(IntTmr);
-
-
-
-
-
-
-
-
-
-
-
   
 }
 

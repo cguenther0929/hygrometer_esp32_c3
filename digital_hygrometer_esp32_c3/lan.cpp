@@ -121,7 +121,6 @@ void smtpCallback(SMTP_Status status)
   //   ESP_MAIL_PRINTF("Subject: %s\n", result.subject.c_str());
   // }
   //TODO: we can remmove or edit the following line
-  Serial.println("Callback function test\n");
 
   // You need to clear sending result as the memory usage will grow up.
   smtp.sendingResult.clear();

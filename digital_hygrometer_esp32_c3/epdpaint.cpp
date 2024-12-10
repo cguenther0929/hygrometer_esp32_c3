@@ -24,7 +24,6 @@
  * THE SOFTWARE.
  */
 
-// #include <avr/pgmspace.h>  //TODO: The ESP32 is not of the AVR architecture, so this line can likely be removed
 #include <pgmspace.h>
 #include "epdpaint.h"
 

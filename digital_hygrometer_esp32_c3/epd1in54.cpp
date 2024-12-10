@@ -148,10 +148,8 @@ void Epd::SetFrameMemory(
     }
     if (y + image_height >= this->height) {
         y_end = this->height - 1;
-        Serial.println("Truncating image height.");  //TODO REMOVE?
     } else {
         y_end = y + image_height - 1;
-        // Serial.print("154: y height: "); Serial.println(y_end);  TODO REMOVE?
     }
     SetMemoryArea(x, y, x_end, y_end);
     SetMemoryPointer(x, y);
