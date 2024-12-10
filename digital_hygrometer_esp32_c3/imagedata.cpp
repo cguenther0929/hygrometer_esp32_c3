@@ -25,7 +25,6 @@
 
 #include "imagedata.h" 
 #include <pgmspace.h>
-// #include <avr/pgmspace.h>
 
 /* Here is the cigar image  */
 const unsigned char IMAGE_DATA[] PROGMEM = { 

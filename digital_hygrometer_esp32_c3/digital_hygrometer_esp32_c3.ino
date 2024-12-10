@@ -41,12 +41,14 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include <esp_timer.h>
+#include "eepromwrapper.h"
 #include "epd1in54.h"
 #include "epdpaint.h"
 #include "imagedata.h"
 #include "i2c.h"
 #include "console.h"
 #include "lan.h"
+#include "app.h"
 
 // ==============================
 // ==============================
@@ -142,6 +144,8 @@ Epd     epd;
 I2C     i2c;
 CONSOLE console;
 LAN     lan;
+MYPROM  eeprom;
+APP     app;
 
 /**
  * Wake from deep sleep using a timer
