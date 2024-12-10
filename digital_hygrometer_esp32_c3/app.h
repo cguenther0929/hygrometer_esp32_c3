@@ -64,6 +64,13 @@ class APP{
          * @return nothing
          */
         void init(void);
+        
+        /**
+         * @brief Determins if network parameters are valid 
+         * @param \p none 
+         * @return bool
+         */
+        bool network_parameters_valid( void );
 
 
         

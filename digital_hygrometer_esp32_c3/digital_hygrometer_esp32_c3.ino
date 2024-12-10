@@ -433,6 +433,12 @@ void loop() {
   //TODO: This is in just for testing!! 
   EEPROM.write(0, 9);
   EEPROM.read(0);
+
+  /**
+   * Determine if the EEPROM has been
+   * initialized.  If not, we need to erase it
+   */
+  //TODO: erase EEPROM here?
   
   if(Timer50msFlag == true) 
   {

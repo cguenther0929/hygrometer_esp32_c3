@@ -31,6 +31,7 @@
 #define HYGROMETEREEPROM_H
 
 #include <Arduino.h>    //This likely defines wire.h
+#include <EEPROM.h>
 
 
 /**
@@ -39,7 +40,7 @@
  */
 #define EEPROM_ADDR_RH_ONE_OFFSET                   0x00
 #define EEPROM_ADDR_RH_TWO_OFFSET                   0x04
-#define EEPROM_ADDR_ADDR_INIT_DWORD                 0x08
+#define EEPROM_ADDR_STAT_DWORD                 0x08
 
 #define EEPROM_ADDR_WIFI_SSID                       0x0B        // The routers SSID name 
 #define WIFI_SSID_STR_LEN                           0x10        // Length of router SSID name (16 bytes here)
@@ -102,7 +103,7 @@ class MYPROM {
         /**
          * @brief MYPROM store byte
          * @details MYPROM is 512 bytes
-         * @param \p Address (16 bit)  
+         * @param \p address (uint 16 bit)  
          * @param \p Value (8 bit)
          * @return nothing
          */
@@ -111,8 +112,8 @@ class MYPROM {
         /**
          * @brief MYPROM store float 
          * @details MYPROM is 512 bytes
-         * @param \p Address (16 bit)  
-         * @param \p Value (8 bit)
+         * @param \p address (uint 16 bit)  
+         * @param \p value (float)
          * @return nothing
          */
         void eeprom_store_float (uint16_t address, uint8_t value);
@@ -120,14 +121,14 @@ class MYPROM {
         /**
          * @brief MYPROM read byte
          * @details MYPROM is 512 bytes
-         * @param \p Address (16 bit)  
+         * @param \p address (uint 16 bit)  
          * @return The byte the occupies the read address
          */
         uint8_t eeprom_read_byte (uint16_t address);
 
         /**
          * @brief MYPROM store a string 
-         * @param \p Address (16 bit)  
+         * @param \p address (uint 16 bit)  
          * @param \p Sting (const char pointer)  
          * @return nothing 
          */
@@ -135,8 +136,8 @@ class MYPROM {
         
         /**
          * @brief MYPROM read a string 
-         * @param \p Address (16 bit)  
-         * @param \p Buffer (char pointer to buffer)  
+         * @param \p address (uint 16 bit)  
+         * @param \p buffer (char pointer to buffer)  
          * @return nothing 
          */
         void eeprom_read_string(uint16_t address, char * string_buffer);
@@ -152,11 +153,25 @@ class MYPROM {
         void eeprom_parse_float(float float_value, uint8_t four_byte_data_array[]);
         
         /**
-         * @brief Retrieve the 32 bit status word from the MYPROM
-         * @param \p none
+         * @brief Retrieve the 32 bit status word
+         * @param \p address (uint 16b)
          * @return nothing 
          */
-        void eeprom_get_status_word( void );
+        void eeprom_get_status_word( uint16_t address );
+
+        /**
+         * @brief Determine if we are calibrated
+         * @param \p none
+         * @return bool 
+         */
+        bool eeprom_is_calibrated ( void );
+        
+        /**
+         * @brief Determine if the EEPROM has been initialized 
+         * @param \p none
+         * @return bool 
+         */
+        bool eeprom_is_initalized ( void );
 
         
 };
