@@ -31,12 +31,7 @@ String email_message = "";
 
 
 
-/**
- * Analog related parameters
- */
-#define ANALOG_BATT_PIN           0
-float ADC_REFERENCE     = 1.10;         // ESP32-C3 ADC reference
-float ADC_BIT_VALUE     = 4096.0;       // ESP32-C3 bit value (12 bit ADC)
+
 
 uint8_t user_option = 0x00;
 
@@ -83,46 +78,6 @@ void state_handler( void )
 {
   //TODO: need to define this routine
   __asm__("nop\n\t");
-}
-
-
-/**
- * @brief Get Battery Voltage
- */
-float get_battery_voltage (void) 
-{
-  uint16_t  digital_reading   = 0;
-  float voltage_reading       = 0.0;
-  float temp_reading          = 0.0;
-  float temp_sensor_xfer      = 0.0;
-
-  /**
-   * The ESP32-C3's A/D is 12 bit.
-   * 
-   * Other useful functions:
-   * analogSetAttenuation(attenuation): sets the input
-   * attenuation for all ADC pins. Default is ADC_11db.
-   * Accepted values:
-   * ADC_0db: sets no attenuation. ADC can measure up to
-   * approximately 800 mV (1V input = ADC reading of 1088).
-   * ADC_2_5db: The input voltage of ADC will be attenuated, 
-   * extending the range of measurement to up to approx. 1100 mV. 
-   * (1V input = ADC reading of 3722).
-   * ADC_6db: The input voltage of ADC will be attenuated, 
-   * extending the range of measurement to up to approx. 1350 mV.
-   * (1V input = ADC reading of 3033).
-   * ADC_11db: The input voltage of ADC will be attenuated, 
-   * extending the range of measurement to up to approx. 2600 mV.
-   * (1V input = ADC reading of 1575).
-   * 
-   */
-
-  digital_reading = analogRead(ANALOG_BATT_PIN);
-  
-  voltage_reading = (float)(voltage_reading*ADC_REFERENCE);
-  voltage_reading = (float)(digital_reading/ADC_BIT_VALUE);
-  
-  return voltage_reading;
 }
 
 

@@ -34,6 +34,13 @@
 #include "eepromwrapper.h"
 
 
+/**
+ * Analog related parameters
+ */
+#define ANALOG_BATT_PIN           0     //TODO: need to fix the following two lines that are commented out
+// float ADC_REFERENCE     = 1.10;         // ESP32-C3 ADC reference
+// float ADC_BIT_VALUE     = 4096.0;       // ESP32-C3 bit value (12 bit ADC)
+
 typedef struct sensor_info
 {
     uint8_t     rh_reading_sensor_one;
@@ -83,6 +90,13 @@ class APP{
          * @return bool
          */
         bool network_parameters_valid( void );
+
+        /**
+         * @brief Get battery voltage  
+         * @param \p none 
+         * @return float value of battery voltage
+         */
+        float get_battery_voltage (void); 
 
 
         

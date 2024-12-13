@@ -188,6 +188,10 @@ void Paint::DrawStringAt(int x, int y, const char* text, sFONT* font, int colore
     }
 }
 
+
+
+
+
 void Paint::DrawStringBottom(const char* string) {
 
     //TODO: Need to clean this routine up a lot
@@ -249,31 +253,37 @@ void Paint::DrawStringBottom(const char* string) {
 
 
 
-void Paint::SplashScreenString(const char* string) 
+void Paint::SplashScreenString(const char* string, bool clear_frame_buffer) 
 {
     //TODO: need to define this function
     //TODO: stopped working on this on 12/10/24 @8:52AM
-    __asm__("nop\n\t");
 
-    SetWidth(200);
-    SetHeight(18);
+    // SetWidth(200); //TODO: put back in
+    // SetHeight(18);   //TODO: put back in
     
-    // LDirInit();
+    // LDirInit(); //TODO: REMOVE
 
-    // if(clear_frame_mem || image.current_row >= 183){
-    //     EinkClearDispalyandMem ();
-    //     image.current_row = 0;
+    // if(clear_frame_buffer || this -> current_line >= 183){  //TODO: put this for loop back in
+    //     Clear ();
+    //     this->current_line = 0;
     // }
 
-    // ClearLocalFrameBuffer(UNCOLORED);     
-    // DrawStringAt(16, 3, string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
-    // EinkSetFrameMemory(image.frame_buffer, 0, image.current_row, image.width, image.height);  
-    // image.current_row += 18;
-
-    // DisplayFrame();
+    // Clear ();   //TODO: put back in
+    // DrawStringAt(16, 3, string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high    //TODO: put back in
+    // EinkSetFrameMemory(image.frame_buffer, 0, image.current_row, image.width, image.height);  TODO: need to delete this line
+    // Example implementation -> SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
+    // SetFrameMemory(GetImage(), 0, this->current_line , GetWidth(), GetHeight()); //TODO: put back in
     
-    // EinkSleep();
+    this->current_line+= 18;   
+
+    // DisplayFrame();   //TODO: put back in
+    
+    // Sleep();   //TODO: put back in
 }
+
+
+
+
 
 
 

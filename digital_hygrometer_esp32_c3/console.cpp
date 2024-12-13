@@ -1,11 +1,14 @@
 #include "console.h"
 #include "lan.h"
+#include "i2c.h"
+#include "app.h"
 
 /**
  * Instantiate classes
  */
 LAN     console_lan;
-
+APP     app_function;
+I2C     i2c_function;
 
 
 extern String SW_VER_STRING;
@@ -55,10 +58,11 @@ void CONSOLE::console ()
     uint8_t user_option = 0;
 
     Serial.println("1) Print SW version.");
-    Serial.println("2) To send test email");
-    Serial.println("3) View RH calibration values");
-    Serial.println("4) View network parameters");
-    Serial.println("5) View battery voltage");
+    Serial.println("2) To send test email.");
+    Serial.println("3) View RH calibration values.");
+    Serial.println("4) View network parameters.");
+    Serial.println("5) View battery voltage.");
+    Serial.println("6) View sensor readings.");
 
     Serial.println("Enter a value: ");
     user_option = get_user_uint8t_value();  
@@ -77,9 +81,6 @@ void CONSOLE::console ()
             // lan.WiFiConnect(buf_for_router_password, buf_for_router_ssid);
             console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
             console_lan.send_email();
-            
-            
-            __asm__("nop\n\t");
         break;
 
         /* Vie RH calibration values */
@@ -94,7 +95,9 @@ void CONSOLE::console ()
 
         /* View battery voltage */
         case 5:
-            __asm__("nop\n\t");
+             Serial.print("The battery voltage is:  ");
+             Serial.print(app_function.get_battery_voltage());
+             Serial.println("V");
         break;
 
         /* Exit the application */

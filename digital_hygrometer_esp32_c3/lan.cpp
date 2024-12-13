@@ -11,8 +11,8 @@ SMTPSession smtp;
 char server[] = "smtp.gmail.com";  
 
 char buf_for_recipient_email[]      = "clinton.guenther@gmail.com";
-char buf_for_sender_email[]         = "clinton.guenther@gmail.com";
-char buf_for_email_password[]       = "TYgvik uoit bdja grxu";
+char buf_for_sender_email[]         = "clinton.debug@gmail.com";
+char buf_for_email_password[]       = "krrm ceex fwxm ubpk";
 char buf_for_router_password[]      = "GlockHK23";
 char buf_for_router_ssid[]          = "CJG_GbE_2G4";
 
@@ -41,14 +41,14 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
    */
   if(WIFI_LOGGING) {
     Serial.println("");
-    Serial.print("\tMy MAC address is: "); Serial.println(WiFi.macAddress());
-    Serial.print("\tConnecting to SSID: "); Serial.println(ssid);
-    Serial.print("\tSSID password: "); Serial.println(password);
+    Serial.println("\tMy MAC address is: "); Serial.println(WiFi.macAddress());
+    Serial.println("\tConnecting to SSID: "); Serial.println(ssid);
+    Serial.println("\tSSID password: "); Serial.println(password);
   }
 
   
   if(WIFI_LOGGING) {
-    Serial.print("\tWiFi Connecting\t");
+    Serial.println("\tWiFi Connecting\t");
   }
   
   // Wait for connection
@@ -73,9 +73,9 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
 
   if(WIFI_LOGGING) {
       Serial.println("\tWiFi connected!");
-      Serial.print("\tMy local IP: ");
+      Serial.println("\tMy local IP: ");
       Serial.println(WiFi.localIP());
-      Serial.print("\tSeeting WiFi Transmit Power");
+      Serial.println("\tSeeting WiFi Transmit Power");
   }
     
   // WiFi.setOutputPower(0);   //TODO: do we want this line in?

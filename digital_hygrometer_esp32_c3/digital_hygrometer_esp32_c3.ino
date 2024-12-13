@@ -41,6 +41,7 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include <esp_timer.h>
+#include <esp_log.h>
 #include "eepromwrapper.h"
 #include "epd1in54.h"
 #include "epdpaint.h"
@@ -50,12 +51,15 @@
 #include "lan.h"
 #include "app.h"
 
+
 // ==============================
 // ==============================
 // SW version string 
 String SW_VER_STRING = "0.0.8";
 // ==============================
 // ==============================
+
+long i_counter;
 
 /**
  * Button related
@@ -80,7 +84,7 @@ bool calibrate_sensors            = false;  //TODO we may want to put this in th
 /**
  * Serial parameters
  */
-#define SERIAL_BAUD_RATE          57600
+#define SERIAL_BAUD_RATE          115200
 
 /**
  * Interrupt / button pin
@@ -276,9 +280,9 @@ void IRAM_ATTR button_press()
   __asm__("nop\n\t");  //TODO: eventually need to remove this line
   /**
    * If the button is pushed
-   * update the button counter
+   * update the button i_counter
    */
-  //TODO: need to update the button counter
+  //TODO: need to update the button i_counter
   //TODO: and act accordingly
   btn_interrupt_triggered  = true;
 }
@@ -287,6 +291,8 @@ void IRAM_ATTR button_press()
  * @brief Arduino Setup routine
  */
 void setup() {
+
+  esp_log_level_set("*", ESP_LOG_NONE);
 
   State STATE_READ_DATA;
 
@@ -317,14 +323,33 @@ void setup() {
   esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);  
 
   Serial.begin(SERIAL_BAUD_RATE);
+
+
+    while(true)  //TODO: Why the fuck doesn't this work !?!?!?!?!?!?!
+    {
+      Serial.print("=");
+      if(i_counter >= 500000)
+        break;
+      i_counter++;
+    }
+  
+  // i_counter=0;
+  // while (i_counter < 1000000)
+  // {
+  //   Serial.print("=");
+  //   i_counter += 1;
+  // }
+  Serial.println("=");
+  
   if(ENABLE_LOGGING)
   {
-    Serial.print("Reset.");
+    Serial.println("Reset.");
+
   }
   if (epd.Init(lut_full_update) != 0) {
     if(ENABLE_LOGGING)
     {
-      Serial.print("e-Paper init failed");
+      Serial.println("e-Paper init failed");
     }
     while(true);
   }
@@ -334,7 +359,7 @@ void setup() {
    */
   if(ENABLE_LOGGING)
   {
-    Serial.print("Calling remaining initialization functions");
+    Serial.println("Calling remaining initialization functions");
   }
   i2c.init();
   console.init();
