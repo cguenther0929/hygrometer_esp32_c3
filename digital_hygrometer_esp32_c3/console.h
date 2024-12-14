@@ -31,6 +31,13 @@ class CONSOLE {
          * @return users input
          */
         uint8_t get_user_uint8t_value ( void );
+
+        /**
+         * @brief Flush serial input buffer 
+         * @param \p none 
+         * @return nothing
+         */
+        void flush_serial_input_buffer( void );
         
 };
 

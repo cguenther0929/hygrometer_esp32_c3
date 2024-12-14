@@ -13,6 +13,12 @@ I2C     i2c_function;
 
 extern String SW_VER_STRING;
 
+/**
+ * Set to true to 
+ * enable logging
+ */
+#define ENABLE_LOGGING                true
+
 
 void CONSOLE::init(void) 
 {
@@ -22,6 +28,15 @@ void CONSOLE::init(void)
     this -> user_selection = 99;
 
 }
+
+
+ void CONSOLE::flush_serial_input_buffer( void )
+ {
+    while (Serial.available() > 0) {
+        Serial.read();             //gets one byte from serial buffer
+    }
+ }
+
 
 /**
  * @brief Get Number Input From User
@@ -50,67 +65,88 @@ uint8_t CONSOLE::get_user_uint8t_value ( void )
     return (return_number);
 }
 
-void CONSOLE::console ()
+void CONSOLE::console ( void )
 {
 
-
-    float temporary_voltage_value = 0.0;
     uint8_t user_option = 0;
+    float temporary_voltage_value = 0.0;
 
-    Serial.println("1) Print SW version.");
-    Serial.println("2) To send test email.");
-    Serial.println("3) View RH calibration values.");
-    Serial.println("4) View network parameters.");
-    Serial.println("5) View battery voltage.");
-    Serial.println("6) View sensor readings.");
-
-    Serial.println("Enter a value: ");
-    user_option = get_user_uint8t_value();  
-
-    switch (user_option) 
+    while(user_option != 99)
     {
-        /* Print the SW version */
-        case 1:
-            Serial.println("The SW version: " + SW_VER_STRING);
-        break;
 
-        /* Send test email */
-        case 2:
-            
-            // TODO: do the following without hardcoding 
-            // lan.WiFiConnect(buf_for_router_password, buf_for_router_ssid);
-            console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
-            console_lan.send_email();
-        break;
 
-        /* Vie RH calibration values */
-        case 3:
-            __asm__("nop\n\t");
-        break;
 
-        /* View network parameters */
-        case 4:
-            __asm__("nop\n\t");
-        break;
+        Serial.println("1) Print SW version.");
+        Serial.println("2) To send test email.");
+        Serial.println("3) View RH calibration values.");
+        Serial.println("4) View network parameters.");
+        Serial.println("5) View battery voltage.");
+        Serial.println("6) View sensor readings.");
 
-        /* View battery voltage */
-        case 5:
-             Serial.print("The battery voltage is:  ");
-             Serial.print(app_function.get_battery_voltage());
-             Serial.println("V");
-        break;
+        Serial.println("Enter a value: ");
 
-        /* Exit the application */
-        case 99:
-            __asm__("nop\n\t");
-        break;
+        flush_serial_input_buffer();
 
-        default:
-            __asm__("nop\n\t");
+        user_option = get_user_uint8t_value();  
+
+        if(ENABLE_LOGGING)      // TODO:  I think we want to make this a variable up in main .ino so we can use extern here...
+        {
+            Serial.print("User entered option: ");
+            Serial.println(user_option);
+        }
+
+        switch (user_option) 
+        {
+            /* Print the SW version */
+            case 1:
+                Serial.println("\n\n=====================================");
+                Serial.println("The SW version: " + SW_VER_STRING);
+                Serial.println("=====================================\n\n");
+            break;
+
+            /* Send test email */
+            case 2:
+                __asm__("nop\n\t");
+
+                //TODO: we want these functions to be put back in
+                console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
+                // console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
+            break;
+
+            /* Vie RH calibration values */
+            case 3:
+                __asm__("nop\n\t");
+            break;
+
+            /* View network parameters */
+            case 4:
+                __asm__("nop\n\t");
+            break;
+
+            /* View battery voltage */
+            case 5:
+                __asm__("nop\n\t");
+
+                //TODO: we want these functions back in
+                 Serial.print("The battery voltage is:  ");
+                 Serial.print(app_function.get_battery_voltage());
+                 Serial.println("V");
+            break;
+
+            /* Exit the application */
+            case 99:
+                Serial.println("User wishes to leave console");
+                __asm__("nop\n\t");
+            break;
+
+            default:
+                __asm__("nop\n\t");
+            break;
 
     }
 
 
+    }
 
 
 

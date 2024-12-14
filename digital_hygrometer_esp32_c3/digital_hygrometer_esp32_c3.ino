@@ -54,7 +54,8 @@
 // ==============================
 // ==============================
 // SW version string 
-String SW_VER_STRING = "0.0.8";
+// String SW_VER_STRING = "0.0.8";
+String SW_VER_STRING = "test.test.test";
 // ==============================
 // ==============================
 
@@ -129,7 +130,7 @@ char rx_char                          = '\n';
 /**
  * Time structure 
  */
-hw_timer_t *Timer1_Cfg = NULL;
+hw_timer_t *Timer1_Cfg = NULL;     //TODO: we want this line back in
 
 /**
   * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
@@ -274,7 +275,7 @@ void IRAM_ATTR onTimer()
  * up above the setup routine
  * 
  */
-void IRAM_ATTR button_press() 
+void IRAM_ATTR button_press()    
 {
   //TODO: need statements here
   __asm__("nop\n\t");  //TODO: eventually need to remove this line
@@ -318,36 +319,15 @@ void setup() {
   //                                     |                Parameter for the input signal   
   //                                     |                   |
   //                                     |                   |
-  esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);  
+  esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);    
 
   Serial.begin(SERIAL_BAUD_RATE);
 
-  while (true)
-  {
-    Serial.print("=");
-  }
+  delay(2000);   //TODO: we need to remove this delay which is in for debugging
 
-  for(i_counter=0;i_counter<10000;i_counter++){
-    for(j_counter=0;j_counter<10000;j_counter++) {
-      while (true)
-      {
-        Serial.print("=");
-      }
-      
-      Serial.print("=");
-    }
-
-  }
-    
-  Serial.println("=");
-  
   if(ENABLE_LOGGING)
   {
-    Serial.println("===================================================");
-    Serial.println("===================================================");
     Serial.println("====================== Reset ======================");
-    Serial.println("===================================================");
-    Serial.println("===================================================");
 
   }
   if (epd.Init(lut_full_update) != 0) {
@@ -365,7 +345,8 @@ void setup() {
   {
     Serial.println("Calling remaining initialization functions");
   }
-  i2c.init();
+
+  i2c.init();          
   console.init();
   lan.init();
   eeprom.init();
@@ -446,21 +427,20 @@ void setup() {
   //Initialize timer interrupt
   //                 The frequency of the timer   
   //                   |     
-  Timer1_Cfg = timerBegin(1000000);
+  Timer1_Cfg = timerBegin(1000000);   
   
   //                 Name of timer (from above) 
   //                     |      Name of callback function       
   //                     |        |     true (the tutorial did not indicate what this mans)
   //                     |        |        |     
-  timerAttachInterrupt(Timer1_Cfg,&onTimer);
+  timerAttachInterrupt(Timer1_Cfg,&onTimer);    
 
   //       This is the timer struct 
   //           |        This is the alarm value (so alarm when we count up to this value)       
   //           |          |    true = to tell the timer to reload 
   //           |          |      |  Value to reload into the timer when auto reloading
   //           |          |      |   |
-  timerAlarm(Timer1_Cfg, 50000, true,0);
-  
+  timerAlarm(Timer1_Cfg, 50000, true,0);   
 }
 
 /**
@@ -479,7 +459,7 @@ void loop() {
    * Determine if the EEPROM has been
    * initialized.  If not, it shall be erased 
    */
-  if(!eeprom.eeprom_is_initalized() && !eeprom.eeprom_is_calibrated())
+  if(!eeprom.eeprom_is_initalized() && !eeprom.eeprom_is_calibrated())   
   {
     eeprom.eeprom_erase();
   }
@@ -489,7 +469,11 @@ void loop() {
     Timer50msFlag = false;
     rx_char = Serial.read();
     if (rx_char == 'z'){
-      console.console();
+      if(ENABLE_LOGGING)
+      {
+        Serial.println("User wishes to enter the console");
+      }
+      console.console();       //TODO: 12/13/24 uncommenting causing SPI FLASH messages to spew out -- issue
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;
@@ -507,7 +491,7 @@ void loop() {
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
-    i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED); 
+    i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED);    
   }
 
   if(Timer1000msFlag == true) 
