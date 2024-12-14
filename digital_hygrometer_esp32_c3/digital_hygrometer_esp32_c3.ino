@@ -41,7 +41,6 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include <esp_timer.h>
-#include <esp_log.h>
 #include "eepromwrapper.h"
 #include "epd1in54.h"
 #include "epdpaint.h"
@@ -59,7 +58,8 @@ String SW_VER_STRING = "0.0.8";
 // ==============================
 // ==============================
 
-long i_counter;
+uint16_t i_counter;
+uint16_t j_counter;
 
 /**
  * Button related
@@ -292,8 +292,6 @@ void IRAM_ATTR button_press()
  */
 void setup() {
 
-  esp_log_level_set("*", ESP_LOG_NONE);
-
   State STATE_READ_DATA;
 
  /**
@@ -324,26 +322,32 @@ void setup() {
 
   Serial.begin(SERIAL_BAUD_RATE);
 
+  while (true)
+  {
+    Serial.print("=");
+  }
 
-    while(true)  //TODO: Why the fuck doesn't this work !?!?!?!?!?!?!
-    {
+  for(i_counter=0;i_counter<10000;i_counter++){
+    for(j_counter=0;j_counter<10000;j_counter++) {
+      while (true)
+      {
+        Serial.print("=");
+      }
+      
       Serial.print("=");
-      if(i_counter >= 500000)
-        break;
-      i_counter++;
     }
-  
-  // i_counter=0;
-  // while (i_counter < 1000000)
-  // {
-  //   Serial.print("=");
-  //   i_counter += 1;
-  // }
+
+  }
+    
   Serial.println("=");
   
   if(ENABLE_LOGGING)
   {
-    Serial.println("Reset.");
+    Serial.println("===================================================");
+    Serial.println("===================================================");
+    Serial.println("====================== Reset ======================");
+    Serial.println("===================================================");
+    Serial.println("===================================================");
 
   }
   if (epd.Init(lut_full_update) != 0) {
