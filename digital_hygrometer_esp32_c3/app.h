@@ -31,7 +31,7 @@
 #define HYGROMETERFUNCTIONS_H
 
 #include <Arduino.h>    //This likely defines wire.h
-#include "eepromwrapper.h"
+#include "nvm.h"
 
 
 /**

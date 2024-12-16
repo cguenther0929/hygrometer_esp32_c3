@@ -164,10 +164,10 @@ void LAN::send_email ( void )
     smtp.debug(1);
 
     /* Callback function to get the Email sending status */
-    void smtpCallback(SMTP_Status status);
+    // void smtpCallback(SMTP_Status status); //TODO: just remove this?
     
     /* Set the callback function to get the sending results */
-    smtp.callback(smtpCallback);  
+    // smtp.callback(smtpCallback);  //TODO: we might just get rid of this?
 
     /* Declare the Session_Config for user defined session credentials */
     Session_Config config;

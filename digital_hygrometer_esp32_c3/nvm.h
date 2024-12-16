@@ -1,5 +1,5 @@
 /**
- *  @filename   :   eepromwrapper.h
+ *  @filename   :   nvm.h
  *  @brief      :   Header file for the hygrometer EEPROM (not to be mistaken for the Arduino EEPROM.h file) 
  *  @author     :   C. Guenther
  *  @details    :   The routines contained herein are simply wrapper functions 
@@ -27,19 +27,19 @@
  * 
  */
 
-#ifndef HYGROMETEREEPROM_H
-#define HYGROMETEREEPROM_H
+#ifndef HYGROMETENVM_H
+#define HYGROMETENVM_H
 
 #include <Arduino.h>    //This likely defines wire.h
-#include <EEPROM.h>
-
+#include <Preferences.h>
 
 
 /**
  * General EEPROM parameters
  */
-#define EEPROM_SIZE_IN_BYTES                        512
+// #define EEPROM_SIZE_IN_BYTES                        512
 
+//TODO: need to do something much different here.  Need keys not addresses
 /**
  * EEPROM start addresses for 
  * the digital hygrometer
@@ -66,6 +66,8 @@
 #define EEPROM_ADDR_HYG_NAME                        (EEPROM_ADDR_RECIPIENT_EMAIL + RECIPIENT_EMAIL_STR_LEN)
 #define HYG_NAME_STR_LEN                            0x20
 
+#define EEPROM_ADDR_TST_BYTE                        (EEPROM_ADDR_HYG_NAME + HYG_NAME_STR_LEN)
+#define TEST_BYTE_STR_LEN                            0x01
 
 /**
  * Hardcoded configuration status 
@@ -76,77 +78,77 @@
 
 
 // TODO: do we need to comment functions?
-typedef union eeprom_32b_union
-{
-    float eeprom_float;          // Floats should be four bytes
-    uint8_t eeprom_byte_buffer[4];
-    unsigned long ulong_eeprom_number;
-};
+// typedef union nvm_32b_union
+// {
+//     float nvm_float;          // Floats should be four bytes
+//     uint8_t nvm_byte_buffer[4];
+//     unsigned long ulong_nvm_number;
+// };
 
 
 
-class MYPROM {
+class NVM {
     //TODO: remove the following lines? 
     // private:
     //     uint8_t user_selection      = 0;
 
     public:
         /**
-         * @brief MYPROM init function
+         * @brief NVM init function
          * @param \p none 
          * @return nothing
          */
         void init(void);
 
         /**
-         * @brief Erase the MYPROM 
-         * @details MYPROM is 512 bytes
+         * @brief Erase the NVM 
+         * @details NVM is 512 bytes
          * @param \p none
          * @return nothing
          */
-        void eeprom_erase( void );
+        // void nvm_erase( void );
 
         /**
-         * @brief MYPROM store byte
-         * @details MYPROM is 512 bytes
+         * @brief NVM store byte
+         * @details NVM is 512 bytes
          * @param \p address (uint 16 bit)  
          * @param \p Value (8 bit)
          * @return nothing
          */
-        void eeprom_store_byte (uint16_t address, uint8_t value);
+        void nvm_store_byte (const char * nvmkey, uint8_t value);
         
         /**
-         * @brief MYPROM store float 
-         * @details MYPROM is 512 bytes
+         * @brief NVM store float 
+         * @details NVM is 512 bytes
          * @param \p address (uint 16 bit)  
-         * @param \p value (float)
+         * @param \p value (float)s
          * @return nothing
          */
-        void eeprom_store_float (uint16_t address, uint8_t value);
+        // void nvm_store_float (uint16_t address, uint8_t value);
         
         /**
-         * @brief MYPROM read byte
-         * @details MYPROM is 512 bytes
+         * @brief NVM read byte
+         * @details NVM is 512 bytes
          * @param \p address (uint 16 bit)  
          * @return The byte the occupies the read address
          */
-        uint8_t eeprom_read_byte (uint16_t address);
+        uint8_t nvm_read_byte (const char * nvmkey);
 
         /**
-         * @brief MYPROM store a string 
+         * @brief NVM store a string 
          * @param \p address (uint 16 bit)  
          * @param \p Sting (const char pointer)  
          * @return nothing 
          */
-        void eeprom_store_string(uint16_t address, const char * string_in);
+        // void nvm_store_string(uint16_t address, const char * string_in);
         
         /**
-         * @brief MYPROM read a string 
+         * @brief NVM read a string 
          * @param \p address (uint 16 bit)  
          * @param \p buffer (char pointer to buffer)  
          * @return nothing 
          */
-        void eeprom_read_string(uint16_t address, char * string_buffer);
+        // void nvm_read_string(uint16_t address, char * string_buffer);
 
         /**
          * @brief Breakdown a 32bit float and shove into a four byte array
@@ -156,28 +158,28 @@ class MYPROM {
          * @param \p four_byte_data_array
          * @return nothing 
          */
-        void eeprom_parse_float(float float_value, uint8_t four_byte_data_array[]);
+        // void nvm_parse_float(float float_value, uint8_t four_byte_data_array[]);
         
         /**
          * @brief Retrieve the 32 bit status word
          * @param \p address (uint 16b)
          * @return nothing 
          */
-        void eeprom_get_status_word( uint16_t address );
+        // void nvm_get_status_word( uint16_t address );
 
         /**
          * @brief Determine if we are calibrated
          * @param \p none
          * @return bool 
          */
-        bool eeprom_is_calibrated ( void );
+        // bool nvm_is_calibrated ( void );
         
         /**
          * @brief Determine if the EEPROM has been initialized 
          * @param \p none
          * @return bool 
          */
-        bool eeprom_is_initalized ( void );
+        // bool nvm_is_initalized ( void );
 
         
 };

@@ -39,9 +39,8 @@
 #include <ESP_Mail_Client.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <EEPROM.h>
 #include <esp_timer.h>
-#include "eepromwrapper.h"
+#include "nvm.h"
 #include "epd1in54.h"
 #include "epdpaint.h"
 #include "imagedata.h"
@@ -144,7 +143,7 @@ Epd     epd;
 I2C     i2c;
 CONSOLE console;
 LAN     lan;
-MYPROM  eeprom;
+NVM     nvm_functions;
 APP     app;
 
 /**
@@ -323,13 +322,7 @@ void setup() {
 
   Serial.begin(SERIAL_BAUD_RATE);
 
-  delay(2000);   //TODO: we need to remove this delay which is in for debugging
 
-  if(ENABLE_LOGGING)
-  {
-    Serial.println("====================== Reset ======================");
-
-  }
   if (epd.Init(lut_full_update) != 0) {
     if(ENABLE_LOGGING)
     {
@@ -349,7 +342,7 @@ void setup() {
   i2c.init();          
   console.init();
   lan.init();
-  eeprom.init();
+  nvm_functions.init();
   app.init();
 
   /** 
@@ -375,6 +368,12 @@ void setup() {
   epd.DisplayFrame();
 
 
+  // delay(2000);   //TODO: we need to remove this delay which is in for debugging
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("====================== Reset ======================");
+
+  }
 
 
 
@@ -459,10 +458,11 @@ void loop() {
    * Determine if the EEPROM has been
    * initialized.  If not, it shall be erased 
    */
-  if(!eeprom.eeprom_is_initalized() && !eeprom.eeprom_is_calibrated())   
-  {
-    eeprom.eeprom_erase();
-  }
+  //TODO: we'll need something here
+  // if(!nvm_functions.nvm_is_initalized() && !nvm_functions.nvm_is_calibrated())   
+  // {
+  //   nvm_functions.nvm_erase();
+  // }
   
   if(Timer50msFlag == true) 
   {
@@ -473,7 +473,7 @@ void loop() {
       {
         Serial.println("User wishes to enter the console");
       }
-      console.console();       //TODO: 12/13/24 uncommenting causing SPI FLASH messages to spew out -- issue
+      console.console();       
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;
