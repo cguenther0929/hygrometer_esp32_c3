@@ -1,8 +1,6 @@
 #include "nvm.h"
 
 
-// nvm_32b_union convert;  //TODO: do we need something like this
-Preferences pref;
 
 void NVM::init(void) 
 {
@@ -26,11 +24,11 @@ void NVM::init(void)
 /**
  * The nvmkey parameter is arg [1] while the value
  * is arg[0]
- *                                   Key of key:value pair
- *                                       |            Value to write to NVM  
- *                                       |               |
+ *                                                                     Key of key:value pair
+ *                                                                         |            Value to write to NVM  
+ *                                                                         |               |
  */
-void NVM::nvm_store_byte (const char * nvmkey, uint8_t value)
+void NVM::nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value)
 {
     // __asm__("nop\n\t");
     
@@ -45,7 +43,7 @@ void NVM::nvm_store_byte (const char * nvmkey, uint8_t value)
 
 }
 
-uint8_t NVM::nvm_read_byte (const char * nvmkey)
+uint8_t NVM::nvm_read_byte (Preferences & pref, const char * nvmkey)
 {
     // __asm__("nop\n\t");
     
@@ -59,7 +57,7 @@ uint8_t NVM::nvm_read_byte (const char * nvmkey)
     pref.end();              //Use to close
     
 
-//     // return uint8t_data_buffer[0];
+    return uint8t_data_buffer[0];
 }
 
 // void NVM::nvm_store_float (uint16_t nvmkey, uint8_t value)

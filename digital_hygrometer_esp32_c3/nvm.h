@@ -115,7 +115,7 @@ class NVM {
          * @param \p Value (8 bit)
          * @return nothing
          */
-        void nvm_store_byte (const char * nvmkey, uint8_t value);
+        void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
         
         /**
          * @brief NVM store float 
@@ -132,7 +132,7 @@ class NVM {
          * @param \p address (uint 16 bit)  
          * @return The byte the occupies the read address
          */
-        uint8_t nvm_read_byte (const char * nvmkey);
+        uint8_t nvm_read_byte (Preferences & pref, const char * nvmkey);
 
         /**
          * @brief NVM store a string 

@@ -33,10 +33,10 @@
 
 //TODO: need to define these pins!
 // Pin definition
-#define RST_PIN         8
-#define DC_PIN          9
+#define RST_PIN         18
+#define DC_PIN          19
 #define CS_PIN          10
-#define BUSY_PIN        7
+#define BUSY_PIN        2
 
 class EpdIf {
 public:

@@ -90,7 +90,7 @@ void CONSOLE::insert_line_emphasis( void )
     Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~");     //Send the rest of the sequence to clear the screen
 }
 
-void CONSOLE::console ( void )
+void CONSOLE::console ( Preferences & pref )
 {
 
     uint8_t user_option = 0;
@@ -188,11 +188,11 @@ void CONSOLE::console ( void )
                 insert_line_emphasis();
                 Serial.println("Writing 0x55 to NVM");  //TODO: need cleanup here
                 
-                nvm_function.nvm_store_byte("nvm_test",0x55);
+                nvm_function.nvm_store_byte(pref, "nvm_test",0x55);
 
                 delay(100);
                 
-                temp_uint8t = nvm_function.nvm_read_byte("nvm_test");
+                temp_uint8t = nvm_function.nvm_read_byte(pref,"nvm_test");
 
                 Serial.print("Value read back from NVM:");
                 Serial.println(temp_uint8t,HEX);

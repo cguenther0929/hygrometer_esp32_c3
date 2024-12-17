@@ -82,7 +82,13 @@ class I2C {
         void set_io_expander (uint8_t io_num, bool level);
         
 
-        //TODO: need to comment
+        /**
+         * @brief Toggle IO expander
+         * @details The io_num value that is passed 
+         * in shall be one-based.  
+         * @param \p io_num is the number (1-16) of the IO to set
+         * @return nothing
+         */
         void toggle_io_expander(uint8_t io_num); 
         
 

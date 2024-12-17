@@ -40,6 +40,7 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <esp_timer.h>
+#include <Preferences.h>
 #include "nvm.h"
 #include "epd1in54.h"
 #include "epdpaint.h"
@@ -58,8 +59,9 @@ String SW_VER_STRING = "test.test.test";
 // ==============================
 // ==============================
 
-uint16_t i_counter;
-uint16_t j_counter;
+/* Instianiate the Preferences class*/
+Preferences pref;
+
 
 /**
  * Button related
@@ -79,7 +81,12 @@ uint16_t j_counter;
  */
 #define SENSOR_1                  1
 #define SENSOR_2                  2
+#define SENSOR_MUX_RST_LINE       9
+// #define SENSOR_MUX_RST_LINE       23
+// #define SENSOR_MUX_RST_LINE       5
 bool calibrate_sensors            = false;  //TODO we may want to put this in the sensor struct
+float float_humidity_value        = 0.0;
+float float_temperature_value     = 0.0;
 
 /**
  * Serial parameters
@@ -140,7 +147,7 @@ hw_timer_t *Timer1_Cfg = NULL;     //TODO: we want this line back in
 unsigned char image[1024];
 Paint   paint(image, 0, 0);    // width should be the multiple of 8 
 Epd     epd;
-I2C     i2c;
+I2C     main_i2c;
 CONSOLE console;
 LAN     lan;
 NVM     nvm_functions;
@@ -280,11 +287,13 @@ void IRAM_ATTR button_press()
   __asm__("nop\n\t");  //TODO: eventually need to remove this line
   /**
    * If the button is pushed
-   * update the button i_counter
+   * update the button counter
    */
-  //TODO: need to update the button i_counter
+  //TODO: need to update the button counter
   //TODO: and act accordingly
   btn_interrupt_triggered  = true;
+
+
 }
 
 /**
@@ -292,6 +301,27 @@ void IRAM_ATTR button_press()
  */
 void setup() {
 
+  pinMode(9,OUTPUT);
+  digitalWrite(9, HIGH);
+
+  pinMode(0,OUTPUT);
+  digitalWrite(0, HIGH);
+
+  pinMode(1,OUTPUT);
+  digitalWrite(1, HIGH);
+  
+  pinMode(2,OUTPUT);
+  digitalWrite(2, HIGH);
+  
+  pinMode(3,OUTPUT);
+  digitalWrite(3, HIGH);
+  
+  pinMode(4,OUTPUT);
+  digitalWrite(4, HIGH);
+  
+  pinMode(5,OUTPUT);
+  digitalWrite(5, HIGH);
+  
   State STATE_READ_DATA;
 
  /**
@@ -339,7 +369,7 @@ void setup() {
     Serial.println("Calling remaining initialization functions");
   }
 
-  i2c.init();          
+  main_i2c.init();          
   console.init();
   lan.init();
   nvm_functions.init();
@@ -473,11 +503,15 @@ void loop() {
       {
         Serial.println("User wishes to enter the console");
       }
-      console.console();       
+      console.console(pref);       
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;
     }
+
+    // main_i2c.toggle_io_expander(8);
+    main_i2c.set_io_expander(7,true);
+    main_i2c.set_io_expander(8,true);
 
     button_handler();
 
@@ -491,7 +525,18 @@ void loop() {
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
-    i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED);    
+    // main_i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED);   //TODO: we want this line in 
+
+    main_i2c.choose_sensor(SENSOR_1);
+    
+    float_humidity_value = main_i2c.get_humidity();
+    Serial.print("Humidity value: ");
+    Serial.println(float_humidity_value);
+
+    float_temperature_value = main_i2c.get_temperature();
+    Serial.print("Temperature value: ");
+    Serial.println(float_temperature_value);
+
   }
 
   if(Timer1000msFlag == true) 
