@@ -54,8 +54,7 @@
 // ==============================
 // ==============================
 // SW version string 
-// String SW_VER_STRING = "0.0.8";
-String SW_VER_STRING = "test.test.test";
+String SW_VER_STRING = "0.0.9";
 // ==============================
 // ==============================
 
@@ -74,7 +73,10 @@ Preferences pref;
 #define SHORT_PRESS_50MS_EVENTS   10
 #define LONG_PRESS_50MS_EVENTS    20
 
-
+/**
+ * Health LED
+ */
+#define HEALTH_LED                10
 
 /**
  * Sensor parameters
@@ -301,26 +303,27 @@ void IRAM_ATTR button_press()
  */
 void setup() {
 
-  pinMode(9,OUTPUT);
-  digitalWrite(9, HIGH);
+  
+  pinMode(HEALTH_LED,OUTPUT);
+  digitalWrite(HEALTH_LED, HIGH);
 
-  pinMode(0,OUTPUT);
-  digitalWrite(0, HIGH);
+  // pinMode(0,OUTPUT);
+  // digitalWrite(0, HIGH);
 
-  pinMode(1,OUTPUT);
-  digitalWrite(1, HIGH);
+  // pinMode(1,OUTPUT);
+  // digitalWrite(1, HIGH);
   
-  pinMode(2,OUTPUT);
-  digitalWrite(2, HIGH);
+  // pinMode(2,OUTPUT);
+  // digitalWrite(2, HIGH);
   
-  pinMode(3,OUTPUT);
-  digitalWrite(3, HIGH);
+  // pinMode(3,OUTPUT);
+  // digitalWrite(3, HIGH);
   
-  pinMode(4,OUTPUT);
-  digitalWrite(4, HIGH);
+  // pinMode(4,OUTPUT);
+  // digitalWrite(4, HIGH);
   
-  pinMode(5,OUTPUT);
-  digitalWrite(5, HIGH);
+  // pinMode(5,OUTPUT);
+  // digitalWrite(5, HIGH);
   
   State STATE_READ_DATA;
 
@@ -509,10 +512,6 @@ void loop() {
       Timer1000msFlag = false;
     }
 
-    // main_i2c.toggle_io_expander(8);
-    main_i2c.set_io_expander(7,true);
-    main_i2c.set_io_expander(8,true);
-
     button_handler();
 
   }
@@ -520,6 +519,7 @@ void loop() {
   if(Timer100msFlag == true) 
   {
     Timer100msFlag = false;
+    digitalWrite(HEALTH_LED,!digitalRead(HEALTH_LED));
   }
 
   if(Timer500msFlag == true) 
@@ -529,13 +529,13 @@ void loop() {
 
     main_i2c.choose_sensor(SENSOR_1);
     
-    float_humidity_value = main_i2c.get_humidity();
-    Serial.print("Humidity value: ");
-    Serial.println(float_humidity_value);
+    // float_humidity_value = main_i2c.get_humidity();
+    // Serial.print("Humidity value: ");
+    // Serial.println(float_humidity_value);
 
-    float_temperature_value = main_i2c.get_temperature();
-    Serial.print("Temperature value: ");
-    Serial.println(float_temperature_value);
+    // float_temperature_value = main_i2c.get_temperature();
+    // Serial.print("Temperature value: ");
+    // Serial.println(float_temperature_value);
 
   }
 

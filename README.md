@@ -39,3 +39,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.0.7 -- Timer routines have been updated for the ESP 3.0x API.  The sending of emails has been completely revamped.  The console routine has been implemented by way of separate h and cpp files.  This version compiles, but there is a lot of testing/work that needs to occur.  
 
 * v0.0.8 --  Code compiles.  Much EEPROM-related information has been added.  A good amount of network stuff has been added.  There is now an application header and source file (kind of like a functions ino file).
+
+* v0.0.9 --  Code compiles and seems to run okay on B02 HW.  The LED is blinking and the console can be accessed.  
