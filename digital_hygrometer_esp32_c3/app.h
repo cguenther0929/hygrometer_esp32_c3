@@ -32,7 +32,9 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 #include "nvm.h"
+#include "epdif.h"
 
+#define PUSH_BUTTON             1
 
 /**
  * Analog related parameters

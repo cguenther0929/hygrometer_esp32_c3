@@ -1,6 +1,9 @@
 #include "i2c.h"
 #include <Wire.h>
 
+#define I2C_SDA     8
+#define I2C_SCL     9
+
 void I2C::init(void) {
     //TODO: Do we want to modify these lines?
     //TODO: for example, do we instead want to grab 
@@ -8,6 +11,8 @@ void I2C::init(void) {
     this -> sensor_number = 0;
     this -> rhoffset_1 = 0;
     this -> rhoffset_2 = 0;
+
+    Wire.begin(I2C_SDA, I2C_SCL);
 
 
 }

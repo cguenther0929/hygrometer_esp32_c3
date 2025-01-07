@@ -45,16 +45,13 @@ uint8_t CONSOLE::get_user_uint8t_value ( void )
     String user_input = "";
     uint16_t return_number = 0;
     
-    while (Serial.available() <= 0);  //Pause until we start receiving data
+    while (Serial.available() <= 0);    // Pause until we start receiving data
     
-    
-    while (Serial.available() > 0) {
-        char c = Serial.read();             //gets one byte from serial buffer
-        user_input += c;                    
-        delay(1);                           //Allow buffer to fill with next character
-    }
+    Serial.setTimeout(3000);            // Value is in milli-seconds
 
-    return_number = user_input.toInt();
+    char c = Serial.parseInt();         // Parse integer value input by user
+    
+    return_number = int(c);
 
     if(return_number > 255) 
     {
@@ -112,6 +109,8 @@ void CONSOLE::console ( Preferences & pref )
         Serial.println("5)  View battery voltage.");
         Serial.println("6)  View sensor readings.");
         Serial.println("7)  Perform EEPROM test.");
+        Serial.println("8)  Read the state of the push button.");
+        Serial.println("9)  Read the busy input as sourced by the display.");
         Serial.println("99) To exit the console.");
 
         Serial.print("Enter a value: ");
@@ -196,6 +195,54 @@ void CONSOLE::console ( Preferences & pref )
 
                 Serial.print("Value read back from NVM:");
                 Serial.println(temp_uint8t,HEX);
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
+            break;
+            
+            /* Read the state of the push button */
+            case 8:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                pinMode(PUSH_BUTTON,INPUT);
+
+
+                Serial.print("The current state of the push button is: ");  
+                
+                if(digitalRead(PUSH_BUTTON)) 
+                {
+                    Serial.println("HIGH.");  
+                }
+                else
+                {
+                    Serial.println("LOW.");  
+                }
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
+            break;
+            
+            /* Read the display's busy flag */
+            case 9:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                pinMode(BUSY_PIN,INPUT);
+
+
+                Serial.print("The current state of the busy pin is: ");  
+                
+                if(digitalRead(BUSY_PIN)) 
+                {
+                    Serial.println("HIGH.");  
+                }
+                else
+                {
+                    Serial.println("LOW.");  
+                }
 
                 insert_line_emphasis();
                 insert_line_feeds(2);

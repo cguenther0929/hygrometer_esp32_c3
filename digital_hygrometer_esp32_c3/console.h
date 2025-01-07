@@ -7,6 +7,7 @@
 #include "i2c.h"
 #include "app.h"
 #include "nvm.h"
+#include "epdif.h"
 
 // TODO: do we need to comment functions?
 

@@ -58,7 +58,9 @@ String SW_VER_STRING = "0.0.9";
 // ==============================
 // ==============================
 
-/* Instianiate the Preferences class*/
+// TODO: how much of all of this can we put in app.h?
+
+/* Instantiate the Preferences class*/
 Preferences pref;
 
 
@@ -81,11 +83,10 @@ Preferences pref;
 /**
  * Sensor parameters
  */
+//TODO: can this be placed in app.h?
 #define SENSOR_1                  1
 #define SENSOR_2                  2
 #define SENSOR_MUX_RST_LINE       9
-// #define SENSOR_MUX_RST_LINE       23
-// #define SENSOR_MUX_RST_LINE       5
 bool calibrate_sensors            = false;  //TODO we may want to put this in the sensor struct
 float float_humidity_value        = 0.0;
 float float_temperature_value     = 0.0;
@@ -97,9 +98,10 @@ float float_temperature_value     = 0.0;
 
 /**
  * Interrupt / button pin
+ * 
  */
-#define GPIO_EXPANDER_HLTH_LED    8
-#define INTERRUPT_PIN             1    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
+//TODO: how much of this can we put in app.h?
+#define INTERRUPT_PIN             PUSH_BUTTON    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
 
 /**
  * Analog and battery parameters
@@ -298,32 +300,35 @@ void IRAM_ATTR button_press()
 
 }
 
+//TODO: this function needs to be removed as it is for testing only 
+void _display_pin_control(void)
+{
+  __asm__("nop\n\t");
+  // uint8_t counter;
+
+  // // #define TEST_PIN 18   //TODO: this is the RST pin of the display
+  // #define TEST_PIN 8   //TODO: SDA line
+
+  // pinMode(TEST_PIN,OUTPUT);
+  // digitalWrite(TEST_PIN, HIGH);
+
+  // for(counter=0;counter<100;counter++)
+  // {
+  //   digitalWrite(TEST_PIN,LOW);
+  //   delay(50);
+  //   digitalWrite(TEST_PIN,HIGH);
+  //   delay(50);
+  // }
+
+}
+
 /**
  * @brief Arduino Setup routine
  */
 void setup() {
-
-  
   pinMode(HEALTH_LED,OUTPUT);
   digitalWrite(HEALTH_LED, HIGH);
-
-  // pinMode(0,OUTPUT);
-  // digitalWrite(0, HIGH);
-
-  // pinMode(1,OUTPUT);
-  // digitalWrite(1, HIGH);
   
-  // pinMode(2,OUTPUT);
-  // digitalWrite(2, HIGH);
-  
-  // pinMode(3,OUTPUT);
-  // digitalWrite(3, HIGH);
-  
-  // pinMode(4,OUTPUT);
-  // digitalWrite(4, HIGH);
-  
-  // pinMode(5,OUTPUT);
-  // digitalWrite(5, HIGH);
   
   State STATE_READ_DATA;
 
@@ -378,6 +383,10 @@ void setup() {
   nvm_functions.init();
   app.init();
 
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("Printing default display image");
+  }
   /** 
    *  There are 2 memory areas embedded in the e-paper display
    *  and once the display is refreshed, the memory area will be auto-toggled,
@@ -401,11 +410,14 @@ void setup() {
   epd.DisplayFrame();
 
 
-  // delay(2000);   //TODO: we need to remove this delay which is in for debugging
+
+  //TODO: need to remove the following two lines that were put in for testing
+  Serial.println("Testing pin control");
+  _display_pin_control();
+
   if(ENABLE_LOGGING)
   {
     Serial.println("====================== Reset ======================");
-
   }
 
 
@@ -525,23 +537,23 @@ void loop() {
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
-    // main_i2c.toggle_io_expander(GPIO_EXPANDER_HLTH_LED);   //TODO: we want this line in 
 
-    main_i2c.choose_sensor(SENSOR_1);
-    
-    // float_humidity_value = main_i2c.get_humidity();
-    // Serial.print("Humidity value: ");
-    // Serial.println(float_humidity_value);
-
-    // float_temperature_value = main_i2c.get_temperature();
-    // Serial.print("Temperature value: ");
-    // Serial.println(float_temperature_value);
 
   }
 
   if(Timer1000msFlag == true) 
   {
     Timer1000msFlag = false;
+    
+    main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
+
+    float_humidity_value = main_i2c.get_humidity();
+    Serial.print("Humidity value: ");
+    Serial.println(float_humidity_value);
+
+    float_temperature_value = main_i2c.get_temperature();
+    Serial.print("Temperature value: ");
+    Serial.println(float_temperature_value);
   }
 
 }

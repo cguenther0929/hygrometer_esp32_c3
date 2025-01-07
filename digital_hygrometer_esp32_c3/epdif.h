@@ -31,7 +31,7 @@
 
 #include <arduino.h>
 
-//TODO: need to define these pins!
+//TODO: these were confirmed to be correct against B02 HW on 1/6/25
 // Pin definition
 #define RST_PIN         18
 #define DC_PIN          19
