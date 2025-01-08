@@ -34,7 +34,9 @@
 #include "nvm.h"
 #include "epdif.h"
 
+/* Define IO */
 #define PUSH_BUTTON             1
+#define nSENSOR_PWR_EN          3
 
 /**
  * Analog related parameters
@@ -78,6 +80,12 @@ class APP{
          * @return nothing
          */
         void init(void);
+
+        //TODO: need to comment
+        void sensor_power_on(void);
+        
+        //TODO: need to comment
+        void sensor_power_off(void);
         
         /**
          * @brief Display splash screen (i.e. SW ver)

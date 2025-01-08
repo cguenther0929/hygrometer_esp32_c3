@@ -88,4 +88,17 @@ float APP::get_battery_voltage (void)
   return voltage_reading;
 }
 
+void APP::sensor_power_on(void)
+{
+    digitalWrite(nSENSOR_PWR_EN , LOW);   
+}
+
+
+void APP::sensor_power_off(void)
+{
+    digitalWrite(nSENSOR_PWR_EN , HIGH);   
+}
+
+
+
 

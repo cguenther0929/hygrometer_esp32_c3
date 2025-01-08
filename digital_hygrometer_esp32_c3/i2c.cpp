@@ -7,11 +7,12 @@
 void I2C::init(void) {
     //TODO: Do we want to modify these lines?
     //TODO: for example, do we instead want to grab 
-    //TODO: rhoffset values from EEPROM
+    //TODO: rhoffset values from NVM
     this -> sensor_number = 0;
     this -> rhoffset_1 = 0;
     this -> rhoffset_2 = 0;
 
+    // The following is required to enable I2C lines
     Wire.begin(I2C_SDA, I2C_SCL);
 
 
@@ -189,38 +190,218 @@ void I2C::choose_sensor(int sensor_number){
 
     (sensor_number == 1) ? (channel_number = I2C_MUX_CH0_SELECT):(channel_number = I2C_MUX_CH1_SELECT);
     
+    //TODO: we can remove the following two lines
+    // Serial.print("\t\t***DEBUG CHAN #: ");
+    // Serial.println(channel_number);
+
     Wire.beginTransmission(I2C_MUX_ADDRESS); 
     Wire.write(channel_number);        
     Wire.endTransmission();
 }
 
-float I2C::get_humidity() {
-    uint16_t    temp_uint16t    = 0x0000;  
-    float       temp_float      = 0.0; 
-
-    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
-    temp_uint16t = Wire.requestFrom(SI7020_MEAS_HUM_HOLD_MASTER, 1);    // Request 1 byte from the address  
+void I2C::disable_mux(void)
+{
+    Wire.beginTransmission(I2C_MUX_ADDRESS); 
+    Wire.write(I2C_MUX_DISABLE_ALL);        
     Wire.endTransmission();
-    //TODO: need to define the offsets
-    temp_float = (float)((125.0 * temp_uint16t / 65536) - 6 + 0);
-    
-    return temp_float;
-
 }
 
-float I2C::get_temperature() {
+/**
+ * The following function is responsible 
+ * for collecting humidity data from 
+ * the SI 7020 sensor.
+ * 
+ * This function is quite specific to how the 
+ * SI 7020 sensor returns data. 
+ * 
+ * There are two modes in which data can be read 
+ * back: a) hold master mode; and b) no-hold master 
+ * mode.  The difference between the two, is that, 
+ * in no-hold master mode, the process to read
+ * back data is non-blocking, whereas in hold master
+ * mode, there's a clock stretching mechanism introduced 
+ * when reading back data.  For really time sensitive
+ * applications, no-hold master mode should be 
+ * considered.  More information about these modes 
+ * can be ascertained by looking at datasheet p.20 of 35.
+ * 
+ * The key for the following diagram is as follows
+ * 
+ * S: Start
+ * W: Write bit in address is set
+ * A: Acknowledge
+ * Sr: Repeated start condition 
+ * R: Read bit in address is set
+ * NAK: Not acknowledge
+ * P: Stop condition
+ *
+ * 
+ *       +---+ +-------+ +---+ +---+ +---------+
+ *       | S +->Slave  +-> W +-> A +-> Measure |
+ *       +---+ |Address| +---+ +---+ | Command |
+ *             +-------+             +----+----+
+ *                                        |
+ *         +------------------------------+
+ *         |
+ *       +-v-+ +----+ +---------+ +---+ +---+
+ *       | A +-> Sr +-> Slave   +-> R +-> A |
+ *       +---+ +----+ | Address | +---+ +-+-+
+ *                    +---------+         |
+ *            +---------------------------+
+ *            |
+ *       +----v----+ +---------+ +---+ +---------+
+ *       | Clock   +-> MS Byte +-> A +-> LS Byte |
+ *       | Stretch | +---------+ +---+ +----+----+
+ *       +---------+                        |
+ *          +-----------OR------------------+
+ *          |                               |
+ *       +--v--+ +---+                      v
+ *       | NAK +-> P |               Optional Checksum
+ *       +-----+ +---+               Collection
+ *                                   Datasheet p20/35
+ *       
+ *   
+ */ 
+float I2C::get_humidity() {
+    uint8_t     lsb_byte        = 0x00;
+    uint8_t     msb_byte        = 0x00;
     uint16_t    temp_uint16t    = 0x0000;  
     float       temp_float      = 0.0; 
 
+    /**
+     * Need to indicate to the sensor which 
+     * register to read from 
+     * 
+    */
     Wire.beginTransmission(SI7020_BASE_ADDRESS); 
-    temp_uint16t = Wire.requestFrom(SI7020_MEAS_TMP_PREV_RH_MEAS, 1);    // Request 1 byte from the address  
+    Wire.write(SI7020_MEAS_HUM_HOLD_MASTER);
+
+    /**
+     * Now extract the data from the sensor 
+     * requestFrom() will create the repeated start.  
+    */
+    Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 1 byte from the address  
+
+    msb_byte = Wire.read(); 
+    lsb_byte = Wire.read(); 
+    temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
+
+    /**
+     * Get ready of any remaining garbage
+     **/
+    while(Wire.available())
+    {
+        lsb_byte = Wire.read();
+    }
+
+    /**
+     *  End the I2C transaction  
+    */
+    Wire.endTransmission();
+    
+    temp_float = (float)((125.0 * temp_uint16t / 65536) - 6.0 + 0.0);
+    
+    return temp_float;
+}
+
+/**
+ * The following function is responsible 
+ * for collecting temperature data from 
+ * the SI 7020 sensor.
+ * 
+ * This function is quite specific to how the 
+ * SI 7020 sensor returns data. 
+ * 
+ * There are two modes in which data can be read 
+ * back: a) hold master mode; and b) no-hold master 
+ * mode.  The difference between the two, is that, 
+ * in no-hold master mode, the process to read
+ * back data is non-blocking, whereas in hold master
+ * mode, there's a clock stretching mechanism introduced 
+ * when reading back data.  For really time sensitive
+ * applications, no-hold master mode should be 
+ * considered.  More information about these modes 
+ * can be ascertained by looking at datasheet p.20 of 35.
+ * 
+ * The key for the following diagram is as follows
+ * 
+ * S: Start
+ * W: Write bit in address is set
+ * A: Acknowledge
+ * Sr: Repeated start condition 
+ * R: Read bit in address is set
+ * NAK: Not acknowledge
+ * P: Stop condition
+ *
+ * 
+ *       +---+ +-------+ +---+ +---+ +---------+
+ *       | S +->Slave  +-> W +-> A +-> Measure |
+ *       +---+ |Address| +---+ +---+ | Command |
+ *             +-------+             +----+----+
+ *                                        |
+ *         +------------------------------+
+ *         |
+ *       +-v-+ +----+ +---------+ +---+ +---+
+ *       | A +-> Sr +-> Slave   +-> R +-> A |
+ *       +---+ +----+ | Address | +---+ +-+-+
+ *                    +---------+         |
+ *            +---------------------------+
+ *            |
+ *       +----v----+ +---------+ +---+ +---------+
+ *       | Clock   +-> MS Byte +-> A +-> LS Byte |
+ *       | Stretch | +---------+ +---+ +----+----+
+ *       +---------+                        |
+ *          +-----------OR------------------+
+ *          |                               |
+ *       +--v--+ +---+                      v
+ *       | NAK +-> P |               Optional Checksum
+ *       +-----+ +---+               Collection
+ *                                   Datasheet p20/35
+ *       
+ *   
+ */ 
+
+float I2C::get_temperature() {
+    uint8_t     lsb_byte        = 0x00;
+    uint8_t     msb_byte        = 0x00;
+    uint16_t    temp_uint16t    = 0x0000;  
+    float       temp_float      = 0.0; 
+
+    /**
+     * Need to indicate to the sensor which 
+     * register to read from 
+     * 
+    */
+    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
+    Wire.write(SI7020_MEAS_TMP_HOLD_MASTER);
+
+    /**
+     * Now extract the data from the sensor 
+     * requestFrom() will create the repeated start.  
+    */
+    Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 1 byte from the address  
+
+    msb_byte = Wire.read(); 
+    lsb_byte = Wire.read(); 
+    temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
+
+    /**
+     * Get ready of any remaining garbage
+     **/
+    while(Wire.available())
+    {
+        lsb_byte = Wire.read();
+    }
+
+    /**
+     *  End the I2C transaction  
+    */
     Wire.endTransmission();
     
     /**
      * Value is in fahrenheit
      */
-    temp_float = (uint8_t)((temp_uint16t / 207.1952) - 52.24); 
+    temp_float = (float)((temp_uint16t / 207.1952) - 52.24); 
     
     return temp_float;
-
 }

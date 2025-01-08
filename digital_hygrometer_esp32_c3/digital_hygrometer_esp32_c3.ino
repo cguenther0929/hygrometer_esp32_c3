@@ -54,7 +54,7 @@
 // ==============================
 // ==============================
 // SW version string 
-String SW_VER_STRING = "0.0.9";
+String SW_VER_STRING = "0.9.0";
 // ==============================
 // ==============================
 
@@ -330,7 +330,14 @@ void setup() {
   digitalWrite(HEALTH_LED, HIGH);
   
   
+  pinMode(nSENSOR_PWR_EN,OUTPUT);
+  digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
+  
+  app.sensor_power_on();    //TODO: need to remove this line.  This is just in for testing
+
+
   State STATE_READ_DATA;
+
 
  /**
   * @brief Define IO interrupt for push button input 
@@ -485,12 +492,14 @@ void setup() {
   //           |          |      |  Value to reload into the timer when auto reloading
   //           |          |      |   |
   timerAlarm(Timer1_Cfg, 50000, true,0);   
+
 }
 
 /**
  * @brief Arduino main loop
  */
-void loop() {
+void loop() 
+{
   //TODO: This is how we put the the unit in to deep sleep mode
   //TODO: this note was confirmed on 10/24/24
   //                               Value in uS  
@@ -544,16 +553,47 @@ void loop() {
   if(Timer1000msFlag == true) 
   {
     Timer1000msFlag = false;
-    
-    main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
 
+    
+    //TODO: the following sensor read is in just for testing
+
+    // app.sensor_power_on();    //TODO: need to remove this line.  This is just in for testing
+    // delay(100);
+    
+
+    Serial.println("----------------------------------------------------");
+
+    /**
+     * Get readings from the first sensor
+     */
+    main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
+    
+    float_temperature_value = main_i2c.get_temperature();
+    Serial.print("Temperature #1: ");
+    Serial.println(float_temperature_value);
+    
     float_humidity_value = main_i2c.get_humidity();
-    Serial.print("Humidity value: ");
+    Serial.print("Humidity #1: ");
     Serial.println(float_humidity_value);
 
-    float_temperature_value = main_i2c.get_temperature();
-    Serial.print("Temperature value: ");
-    Serial.println(float_temperature_value);
+
+    /**
+     * Now get readings from the second sensor
+     */
+    
+    // main_i2c.choose_sensor(SENSOR_2);   //TODO: this is just in for testing
+
+    // float_humidity_value = main_i2c.get_humidity();
+    // Serial.print("\t\tHumidity #2: ");
+    // Serial.println(float_humidity_value);
+
+    // float_temperature_value = main_i2c.get_temperature();
+    // Serial.print("\t\tTemperature #2: ");
+    // Serial.println(float_temperature_value);
+    
+    
+    
+    // main_i2c.disable_mux();   //TODO: this is just in for testing
   }
 
 }

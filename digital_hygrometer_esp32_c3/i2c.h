@@ -16,19 +16,35 @@
 /**
  * Defines for I2C mux
  */
-#define I2C_MUX_ADDRESS                     0xE0
+// #define I2C_MUX_ADDRESS                     0xE0
+//TODO: may want a note here about how arduino left shifts 
+//TODO: the address then tacks on the R/W bit.  The eight bit
+//TODO: address is from the datasheet is 8'b1110 A2 A1 A0 R/W
+//TODO: since [A2:A0] are all tied low, the address is 
+//TODO: 8'b1110000+R/W.  For the arduino address, we'll want to 
+//TODO: shift the address right by one bit (knock off the R/W bit),
+//TODO: as the Arduino 
+//TODO: addressing routine will left shift the address and then
+//TODO: tack on the R/W bit during the Wire.beginTransmission() routine.
+//TODO:  Therefore, the address we'll want to 
+//TODO: define here is 8'b1110000x, then right shifted so: 8'b0111|0000 or 0x70
+#define I2C_MUX_ADDRESS                     0x70
 #define I2C_DISABLE_ALL_MUX_CHANNELS        0x00
+#define I2C_MUX_DISABLE_ALL                 0x00        
 #define I2C_MUX_CH0_SELECT                  0x01        
 #define I2C_MUX_CH1_SELECT                  0x02     
 
 /**
  * Sensor parameters 
  */
-#define SI7020_BASE_ADDRESS             0x80       
 
-#define SI7020_MEAS_HUM_HOLD_MASTER     0xE5
+//TODO: need a better comment here
+//TODO: 8'b1000000x -> right shifted -> 0100|0000
+#define SI7020_BASE_ADDRESS             0x40       
+
+#define SI7020_MEAS_HUM_HOLD_MASTER     0xE5        // Allows clock stretching
 #define SI7020_MEAS_NO_MASTER           0xF5
-#define SI7020_MEAS_TMP_HOLD_MASTER     0xE3
+#define SI7020_MEAS_TMP_HOLD_MASTER     0xE3        // Allows clock stretching
 #define SI7020_MEAS_TMP_NO_MASTER       0xF3
 #define SI7020_MEAS_TMP_PREV_RH_MEAS    0xE0
 
@@ -130,6 +146,9 @@ class I2C {
          * 
          */ 
         void choose_sensor(int sensor_number);
+
+        //TODO: need to comment
+        void disable_mux(void);
         
         float get_humidity(void);
 
