@@ -54,7 +54,7 @@
 // ==============================
 // ==============================
 // SW version string 
-String SW_VER_STRING = "0.1.0";
+String SW_VER_STRING = "0.1.1";
 // ==============================
 // ==============================
 
@@ -561,36 +561,29 @@ void loop()
     // delay(100);
     
 
-    Serial.println("----------------------------------------------------");
+    Serial.println("-----------------------------------------------------------");
 
     /**
      * Get readings from the first sensor
      */
     main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
     
-    float_temperature_value = main_i2c.get_temperature();
-    Serial.print("Temperature #1: ");
-    Serial.println(float_temperature_value);
-    
-    float_humidity_value = main_i2c.get_humidity();
+    main_i2c.get_sensor_data();
     Serial.print("Humidity #1: ");
-    Serial.println(float_humidity_value);
-
-
-    /**
-     * Now get readings from the second sensor
-     */
+    Serial.println(main_i2c.hum_val1);
+    Serial.print("Temperature #1: ");
+    Serial.println(main_i2c.temp_val1);
+    Serial.println(' ');
     
-    // main_i2c.choose_sensor(SENSOR_2);   //TODO: this is just in for testing
-
-    // float_humidity_value = main_i2c.get_humidity();
-    // Serial.print("\t\tHumidity #2: ");
-    // Serial.println(float_humidity_value);
-
-    // float_temperature_value = main_i2c.get_temperature();
-    // Serial.print("\t\tTemperature #2: ");
-    // Serial.println(float_temperature_value);
     
+    main_i2c.choose_sensor(SENSOR_2);   //TODO: this is just in for testing
+    
+    main_i2c.get_sensor_data();
+    Serial.print("\tHumidity #2: ");
+    Serial.println(main_i2c.hum_val2);
+    Serial.print("\tTemperature #2: ");
+    Serial.println(main_i2c.temp_val2);
+
     
     
     // main_i2c.disable_mux();   //TODO: this is just in for testing

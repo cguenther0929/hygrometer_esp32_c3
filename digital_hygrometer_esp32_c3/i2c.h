@@ -43,14 +43,15 @@
 #define SI7020_BASE_ADDRESS             0x40       
 
 #define SI7020_MEAS_HUM_HOLD_MASTER     0xE5        // Allows clock stretching
-#define SI7020_MEAS_NO_MASTER           0xF5
+#define SI7020_MEAS_HUM_NO_HOLD         0xF5
+#define SI7020_TEMP_AFTER_HUM           0xE0
 #define SI7020_MEAS_TMP_HOLD_MASTER     0xE3        // Allows clock stretching
-#define SI7020_MEAS_TMP_NO_MASTER       0xF3
-#define SI7020_MEAS_TMP_PREV_RH_MEAS    0xE0
+#define SI7020_MEAS_TMP_NO_HOLD         0xF3
 
 #define SI7020_RESET_COMMAND            0xFE
 #define SI7020_WRT_USR_REG1             0xE6
 #define SI7020_READ_USR_REG1            0xE7
+
 #define SI7020_WRT_HEATER_CTRL_REG      0x51
 #define SI7020_READ_HEATER_CTRL_REG     0x11
 
@@ -80,6 +81,12 @@ class I2C {
         uint8_t rhoffset_2      = 0;
 
     public:
+        
+        float   hum_val1        = 0.0;
+        float   temp_val1       = 0.0;
+        float   hum_val2        = 0.0;
+        float   temp_val2       = 0.0;
+
         /**
          * @brief I2C init function
          * @param \p none 
@@ -148,11 +155,13 @@ class I2C {
         void choose_sensor(int sensor_number);
 
         //TODO: need to comment
+        void configure_sensor( void );
+
+        //TODO: need to comment
         void disable_mux(void);
         
-        float get_humidity(void);
+        void get_sensor_data(void);
 
-        float get_temperature(void);
 };
 
 #endif
