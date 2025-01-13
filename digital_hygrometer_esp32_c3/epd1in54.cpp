@@ -10,7 +10,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to  whom the Software is
- * furished to do so, subject to the following conditions:
+ * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -99,9 +99,9 @@ void Epd::WaitUntilIdle(void) {
  *          see Epd::Sleep();
  */
 void Epd::Reset(void) {
-    DigitalWrite(reset_pin, LOW);                //module reset    
+    DigitalWrite(reset_pin, LOW);                //TODO: this was the original line //module reset    
     DelayMs(200);
-    DigitalWrite(reset_pin, HIGH);
+    DigitalWrite(reset_pin, HIGH);           //TODO: this was the original line 
     DelayMs(200);    
 }
 
@@ -257,7 +257,8 @@ void Epd::Sleep() {
     SendCommand(DEEP_SLEEP_MODE);
     WaitUntilIdle();
 
-    DigitalWrite(reset_pin, LOW);
+    // DigitalWrite(reset_pin, LOW);        //TODO: this was the original line
+    digitalWrite(reset_pin, LOW);               
 }
 
 const unsigned char lut_full_update[] =
