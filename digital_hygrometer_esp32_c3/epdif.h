@@ -23,20 +23,19 @@
  * LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * 
  */
 
 #ifndef EPDIF_H
 #define EPDIF_H
 
-#include <arduino.h>
+#include <Arduino.h>
 
-//TODO: these were confirmed to be correct against B02 HW on 1/6/25
 // Pin definition
-#define RST_PIN         18
+#define RST_PIN         18          
 #define DC_PIN          19
 #define CS_PIN          7
 #define BUSY_PIN        2
+#define PWR_PIN         3
 
 class EpdIf {
 public:

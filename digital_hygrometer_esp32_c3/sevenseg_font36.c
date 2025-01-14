@@ -37,8 +37,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "fonts.h"
+
+
+#if defined(AVR)
+#include <avr/pgmspace.h>
+#else  //defined(AVR)
 #include <pgmspace.h>
-// #include <avr/pgmspace.h>
+#endif  //defined(AVR)
 
 const uint8_t SevenSeg_Font36_Table [] PROGMEM = 
 {

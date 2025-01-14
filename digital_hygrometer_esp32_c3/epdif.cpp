@@ -28,6 +28,8 @@
 #include "epdif.h"
 #include <spi.h>
 
+bool spi_is_initalized = false;
+
 EpdIf::EpdIf() {
 };
 
@@ -58,7 +60,16 @@ int EpdIf::IfInit(void) {
     pinMode(DC_PIN, OUTPUT);
     pinMode(BUSY_PIN, INPUT); 
 
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+    if(spi_is_initalized == false)
+    {
+        Serial.println("Initializing SPI");
+        SPI.begin();
+        SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+        Serial.println("SPI Initialized");
+        spi_is_initalized = true;
+    }
+
+
     return 0;
 }
+

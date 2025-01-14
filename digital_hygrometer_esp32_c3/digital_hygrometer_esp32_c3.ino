@@ -10,7 +10,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to  whom the Software is
- * furished to do so, subject to the following conditions:
+ * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -41,8 +41,9 @@
 #include <Wire.h>
 #include <esp_timer.h>
 #include <Preferences.h>
+#include "epd1in54_V2.h"
 #include "nvm.h"
-#include "epd1in54.h"
+// #include "epd1in54.h"
 #include "epdpaint.h"
 #include "imagedata.h"
 #include "i2c.h"
@@ -53,8 +54,9 @@
 
 // ==============================
 // ==============================
+// Value last updated 1/12/25 
 // SW version string 
-String SW_VER_STRING = "0.1.1";
+String SW_VER_STRING = "0.1.2";
 // ==============================
 // ==============================
 
@@ -62,6 +64,12 @@ String SW_VER_STRING = "0.1.1";
 
 /* Instantiate the Preferences class*/
 Preferences pref;
+
+/**
+ * Display parameters
+ */    
+#define COLORED     0
+#define UNCOLORED   1
 
 
 /**
@@ -74,6 +82,9 @@ Preferences pref;
 #define LOCAL_BTN_GPIO_PIN        1
 #define SHORT_PRESS_50MS_EVENTS   10
 #define LONG_PRESS_50MS_EVENTS    20
+
+//TODO: this is just for testing.  The following can be removed
+uint16_t counter                = 0;
 
 /**
  * Health LED
@@ -140,7 +151,7 @@ char rx_char                          = '\n';
 /**
  * Time structure 
  */
-hw_timer_t *Timer1_Cfg = NULL;     //TODO: we want this line back in
+hw_timer_t *Timer1_Cfg = NULL;     
 
 /**
   * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
@@ -300,45 +311,21 @@ void IRAM_ATTR button_press()
 
 }
 
-//TODO: this function needs to be removed as it is for testing only 
-void _display_pin_control(void)
-{
-  __asm__("nop\n\t");
-  // uint8_t counter;
-
-  // // #define TEST_PIN 18   //TODO: this is the RST pin of the display
-  // #define TEST_PIN 8   //TODO: SDA line
-
-  // pinMode(TEST_PIN,OUTPUT);
-  // digitalWrite(TEST_PIN, HIGH);
-
-  // for(counter=0;counter<100;counter++)
-  // {
-  //   digitalWrite(TEST_PIN,LOW);
-  //   delay(50);
-  //   digitalWrite(TEST_PIN,HIGH);
-  //   delay(50);
-  // }
-
-}
-
 /**
  * @brief Arduino Setup routine
  */
 void setup() {
+  
   pinMode(HEALTH_LED,OUTPUT);
   digitalWrite(HEALTH_LED, HIGH);
-  
   
   pinMode(nSENSOR_PWR_EN,OUTPUT);
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
   
-  app.sensor_power_on();    //TODO: need to remove this line.  This is just in for testing
+  app.sensor_power_on();    //TODO: need to remove this line.  Turn power on only when we need it
 
 
   State STATE_READ_DATA;
-
-
  /**
   * @brief Define IO interrupt for push button input 
   */
@@ -367,14 +354,19 @@ void setup() {
 
   Serial.begin(SERIAL_BAUD_RATE);
 
-
-  if (epd.Init(lut_full_update) != 0) {
-    if(ENABLE_LOGGING)
-    {
-      Serial.println("e-Paper init failed");
-    }
-    while(true);
-  }
+ 
+  // if(ENABLE_LOGGING)
+  // {
+  //   Serial.println("Initializing e-paper display");
+  // }
+  // if (epd.Init(lut_full_update) != 0) 
+  // { 
+  //   if(ENABLE_LOGGING)
+  //   {
+  //     Serial.println("e-Paper init failed");
+  //   }
+  //   while(true);
+  // }
 
   /**
    * Remaining initialization functions
@@ -390,37 +382,31 @@ void setup() {
   nvm_functions.init();
   app.init();
 
-  if(ENABLE_LOGGING)
-  {
-    Serial.println("Printing default display image");
-  }
+  // if(ENABLE_LOGGING)
+  // {
+  //   Serial.println("Printing default display image");
+  // }
   /** 
    *  There are 2 memory areas embedded in the e-paper display
    *  and once the display is refreshed, the memory area will be auto-toggled,
    *  i.e. the next action of SetFrameMemory will set the other memory area
    *  therefore you have to clear the frame memory twice.
    */
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
+  // epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
+  // epd.DisplayFrame();
+  // epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
+  // epd.DisplayFrame();
 
-  paint.SetRotate(ROTATE_0);  
+  // paint.SetRotate(ROTATE_0);  
 
   //TODO: how do we want to initialize the display
 
-  paint.SetWidth(200);
-  paint.SetHeight(36);
-  epd.SetFrameMemory(IMAGE_DATA);  
-  epd.DisplayFrame();
-  epd.SetFrameMemory(IMAGE_DATA);   
-  epd.DisplayFrame();
-
-
-
-  //TODO: need to remove the following two lines that were put in for testing
-  Serial.println("Testing pin control");
-  _display_pin_control();
+  // paint.SetWidth(200);
+  // paint.SetHeight(36);
+  // epd.SetFrameMemory(IMAGE_DATA);  
+  // epd.DisplayFrame();
+  // epd.SetFrameMemory(IMAGE_DATA);   
+  // epd.DisplayFrame();
 
   if(ENABLE_LOGGING)
   {
@@ -445,6 +431,10 @@ void setup() {
   // paint.SetHeight(12);        // 12 pixels tall
   // paint.Clear(UNCOLORED);
   // paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
+
+  //                                   It seems that this is the absolute X   
+  //                                      |   It seems that this is the absolute y
+  //                                      |    |  
   // epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
   
   // paint.SetWidth(77);         // 7 pixels wide x 11 characters 
@@ -493,6 +483,60 @@ void setup() {
   //           |          |      |   |
   timerAlarm(Timer1_Cfg, 50000, true,0);   
 
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**   HERE WE ARE JUST TESTING DISPLAY STUFF */
+
+
+ if(ENABLE_LOGGING)
+  {
+    Serial.println("Initializing e-paper display");
+  }
+  
+  // Serial.println("e-Paper show pic");
+  // epd.HDirInit();
+  epd.LDirInit();
+  epd.Display(IMAGE_DATA);
+
+  // epd.LDirInit();
+  // epd.Clear();
+  
+
+  paint.SetWidth(77);         //7 pixels wide * 11 characters
+  paint.SetHeight(12);
+  Serial.println("Testing print line #1");
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
+  
+  
+  paint.SetWidth(56);         //7 pixels wide * 8 characters
+  paint.SetHeight(12);
+  Serial.println("Testing print line #2");
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
+
+
+  paint.SetWidth(4);
+  paint.SetHeight(80);
+  paint.Clear(UNCOLORED);
+  paint.DrawLine(0, 0, 1, 160, COLORED);
+  paint.DrawLine(1, 0, 2, 160, COLORED);
+  paint.DrawLine(2, 0, 3, 160, COLORED);
+  paint.DrawLine(3, 0, 4, 160, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
+  
+  epd.DisplayFrame();
+
+
+
+  /**   END OF DISPLAY TESTING */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+
+
 }
 
 /**
@@ -512,7 +556,7 @@ void loop()
    * Determine if the EEPROM has been
    * initialized.  If not, it shall be erased 
    */
-  //TODO: we'll need something here
+  //TODO: we'll need something here, but it's not the EEPROM! 
   // if(!nvm_functions.nvm_is_initalized() && !nvm_functions.nvm_is_calibrated())   
   // {
   //   nvm_functions.nvm_erase();
@@ -559,30 +603,63 @@ void loop()
 
     // app.sensor_power_on();    //TODO: need to remove this line.  This is just in for testing
     // delay(100);
+
     
-
-    Serial.println("-----------------------------------------------------------");
-
     /**
+     * For display debugging 
+     * 
+     * pinMode(CS_PIN, OUTPUT);
+     * pinMode(RST_PIN, OUTPUT);
+     * pinMode(DC_PIN, OUTPUT);
+     * pinMode(BUSY_PIN, INPUT); 
+     * 
+     */
+    // Serial.println("-----------------------------------------------------------");
+    // Serial.println("------------------ One second interrupt -------------------");
+    // epd.SetFrameMemory(IMAGE_DATA);  
+    // epd.DisplayFrame();
+    // epd.SetFrameMemory(IMAGE_DATA);   
+    // epd.DisplayFrame();
+    
+    //TODO: we need to remove the following function.  
+    //TODO: need to see if we can "control" the line
+    //TODO: these pins were already configured in IfInit(void) (see epdif.cpp)
+    //TODO: Note, this showed that we _could_ contorl these pins 
+    
+    // for(counter=0;counter<20;counter++)
+    // {
+      // digitalWrite(RST_PIN,!digitalRead(RST_PIN));
+      // digitalWrite(DC_PIN,!digitalRead(DC_PIN));
+    //   // epd.Reset();
+
+    // }
+    
+    
+    
+    
+    /**
+     * For sensor debugging
      * Get readings from the first sensor
      */
-    main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
+    // Serial.println("-----------------------------------------------------------");
+    // Serial.println("-------------------- Testing Sensors ----------------------");
+    // main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
     
-    main_i2c.get_sensor_data();
-    Serial.print("Humidity #1: ");
-    Serial.println(main_i2c.hum_val1);
-    Serial.print("Temperature #1: ");
-    Serial.println(main_i2c.temp_val1);
-    Serial.println(' ');
+    // main_i2c.get_sensor_data();
+    // Serial.print("Humidity #1: ");
+    // Serial.println(main_i2c.hum_val1);
+    // Serial.print("Temperature #1: ");
+    // Serial.println(main_i2c.temp_val1);
+    // Serial.println(' ');
     
     
-    main_i2c.choose_sensor(SENSOR_2);   //TODO: this is just in for testing
+    // main_i2c.choose_sensor(SENSOR_2);   //TODO: this is just in for testing
     
-    main_i2c.get_sensor_data();
-    Serial.print("\tHumidity #2: ");
-    Serial.println(main_i2c.hum_val2);
-    Serial.print("\tTemperature #2: ");
-    Serial.println(main_i2c.temp_val2);
+    // main_i2c.get_sensor_data();
+    // Serial.print("\tHumidity #2: ");
+    // Serial.println(main_i2c.hum_val2);
+    // Serial.print("\tTemperature #2: ");
+    // Serial.println(main_i2c.temp_val2);
 
     
     
