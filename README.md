@@ -45,3 +45,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 *v0.1.0 -- Code compiles and I2C functions seem to be working. Will need to update the routine for how temp data is grabbed (grab while making the RH measurement).  Choosing a sensor is working well, too.
 
 *v0.1.1 -- Code compiles.  The temperature and humidity values can be read reliably.  
+
+*v0.1.2 -- Code compiles.  Text, lines, and images can all be printed to the display with success.    

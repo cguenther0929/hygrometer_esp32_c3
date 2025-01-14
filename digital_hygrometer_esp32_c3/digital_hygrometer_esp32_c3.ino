@@ -41,8 +41,9 @@
 #include <Wire.h>
 #include <esp_timer.h>
 #include <Preferences.h>
+#include "epd1in54_V2.h"
 #include "nvm.h"
-#include "epd1in54.h"
+// #include "epd1in54.h"
 #include "epdpaint.h"
 #include "imagedata.h"
 #include "i2c.h"
@@ -63,6 +64,12 @@ String SW_VER_STRING = "0.1.2";
 
 /* Instantiate the Preferences class*/
 Preferences pref;
+
+/**
+ * Display parameters
+ */    
+#define COLORED     0
+#define UNCOLORED   1
 
 
 /**
@@ -315,12 +322,10 @@ void setup() {
   pinMode(nSENSOR_PWR_EN,OUTPUT);
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
   
-  app.sensor_power_on();    //TODO: need to remove this line.  This is just in for testing
+  app.sensor_power_on();    //TODO: need to remove this line.  Turn power on only when we need it
 
 
   State STATE_READ_DATA;
-
-
  /**
   * @brief Define IO interrupt for push button input 
   */
@@ -349,19 +354,19 @@ void setup() {
 
   Serial.begin(SERIAL_BAUD_RATE);
 
-
-  if(ENABLE_LOGGING)
-  {
-    Serial.println("Initializing e-paper display");
-  }
-  if (epd.Init(lut_full_update) != 0) 
-  { 
-    if(ENABLE_LOGGING)
-    {
-      Serial.println("e-Paper init failed");
-    }
-    while(true);
-  }
+ 
+  // if(ENABLE_LOGGING)
+  // {
+  //   Serial.println("Initializing e-paper display");
+  // }
+  // if (epd.Init(lut_full_update) != 0) 
+  // { 
+  //   if(ENABLE_LOGGING)
+  //   {
+  //     Serial.println("e-Paper init failed");
+  //   }
+  //   while(true);
+  // }
 
   /**
    * Remaining initialization functions
@@ -377,31 +382,31 @@ void setup() {
   nvm_functions.init();
   app.init();
 
-  if(ENABLE_LOGGING)
-  {
-    Serial.println("Printing default display image");
-  }
+  // if(ENABLE_LOGGING)
+  // {
+  //   Serial.println("Printing default display image");
+  // }
   /** 
    *  There are 2 memory areas embedded in the e-paper display
    *  and once the display is refreshed, the memory area will be auto-toggled,
    *  i.e. the next action of SetFrameMemory will set the other memory area
    *  therefore you have to clear the frame memory twice.
    */
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
+  // epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
+  // epd.DisplayFrame();
+  // epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
+  // epd.DisplayFrame();
 
-  paint.SetRotate(ROTATE_0);  
+  // paint.SetRotate(ROTATE_0);  
 
   //TODO: how do we want to initialize the display
 
-  paint.SetWidth(200);
-  paint.SetHeight(36);
-  epd.SetFrameMemory(IMAGE_DATA);  
-  epd.DisplayFrame();
-  epd.SetFrameMemory(IMAGE_DATA);   
-  epd.DisplayFrame();
+  // paint.SetWidth(200);
+  // paint.SetHeight(36);
+  // epd.SetFrameMemory(IMAGE_DATA);  
+  // epd.DisplayFrame();
+  // epd.SetFrameMemory(IMAGE_DATA);   
+  // epd.DisplayFrame();
 
   if(ENABLE_LOGGING)
   {
@@ -413,19 +418,23 @@ void setup() {
   /*~~~~~~~~~~~~~~~~~~~~~~~ ORIGINAL DISPLAY STUFF ~~~~~~~~~~~~~~~~~~~~~~~*/
   
   /* The following was written by me and seems to somewhat work*/
-  paint.SetWidth(4);
-  paint.SetHeight(80);
-  paint.Clear(UNCOLORED);
-  paint.DrawLine(0, 0, 1, 160, UNCOLORED);
-  paint.DrawLine(1, 0, 2, 160, UNCOLORED);
-  paint.DrawLine(2, 0, 3, 160, UNCOLORED);
-  paint.DrawLine(3, 0, 4, 160, UNCOLORED);
-  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
+  // paint.SetWidth(4);
+  // paint.SetHeight(80);
+  // paint.Clear(UNCOLORED);
+  // paint.DrawLine(0, 0, 1, 160, UNCOLORED);
+  // paint.DrawLine(1, 0, 2, 160, UNCOLORED);
+  // paint.DrawLine(2, 0, 3, 160, UNCOLORED);
+  // paint.DrawLine(3, 0, 4, 160, UNCOLORED);
+  // epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
 
   // paint.SetWidth(56);         // 7 pixels wide x 8 characters 
   // paint.SetHeight(12);        // 12 pixels tall
   // paint.Clear(UNCOLORED);
   // paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
+
+  //                                   It seems that this is the absolute X   
+  //                                      |   It seems that this is the absolute y
+  //                                      |    |  
   // epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
   
   // paint.SetWidth(77);         // 7 pixels wide x 11 characters 
@@ -447,7 +456,7 @@ void setup() {
   // epd.SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
   /* END OF WORKING EXAMPLE WRITTEN BY CJG*/
 
-  epd.DisplayFrame();
+  // epd.DisplayFrame();
 
   /*~~~~~~~~~~~~~~~~~~~~~~~ ORIGINAL DISPLAY STUFF ~~~~~~~~~~~~~~~~~~~~~~~*/
 
@@ -473,6 +482,60 @@ void setup() {
   //           |          |      |  Value to reload into the timer when auto reloading
   //           |          |      |   |
   timerAlarm(Timer1_Cfg, 50000, true,0);   
+
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**   HERE WE ARE JUST TESTING DISPLAY STUFF */
+
+
+ if(ENABLE_LOGGING)
+  {
+    Serial.println("Initializing e-paper display");
+  }
+  
+  // Serial.println("e-Paper show pic");
+  // epd.HDirInit();
+  epd.LDirInit();
+  epd.Display(IMAGE_DATA);
+
+  // epd.LDirInit();
+  // epd.Clear();
+  
+
+  paint.SetWidth(77);         //7 pixels wide * 11 characters
+  paint.SetHeight(12);
+  Serial.println("Testing print line #1");
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
+  
+  
+  paint.SetWidth(56);         //7 pixels wide * 8 characters
+  paint.SetHeight(12);
+  Serial.println("Testing print line #2");
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
+
+
+  paint.SetWidth(4);
+  paint.SetHeight(80);
+  paint.Clear(UNCOLORED);
+  paint.DrawLine(0, 0, 1, 160, COLORED);
+  paint.DrawLine(1, 0, 2, 160, COLORED);
+  paint.DrawLine(2, 0, 3, 160, COLORED);
+  paint.DrawLine(3, 0, 4, 160, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
+  
+  epd.DisplayFrame();
+
+
+
+  /**   END OF DISPLAY TESTING */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+
 
 }
 
@@ -551,12 +614,12 @@ void loop()
      * pinMode(BUSY_PIN, INPUT); 
      * 
      */
-    Serial.println("-----------------------------------------------------------");
-    Serial.println("------------------ One second interrupt -------------------");
-    epd.SetFrameMemory(IMAGE_DATA);  
-    epd.DisplayFrame();
-    epd.SetFrameMemory(IMAGE_DATA);   
-    epd.DisplayFrame();
+    // Serial.println("-----------------------------------------------------------");
+    // Serial.println("------------------ One second interrupt -------------------");
+    // epd.SetFrameMemory(IMAGE_DATA);  
+    // epd.DisplayFrame();
+    // epd.SetFrameMemory(IMAGE_DATA);   
+    // epd.DisplayFrame();
     
     //TODO: we need to remove the following function.  
     //TODO: need to see if we can "control" the line

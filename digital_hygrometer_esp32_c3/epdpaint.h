@@ -10,7 +10,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to  whom the Software is
- * furnished to do so, subject to the following conditions:
+ * furished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -22,8 +22,6 @@
  * LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * 
- * TODO: move comments from the CPP file into here.
  */
 
 #ifndef EPDPAINT_H
@@ -36,28 +34,9 @@
 #define ROTATE_270          3
 
 // Color inverse. 1 or 0 = set or reset a bit if set a colored pixel
-#define IF_INVERT_COLOR     0
+#define IF_INVERT_COLOR     1
 
 #include "fonts.h"
-#include "epd1in54.h"
-#include "epdpaint.h"
-
-/**
- * Eink parameters
- */
-#define COLORED                   0
-#define UNCOLORED                 1
-
-#define MAX_FRAME_BUFFER    1024
-
-typedef struct ImageParameters    
-{
-    // uint8_t         current_line;        // Start from top.  Top row == 0 / bottom row = 200
-    uint8_t         width;          //TODO: Do we need this?
-    uint8_t         height;             //TODO: do we need this?
-    unsigned char   frame_buffer[MAX_FRAME_BUFFER];
-    
-};
 
 class Paint {
 public:
@@ -75,8 +54,6 @@ public:
     void DrawPixel(int x, int y, int colored);
     void DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored);
     void DrawStringAt(int x, int y, const char* text, sFONT* font, int colored);
-    void SplashScreenString(const char* string, bool clear_frame_buffer); 
-    void DrawStringBottom(const char* string);
     void DrawLine(int x0, int y0, int x1, int y1, int colored);
     void DrawHorizontalLine(int x, int y, int width, int colored);
     void DrawVerticalLine(int x, int y, int height, int colored);
@@ -86,11 +63,10 @@ public:
     void DrawFilledCircle(int x, int y, int radius, int colored);
 
 private:
-    unsigned char*  image;
-    int             width;
-    int             height;
-    int             rotate;
-    uint8_t         current_line;        // Start from top.  Top row == 0 / bottom row = 200
+    unsigned char* image;
+    int width;
+    int height;
+    int rotate;
 };
 
 #endif

@@ -11,7 +11,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to  whom the Software is
- * furnished to do so, subject to the following conditions:
+ * furished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -27,6 +27,8 @@
 
 #include "epdif.h"
 #include <spi.h>
+
+bool spi_is_initalized = false;
 
 EpdIf::EpdIf() {
 };
@@ -58,7 +60,16 @@ int EpdIf::IfInit(void) {
     pinMode(DC_PIN, OUTPUT);
     pinMode(BUSY_PIN, INPUT); 
 
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+    if(spi_is_initalized == false)
+    {
+        Serial.println("Initializing SPI");
+        SPI.begin();
+        SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+        Serial.println("SPI Initialized");
+        spi_is_initalized = true;
+    }
+
+
     return 0;
 }
+

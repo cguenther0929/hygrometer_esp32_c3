@@ -10,7 +10,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to  whom the Software is
- * furnished to do so, subject to the following conditions:
+ * furished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -24,12 +24,12 @@
  * THE SOFTWARE.
  */
 
+#include "epdpaint.h"
 #if defined(AVR)
 #include <avr/pgmspace.h>
 #else  //defined(AVR)
 #include <pgmspace.h>
 #endif  //defined(AVR)
-#include "epdpaint.h"
 
 Paint::Paint(unsigned char* image, int width, int height) {
     this->rotate = ROTATE_0;
@@ -37,7 +37,6 @@ Paint::Paint(unsigned char* image, int width, int height) {
     /* 1 byte = 8 pixels, so the width should be the multiple of 8 */
     this->width = width % 8 ? width + 8 - (width % 8) : width;
     this->height = height;
-    this -> current_line = 0;
 }
 
 Paint::~Paint() {
@@ -55,24 +54,20 @@ void Paint::Clear(int colored) {
 }
 
 /**
- * @brief: Lowest subroutine for drawing a pixel to the frame buffer 
- * @details: this draws a pixel by absolute coordinates.
- *              this function won't be affected by the rotate parameter.
+ *  @brief: this draws a pixel by absolute coordinates.
+ *          this function won't be affected by the rotate parameter.
  */
 void Paint::DrawAbsolutePixel(int x, int y, int colored) {
     if (x < 0 || x >= this->width || y < 0 || y >= this->height) {
         return;
     }
-    if (IF_INVERT_COLOR) 
-    {
+    if (IF_INVERT_COLOR) {
         if (colored) {
             image[(x + y * this->width) / 8] |= 0x80 >> (x % 8);
         } else {
             image[(x + y * this->width) / 8] &= ~(0x80 >> (x % 8));
         }
-    } 
-    else 
-    {
+    } else {
         if (colored) {
             image[(x + y * this->width) / 8] &= ~(0x80 >> (x % 8));
         } else {
@@ -113,7 +108,7 @@ void Paint::SetRotate(int rotate){
 }
 
 /**
- *  @brief: Place pixel in the frame buffer per the coordinates.  
+ *  @brief: this draws a pixel by the coordinates
  */
 void Paint::DrawPixel(int x, int y, int colored) {
     int point_temp;
@@ -149,7 +144,7 @@ void Paint::DrawPixel(int x, int y, int colored) {
 }
 
 /**
- *  @brief: Place character in frame buffer, not on screen
+ *  @brief: this draws a charactor on the frame buffer but not refresh
  */
 void Paint::DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored) {
     int i, j;
@@ -172,8 +167,7 @@ void Paint::DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored) 
 }
 
 /**
- * This will put the string in the frame buffer, but 
- * will not place the string on the display
+*  @brief: this displays a string on the frame buffer but not refresh
 */
 void Paint::DrawStringAt(int x, int y, const char* text, sFONT* font, int colored) {
     const char* p_text = text;
@@ -191,105 +185,6 @@ void Paint::DrawStringAt(int x, int y, const char* text, sFONT* font, int colore
         counter++;
     }
 }
-
-
-
-
-
-void Paint::DrawStringBottom(const char* string) {
-
-    //TODO: Need to clean this routine up a lot
-    Epd epd;
-
-    SetWidth(200);
-    SetHeight(18);
-
-    //TODO: At the time of writing this, 
-    //TODO: I'm not sure how the parameters =
-    //TODO: (16 and 3) were derived.  
-    //TODO: This might start 16 pixels in (X=16)
-    //TODO: and 183 down (SetFrameMemory defines the 
-    //TODO: y-dimension at 180).
-    //TODO: Therefore, a person could assume 
-    //TODO: 180+3+12 for a total height of 
-    //TODO: 195 pixels.   
-    //TODO: for colored/uncolored, we need to do something 
-    //TODO: more elaborate here
-    DrawStringAt(16, 3, string, &Font12, 0);
-    // paint.DrawStringAt(16, 3, string, &Font12, UNCOLORED)
-
-    /**
-     * Set the absolute Y pixel location near
-     * the bottom of the screen.
-     * Y = 180 out of 200 pixels tall.  
-     * Since the height of the text is 12 pixels
-     * we can discern the following :180 + 12 = 192,
-     * then 200-192 = 8 so we have 
-     * 8 pixels worth of spacing at the 
-     * bottom of the screen.  
-     */
-    epd.SetFrameMemory(GetImage(), 0, 180, this->width, this->height);  
-    // paint.SetFrameMemory(paint.GetImage(), 0, 180, this->width, this->height);  
-    // TODO: can we remove the following ?
-    // paint.SetFrameMemory(image.frame_buffer, 0, 180, this->width, this->height);  
-
-    epd.DisplayFrame();
-    
-    // EinkSleep(); //TODO: we might want this in!
-    
-    
-    //TODO: can we clean up the following?
-    // DisplayFrame();
-    
-    // EinkSleep();
-    
-    // /* Send the string character by character on EPD */
-    // while (*p_text != 0) {
-    //     /* Display one character on EPD */
-    //     DrawCharAt(refcolumn, y, *p_text, font, colored);
-    //     /* Decrement the column position by 16 */
-    //     refcolumn += font->Width;
-    //     /* Point on the next character */
-    //     p_text++;
-    //     counter++;
-    // }
-}
-
-
-
-void Paint::SplashScreenString(const char* string, bool clear_frame_buffer) 
-{
-    //TODO: need to define this function
-    //TODO: stopped working on this on 12/10/24 @8:52AM
-
-    // SetWidth(200); //TODO: put back in
-    // SetHeight(18);   //TODO: put back in
-    
-    // LDirInit(); //TODO: REMOVE
-
-    // if(clear_frame_buffer || this -> current_line >= 183){  //TODO: put this for loop back in
-    //     Clear ();
-    //     this->current_line = 0;
-    // }
-
-    // Clear ();   //TODO: put back in
-    // DrawStringAt(16, 3, string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high    //TODO: put back in
-    // EinkSetFrameMemory(image.frame_buffer, 0, image.current_row, image.width, image.height);  TODO: need to delete this line
-    // Example implementation -> SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
-    // SetFrameMemory(GetImage(), 0, this->current_line , GetWidth(), GetHeight()); //TODO: put back in
-    
-    this->current_line+= 18;   
-
-    // DisplayFrame();   //TODO: put back in
-    
-    // Sleep();   //TODO: put back in
-}
-
-
-
-
-
-
 
 /**
 *  @brief: this draws a line on the frame buffer
@@ -426,26 +321,3 @@ void Paint::DrawFilledCircle(int x, int y, int radius, int colored) {
 }
 
 /* END OF FILE */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
