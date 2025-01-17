@@ -1,10 +1,4 @@
 # Digital Hygrometer, ESP32-C3 #
-<br>
-TODO: This is a temporary note.  Example code can be located here:<br> C:\Users\Neal Quackenbush\Dropbox\My Design Projects\Projects\Digital Hygrometer\Design\SW\Archive\epd1in54
-<br>
-
-TODO: this is a temporary note for showing us how to make library files: https://rishabhdevyadav.medium.com/create-your-own-arduino-library-h-and-cpp-files-62ab456453e0
-<br>
 
 This repository contains the source that shall run on the ESP32-C3 SOM as part of the Digital Hygrometer. <br><br>
 
@@ -21,7 +15,7 @@ The source file(s) are to be compiled using Arduino IDE v1.8.8, or newer.   <br>
 The digital hygrometer utilizes an `ESP32-C3-MINI-1-N4` WiFi SOM.  For proper compilation, the target board shall be *ESP32C3 Dev Module*.  <br><br>
 
 It is necessary to install the ESP Mail Client library in order for proper compilation.  The following instructions can be followed to install the library.  
-Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Client**. Install the ESP Mail Client library which was written by **Mobizt**.
+Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Client** (not ESP**32**). Install the ESP Mail Client library which was written by **Mobizt**.  The reader shall take caution not to confuse **ESP** Mail Client with ESP**32** Mail Client.  
 
 ### VERSIONS ###
 * V0.0.1 -- This version compiles.  This is really just a skelton of what is needed and was initially put together for testing purposes.  Specific .h and .cpp files were successfully created (for the sensor).    
