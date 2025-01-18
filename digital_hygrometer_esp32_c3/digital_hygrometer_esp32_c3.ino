@@ -23,10 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  * 
- * TODO: Handle the calibration routine (read button and store values)
- * TODO: choose sensors via mux
- * TODO: wake up processor from deep sleep with timer
- * TODO: button press algorithm 
+ * TODO: Wake up processor from deep sleep with timer
+ * TODO: Button press interrupt working  
  * TODO: adc for measuring battery voltage
  * TODO: get email features tested and working
  * TODO: Establish text notification at bottom of screen 
@@ -132,6 +130,8 @@ typedef enum State {
 #define TEMP_Y_START            130
 #define HUM_X_START             120
 #define HUM_Y_START             130
+#define BOT_ROW_X_START         12
+#define BOT_ROW_Y_START         182     //200 total pixels high - 12 pixels tall text - a little slop
 
 
 
@@ -531,18 +531,22 @@ void setup() {
   paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
 
+  paint.SetWidth(84);           //7 pixels wide * 12 characters
+  paint.SetHeight(12);
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "TEST BOT ROW", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), BOT_ROW_X_START, BOT_ROW_Y_START, paint.GetWidth(), paint.GetHeight());
 
   /** 
    * Print the divider line 
    */
-
   paint.SetWidth(4);
-  paint.SetHeight(80);
+  paint.SetHeight(132);
   paint.Clear(UNCOLORED);
-  paint.DrawLine(0, 0, 1, 160, COLORED);
-  paint.DrawLine(1, 0, 2, 160, COLORED);
-  paint.DrawLine(2, 0, 3, 160, COLORED);
-  paint.DrawLine(3, 0, 4, 160, COLORED);
+  paint.DrawLine(0, 0, 1, 132, COLORED);
+  paint.DrawLine(1, 0, 2, 132, COLORED);
+  paint.DrawLine(2, 0, 3, 132, COLORED);
+  paint.DrawLine(3, 0, 4, 132, COLORED);
   epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
   
   epd.DisplayFrame();
