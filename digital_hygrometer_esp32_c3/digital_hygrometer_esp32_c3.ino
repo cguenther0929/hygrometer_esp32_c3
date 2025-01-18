@@ -43,7 +43,6 @@
 #include <Preferences.h>
 #include "epd1in54_V2.h"
 #include "nvm.h"
-// #include "epd1in54.h"
 #include "epdpaint.h"
 #include "imagedata.h"
 #include "i2c.h"
@@ -125,6 +124,15 @@ typedef enum State {
   STATE_UPDATE_DISPLAY,
   STATE_SEND_EMAIL
 };
+
+/** 
+ * E-ink Parameters
+*/
+#define TEMP_X_START            20
+#define TEMP_Y_START            130
+#define HUM_X_START             120
+#define HUM_Y_START             130
+
 
 
 /**
@@ -494,30 +502,39 @@ void setup() {
     Serial.println("Initializing e-paper display");
   }
   
-  // Serial.println("e-Paper show pic");
-  // epd.HDirInit();
   epd.LDirInit();
   epd.Display(IMAGE_DATA);
 
-  // epd.LDirInit();
-  // epd.Clear();
-  
 
   paint.SetWidth(77);         //7 pixels wide * 11 characters
   paint.SetHeight(12);
-  Serial.println("Testing print line #1");
   paint.Clear(UNCOLORED);
   paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
   epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
   
   
-  paint.SetWidth(56);         //7 pixels wide * 8 characters
+  paint.SetWidth(56);           //7 pixels wide * 8 characters
   paint.SetHeight(12);
-  Serial.println("Testing print line #2");
   paint.Clear(UNCOLORED);
   paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
   epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
 
+  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
+  paint.SetHeight(36);          // 36 pixels tall
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
+
+  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
+  paint.SetHeight(36);          // 36 pixels tall
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
+
+
+  /** 
+   * Print the divider line 
+   */
 
   paint.SetWidth(4);
   paint.SetHeight(80);
