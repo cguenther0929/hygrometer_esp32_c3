@@ -80,10 +80,10 @@ float APP::get_battery_voltage (void)
 
   digital_reading = analogRead(ANALOG_BATT_PIN);
   
-//   voltage_reading = (float)(digital_reading*ADC_REFERENCE); //TODO need to fix the following to replace the hardcoded lines
-//   voltage_reading = (float)(voltage_reading/ADC_BIT_VALUE);
-  voltage_reading = (float)(digital_reading*1.10);
-  voltage_reading = (float)(voltage_reading/496.0);
+  voltage_reading = (float)(digital_reading * HYG_ADC_REFERENCE);        // Internal reference of the ADC is ~1.1V
+  voltage_reading = (float)(voltage_reading / HYG_ADC_BIT_VALUE);      // The ESP32-C3 ADC is 12bit
+  voltage_reading = (float)(voltage_reading * HYG_PCB_ATTEN);       // To account for the attenuator on the PCB
+  voltage_reading = (float)(voltage_reading * HYG_ESP32_INTERNAL_ATTEN);        //  ESP32-C3 internal attenuation (Empirically derived)
   
   return voltage_reading;
 }

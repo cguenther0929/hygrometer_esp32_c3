@@ -34,18 +34,38 @@
 #include "nvm.h"
 #include "epdif.h"
 
+/**
+ * Serial parameters
+ */
+#define SERIAL_BAUD_RATE          115200
+
+/**
+ * General parameters related 
+ * to the hygrometer application
+ */
+
+/**
+ * Sensor related
+ */
+#define SENSOR_1                    1
+#define SENSOR_2                    2
+
 /* Define IO */
-#define PUSH_BUTTON             1
-#define nSENSOR_PWR_EN          3
+#define PUSH_BUTTON                 1
+#define nSENSOR_PWR_EN              3
+#define SENSOR_MUX_RST_LINE         9
 
 /**
  * Analog related parameters
  */
-#define ANALOG_BATT_PIN           0     //TODO: need to fix the following two lines that are commented out
-// float ADC_REFERENCE     = 1.10;         // ESP32-C3 ADC reference
-// float ADC_BIT_VALUE     = 4096.0;       // ESP32-C3 bit value (12 bit ADC)
+#define ANALOG_BATT_PIN             A0      // The analog pin on the ESP32-C that is 'watching' the battery voltage
+#define HYG_ADC_REFERENCE           1.10    // ESP32-C3 ADC reference
+#define HYG_ADC_BIT_VALUE           4096    // ESP32-C3 Full scale digital reading +1
+#define HYG_PCB_ATTEN               5.435   // Attenuation that is applied on the hygrometer PCB
+#define HYG_ESP32_INTERNAL_ATTEN    2.34    // The ESP32-C3 employes some amount of internal attenuation (this was empirically derived)
 
-typedef struct sensor_info
+
+typedef struct sensor_info  //TODO we might be able to remove this ...
 {
     uint8_t     rh_reading_sensor_one;
     uint8_t     rh_reading_sensor_two;

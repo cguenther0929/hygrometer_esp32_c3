@@ -152,7 +152,7 @@ class I2C {
          * @return nothing 
          * 
          */ 
-        void choose_sensor(int sensor_number);
+        void choose_sensor(uint8_t sensor_number);
 
         //TODO: need to comment
         void configure_sensor( void );

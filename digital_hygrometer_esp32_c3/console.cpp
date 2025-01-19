@@ -106,11 +106,14 @@ void CONSOLE::console ( Preferences & pref )
         Serial.println("2)  To send test email.");
         Serial.println("3)  View RH calibration values.");
         Serial.println("4)  View network parameters.");
-        Serial.println("5)  View battery voltage.");
+        Serial.println("5)  Vew battery voltage.");
         Serial.println("6)  View sensor readings.");
         Serial.println("7)  Perform EEPROM test.");
         Serial.println("8)  Read the state of the push button.");
         Serial.println("9)  Read the busy input as sourced by the display.");
+        Serial.println("10) Look at charge enable bit.");
+        Serial.println("11) Not implemented.");
+
         Serial.println("99) To exit the console.");
 
         Serial.print("Enter a value: ");
@@ -163,12 +166,13 @@ void CONSOLE::console ( Preferences & pref )
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                Serial.println("Printing battery voltage.");
 
-                //TODO: we want these functions back in
-                Serial.print("The battery voltage is:  ");
-                Serial.print(app_function.get_battery_voltage());
-                Serial.println("V");
+                temporary_voltage_value = app_function.get_battery_voltage();
+                Serial.print("Battery voltage: ");
+                Serial.println(temporary_voltage_value);
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
             break;
 
             /* Read values from sensors */
@@ -176,8 +180,24 @@ void CONSOLE::console ( Preferences & pref )
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                Serial.println("~~~~~!! NOT DEFINED !!~~~~~");
+
+                i2c_function.get_sensor_data(); 
+
+                Serial.print("Humidity #1: ");
+                Serial.println(i2c_function.hum_val1);
+                Serial.print("Temperature #1: ");
+                Serial.println(i2c_function.temp_val1);
+                Serial.println(' ');
+
                 insert_line_emphasis();
+
+                Serial.print("Humidity #2: ");
+                Serial.println(i2c_function.hum_val2);
+                Serial.print("Temperature #2: ");
+                Serial.println(i2c_function.temp_val2);
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
             break;
             
             /* Perform NVM test */
@@ -247,7 +267,37 @@ void CONSOLE::console ( Preferences & pref )
                 insert_line_emphasis();
                 insert_line_feeds(2);
             break;
+            
+            /* Look at charging bit */
+            case 10:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                pinMode(BUSY_PIN,INPUT);
 
+
+                Serial.print("The current state of the busy pin is: ");  
+                
+                if(digitalRead(BUSY_PIN)) 
+                {
+                    Serial.println("HIGH.");  
+                }
+                else
+                {
+                    Serial.println("LOW.");  
+                }
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                
+            break;
+            
+            /* Not implemented */
+            case 11:
+                Serial.println("Not implemented");
+
+            break;
 
             /* Exit the application */
             case 99:

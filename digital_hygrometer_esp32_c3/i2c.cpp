@@ -1,8 +1,11 @@
 #include "i2c.h"
+#include "app.h"
 #include <Wire.h>
 
 #define I2C_SDA     8
 #define I2C_SCL     9
+
+APP     i2c_app_functions;
 
 void I2C::init(void) {
     //TODO: Do we want to modify these lines?
@@ -185,18 +188,14 @@ void I2C::toggle_io_expander(uint8_t io_num)
 
 
 
-void I2C::choose_sensor(int sensor_number){
+void I2C::choose_sensor(uint8_t sensor_number){
     uint8_t channel_number = 0x00;
     this -> sensor_number = sensor_number;
 
     (sensor_number == 1) ? (channel_number = I2C_MUX_CH0_SELECT):(channel_number = I2C_MUX_CH1_SELECT);
     
-    //TODO: we can remove the following two lines
-    // Serial.print("\t\t***DEBUG CHAN #: ");
-    // Serial.println(channel_number);
-
     Wire.beginTransmission(I2C_MUX_ADDRESS); 
-    Wire.write(channel_number);        
+    Wire.write(channel_number); //Channel number is expected to be either one or two       
     Wire.endTransmission();
 }
 
@@ -340,82 +339,100 @@ void I2C::disable_mux(void)
 void I2C::get_sensor_data( void ) 
 {
     uint8_t     lsb_byte        = 0x00;
+    uint8_t     i               = 0;
     uint8_t     msb_byte        = 0x00;
     uint16_t    temp_uint16t    = 0x0000;  
     float       temp_float      = 0.0; 
 
     /**
-     * Start by measuring humidity...
-     * Need to indicate to the sensor which 
-     * register to read from 
-     * 
-    */
-    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
-    Wire.write(SI7020_MEAS_HUM_NO_HOLD);
-    Wire.endTransmission();
-    delay(30);
-
-    /**
-     * Now extract the data from the sensor. 
-     * requestFrom() will create the repeated start.  
-    */
-    Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 2 bytes from the address  
-
-    msb_byte = Wire.read(); 
-    lsb_byte = Wire.read(); 
-    temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
-
-
-    /**
-     * Assign the value to the correct member 
-     * of the class 
-     * i.e. humidity / temperature
+     * Power the sensors on
      */
-    if(this -> sensor_number == 1)
-    {
-        this -> hum_val1 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_1);
-    }
-    else 
-    {
-        this -> hum_val2 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_2);
-    }
-    
-    /**
-     * Get the temperature value that was 
-     * automatically measured when measuring
-     * humidity 
-     * 
-     * Need to indicate to the sensor which 
-     * register to read from 
-     * 
-    */
-    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
-    Wire.write(SI7020_TEMP_AFTER_HUM);
-    Wire.endTransmission();
+    i2c_app_functions.sensor_power_on();
+    delay(50);
 
-    /**
-     * Now extract the data from the sensor. 
-     * requestFrom() will create 
-     * a repeated start condition on the bus.  
-    */
-    Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 2 byte from the address  
-
-    msb_byte = Wire.read(); 
-    lsb_byte = Wire.read(); 
-    temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
-
-    /**
-     * Assign the value to the correct member 
-     * of the class 
-     * i.e. humidity / temperature
-     */
-    if(this -> sensor_number == 1)
+    for(i=1;i<=2;i++)
     {
-        this -> temp_val1 =  (float)(temp_uint16t/207.1983 - 52.33);  //For Deg F
+
+        /**
+         * Choose sensor #1
+         */
+        choose_sensor(i);
+
+        /**
+         * Start by measuring humidity...
+         * Need to indicate to the sensor which 
+         * register to read from 
+         * 
+        */
+        Wire.beginTransmission(SI7020_BASE_ADDRESS); 
+        Wire.write(SI7020_MEAS_HUM_NO_HOLD);
+        Wire.endTransmission();
+        delay(30);
+
+        /**
+         * Now extract the data from the sensor. 
+         * requestFrom() will create the repeated start.  
+        */
+        Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 2 bytes from the address  
+
+        msb_byte = Wire.read(); 
+        lsb_byte = Wire.read(); 
+        temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
+
+
+        /**
+         * Assign the value to the correct member 
+         * of the class 
+         * i.e. sensor #1 or #2
+         */
+        if(this -> sensor_number == 1)
+        {
+            this -> hum_val1 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_1);
+        }
+        else 
+        {
+            this -> hum_val2 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_2);
+        }
+        
+        /**
+         * Get the temperature value that was 
+         * automatically measured when measuring
+         * humidity 
+         * 
+         * Need to indicate to the sensor which 
+         * register to read from 
+         * 
+        */
+        Wire.beginTransmission(SI7020_BASE_ADDRESS); 
+        Wire.write(SI7020_TEMP_AFTER_HUM);
+        Wire.endTransmission();
+
+        /**
+         * Now extract the data from the sensor. 
+         * requestFrom() will create 
+         * a repeated start condition on the bus.  
+        */
+        Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 2 byte from the address  
+
+        msb_byte = Wire.read(); 
+        lsb_byte = Wire.read(); 
+        temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
+
+        /**
+         * Assign the value to the correct member 
+         * of the class 
+         * i.e. humidity / temperature
+         */
+        if(this -> sensor_number == 1)
+        {
+            this -> temp_val1 =  (float)(temp_uint16t/207.1983 - 52.33);  //For Deg F
+        }
+        else 
+        {
+            this -> temp_val2 =  (float)(temp_uint16t/207.1983 - 52.33);  // For deg F
+        }
     }
-    else 
-    {
-        this -> temp_val2 =  (float)(temp_uint16t/207.1983 - 52.33);  // For deg F
-    }
+
+    i2c_app_functions.sensor_power_off();
     
 }

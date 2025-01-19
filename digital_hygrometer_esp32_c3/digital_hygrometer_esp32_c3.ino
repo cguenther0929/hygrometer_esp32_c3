@@ -28,6 +28,8 @@
  * TODO: adc for measuring battery voltage
  * TODO: get email features tested and working
  * TODO: Establish text notification at bottom of screen 
+ * TODO: Need to be able to read the HW revision
+ * TODO: need to be able to read the the "charging status"
  * 
  */
 
@@ -53,7 +55,7 @@
 // ==============================
 // Value last updated 1/12/25 
 // SW version string 
-String SW_VER_STRING = "0.1.2";
+String SW_VER_STRING = "0.1.3";
 // ==============================
 // ==============================
 
@@ -92,17 +94,12 @@ uint16_t counter                = 0;
  * Sensor parameters
  */
 //TODO: can this be placed in app.h?
-#define SENSOR_1                  1
-#define SENSOR_2                  2
-#define SENSOR_MUX_RST_LINE       9
+// #define SENSOR_1                  1
+// #define SENSOR_2                  2
+// #define SENSOR_MUX_RST_LINE       9
 bool calibrate_sensors            = false;  //TODO we may want to put this in the sensor struct
-float float_humidity_value        = 0.0;
-float float_temperature_value     = 0.0;
 
-/**
- * Serial parameters
- */
-#define SERIAL_BAUD_RATE          115200
+
 
 /**
  * Interrupt / button pin
@@ -115,6 +112,13 @@ float float_temperature_value     = 0.0;
  * Analog and battery parameters
  */
 #define MIN_BATT_VOLTAGE          3.0
+
+/**
+ * Global variables 
+ * for testing
+ */
+ //TODO -- this is for testing only ....
+ float battery_voltage            = 0.0;
 
 typedef enum State {
   STATE_SLEEP,
@@ -329,7 +333,7 @@ void setup() {
   
   pinMode(nSENSOR_PWR_EN,OUTPUT);
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
-  
+
   app.sensor_power_on();    //TODO: need to remove this line.  Turn power on only when we need it
 
 
@@ -622,42 +626,18 @@ void loop()
     
     //TODO: the following sensor read is in just for testing
 
-    // app.sensor_power_on();    //TODO: need to remove this line.  This is just in for testing
-    // delay(100);
 
-    
     /**
-     * For display debugging 
-     * 
-     * pinMode(CS_PIN, OUTPUT);
-     * pinMode(RST_PIN, OUTPUT);
-     * pinMode(DC_PIN, OUTPUT);
-     * pinMode(BUSY_PIN, INPUT); 
-     * 
+     * For debugging the 
+     * analog battery reading
      */
     // Serial.println("-----------------------------------------------------------");
-    // Serial.println("------------------ One second interrupt -------------------");
-    // epd.SetFrameMemory(IMAGE_DATA);  
-    // epd.DisplayFrame();
-    // epd.SetFrameMemory(IMAGE_DATA);   
-    // epd.DisplayFrame();
+    // Serial.println("--------------- Testing Battery Voltage Sensor ------------");
+    // battery_voltage = app.get_battery_voltage();
+    // Serial.print("Battery voltage: ");
+    // Serial.println(battery_voltage);
     
-    //TODO: we need to remove the following function.  
-    //TODO: need to see if we can "control" the line
-    //TODO: these pins were already configured in IfInit(void) (see epdif.cpp)
-    //TODO: Note, this showed that we _could_ contorl these pins 
-    
-    // for(counter=0;counter<20;counter++)
-    // {
-      // digitalWrite(RST_PIN,!digitalRead(RST_PIN));
-      // digitalWrite(DC_PIN,!digitalRead(DC_PIN));
-    //   // epd.Reset();
 
-    // }
-    
-    
-    
-    
     /**
      * For sensor debugging
      * Get readings from the first sensor
