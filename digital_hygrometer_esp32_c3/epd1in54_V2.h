@@ -73,7 +73,6 @@ public:
 	);
 	void DisplayFrame(void);
 	void DisplayPartFrame(void);
-
 	void Sleep(void);
 private:
 	unsigned int reset_pin;

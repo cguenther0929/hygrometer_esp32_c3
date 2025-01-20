@@ -25,11 +25,14 @@
  */
 
 #include "epdpaint.h"
+#include "epd1in54_V2.h"
 #if defined(AVR)
 #include <avr/pgmspace.h>
 #else  //defined(AVR)
 #include <pgmspace.h>
 #endif  //defined(AVR)
+
+Epd     paint_epd;
 
 Paint::Paint(unsigned char* image, int width, int height) {
     this->rotate = ROTATE_0;
@@ -318,6 +321,27 @@ void Paint::DrawFilledCircle(int x, int y, int radius, int colored) {
             err += ++x_pos * 2 + 1;
         }
     } while(x_pos <= 0);
+}
+
+void Paint::eink_put_string_bottom(const char * my_string)
+{
+    SetWidth(200);
+    SetHeight(18);
+    
+    // LDirInit();  //TODO I don't think we need to call this
+
+    Clear(UNCOLORED);   
+    DrawStringAt(0, 0, my_string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
+    
+    /**
+     * The memory location being targeted 
+     * here is near the bottom of the display
+     * which is 200X200.  Therefor, the Y 
+     * dimension shall be closer to 200 (i.e. 182)
+     */
+    paint_epd.SetFrameMemory(GetImage(), BOT_ROW_X_START, BOT_ROW_Y_START, GetWidth(), GetHeight());  
+
+    paint_epd.DisplayFrame();
 }
 
 /* END OF FILE */

@@ -30,7 +30,7 @@
  * Related 
  */
 #define WIFI_CONNECT_TIMEOUT_S  5
-#define WIFI_LOGGING            1         //TODO: do we want to comment this out? 
+#define WIFI_LOGGING            true         //TODO: do we want to comment this out? 
 
 
 

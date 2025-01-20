@@ -21,7 +21,6 @@ void I2C::init(void) {
 
 
 }
-
     void I2C::set_io_expander(uint8_t io_num, bool level) 
 {
     int temp_address    = 0x00;
@@ -111,14 +110,12 @@ void I2C::init(void) {
     */
     Wire.write(current_value);        // The value has to be sent twice to guarantee a submittal
     Wire.endTransmission();
-
-
 }
 
 void I2C::toggle_io_expander(uint8_t io_num) 
 {
 
-    int temp_address    = 0x00;
+    int temp_address        = 0x00;
     uint8_t current_value   = 0x00;
     uint8_t shift_value     = 0x00;
     uint8_t value_mask      = 0x00;
@@ -181,14 +178,55 @@ void I2C::toggle_io_expander(uint8_t io_num)
     */
     Wire.write(current_value);        // The value has to be sent twice to guarantee a submittal
     Wire.endTransmission();
-
-
-
 }
 
+uint8_t I2C::read_io_expander( void )
+{
+    uint8_t uint8_value = 0x00;
 
+    /**
+     * Perform a read/modify/write so only
+     * the target value get modified 
+     */
+    // Wire.beginTransmission(IOEXPANDER_7B_8_15_ADDRESS); 
+    Wire.requestFrom(IOEXPANDER_7B_8_15_ADDRESS, 1);    // Request 1 byte from the address
 
-void I2C::choose_sensor(uint8_t sensor_number){
+    uint8_value = Wire.read();
+
+    Wire.endTransmission();
+
+    #if defined(ENABLE_LOGGING)
+        Serial.print("GPIO Read --> ");
+        print8b_bin(uint8_value);
+    #endif
+
+    return (uint8_value);
+}
+
+bool I2C::charging_is_active( void )
+{
+    uint8_t uint8_value = 0x00;
+
+    uint8_value = read_io_expander();
+
+    uint8_value = (bool)(((uint8_value >> 3) & (0x01)) ^ 0x01); // Charging status is active low, so invert
+
+    return uint8_value;
+}
+
+uint8_t I2C::get_hw_revision( void )
+{
+    uint8_t uint8_value = 0x00;
+
+    uint8_value = read_io_expander();
+
+    uint8_value = (uint8_t)(uint8_value & 0x07); // Low three bits are the HW revision
+
+    return uint8_value;
+}
+
+void I2C::choose_sensor(uint8_t sensor_number)
+{
     uint8_t channel_number = 0x00;
     this -> sensor_number = sensor_number;
 
@@ -198,50 +236,6 @@ void I2C::choose_sensor(uint8_t sensor_number){
     Wire.write(channel_number); //Channel number is expected to be either one or two       
     Wire.endTransmission();
 }
-
- void I2C::configure_sensor( void ) 
- {
-
-     /**
-     * Start by measuring humidity...
-     * Need to indicate to the sensor which 
-     * register to read from 
-     * 
-    */
-    Wire.beginTransmission(SI7020_BASE_ADDRESS); 
-    Wire.write(SI7020_WRT_USR_REG1);
-
-
-
-    /**
-     * Write the data to the register
-     */
-    //  Resolution [b1]
-    //    |         
-    //    |         Power Status 0=OKAY
-    //    |            |        Reserved
-    //    |            |          |       Reserved
-    //    |            |          |          |         Reserved
-    //    |            |          |          |          |     On-chip heater
-    //    |            |          |          |          |          |      Reserved
-    //    |            |          |          |          |          |         |      Resolution [b0]
-    //    |            |          |          |          |          |         |           |
-    //   RES1(b7) | VDDS(b6) | RSVD(b5) | RSVD(b4) | RSVD(b3) | HTR(b2) | RSVD(b1)  | RES0(b0)
-    //      
-    //TODO: may not need this function
-
-
-    
-    
-    // Wire.write(TBD);
-
-
-    /**
-     *  End the I2C transaction  
-    */
-    Wire.endTransmission();
- }
-
 
 void I2C::disable_mux(void)
 {

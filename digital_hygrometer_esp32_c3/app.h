@@ -31,13 +31,24 @@
 #define HYGROMETERFUNCTIONS_H
 
 #include <Arduino.h>    //This likely defines wire.h
+#include <esp_sleep.h>    //This likely defines wire.h
 #include "nvm.h"
 #include "epdif.h"
+#include "driver/rtc_io.h"
 
 /**
  * Serial parameters
  */
 #define SERIAL_BAUD_RATE          115200
+
+/**
+ * Button related
+ */
+
+#define LOCAL_BTN_GPIO_PIN        1
+#define SHORT_PRESS_50MS_EVENTS   10
+#define LONG_PRESS_50MS_EVENTS    20
+#define WAKEUP_GPIO               GPIO_NUM_1   
 
 /**
  * General parameters related 
@@ -51,7 +62,6 @@
 #define SENSOR_2                    2
 
 /* Define IO */
-#define PUSH_BUTTON                 1
 #define nSENSOR_PWR_EN              3
 #define SENSOR_MUX_RST_LINE         9
 
@@ -65,15 +75,7 @@
 #define HYG_ESP32_INTERNAL_ATTEN    2.34    // The ESP32-C3 employes some amount of internal attenuation (this was empirically derived)
 
 
-typedef struct sensor_info  //TODO we might be able to remove this ...
-{
-    uint8_t     rh_reading_sensor_one;
-    uint8_t     rh_reading_sensor_two;
-    uint8_t     temp_reading_sensor_one;
-    uint8_t     temp_reading_sensor_two;
-};
-
-typedef struct network_info
+typedef struct network_info  //TODO I think we can put these down in the class
 {
     char hyg_name[HYG_NAME_STR_LEN];
     char wifi_ssid[WIFI_SSID_STR_LEN];
@@ -81,19 +83,24 @@ typedef struct network_info
     char recipient_email_address [RECIPIENT_EMAIL_STR_LEN];
     char sender_email_address[HYG_SENDER_EMAIL_USER_NAME_STR_LEN ];
 
-    // uint32_t counts_20ms_between_emails; //TODO: remove? 
-
     bool enable_email;                                      //Flag to determine if emails shall be sent
 };
 
 
 
-class APP{
-    //TODO: remove the following lines? 
-    // private:
-    //     uint8_t user_selection      = 0;
-
+class APP
+{
     public:
+        uint16_t btn_press_ctr          = 0x000;
+        bool btn_interrupt_triggered    = false;
+        bool btn_short_press_flag       = false;
+        bool btn_long_press_flag        = false;
+        bool calibrate_sensors          = false;  
+
+        uint16_t seconds_counter        = 0x0000;
+
+        bool heartbeat_enabled          = true;
+
         /**
          * @brief APP init function
          * @param \p none 
@@ -126,7 +133,14 @@ class APP{
          * @param \p none 
          * @return float value of battery voltage
          */
-        float get_battery_voltage (void); 
+        float get_battery_voltage ( void ); 
+
+        /**
+         * @brief Handle button press   
+         * @param \p none 
+         * @return nothing 
+         */
+        void button_handler ( void );
 
 
         

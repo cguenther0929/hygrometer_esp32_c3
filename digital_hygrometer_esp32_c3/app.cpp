@@ -99,6 +99,45 @@ void APP::sensor_power_off(void)
     digitalWrite(nSENSOR_PWR_EN , HIGH);   
 }
 
+void APP::button_handler ( void )
+{
+  //TODO: do we want to do something with the following flag?
+  //TODO:  "btn_interrupt_triggered "
+  //TODO: if not, make sure this flag is cleared.
+
+  /**
+   * if the button is pushed, simply
+   * update the counter
+   */
+  if(digitalRead(LOCAL_BTN_GPIO_PIN &&
+      !btn_short_press_flag && 
+      !btn_long_press_flag))
+  {
+    btn_press_ctr++;
+  }
+  else 
+  {
+    btn_press_ctr=0;
+  }
+
+  /**
+   * Determine if we need to define 
+   * a short or long press flag
+   */
+  if(btn_press_ctr >= SHORT_PRESS_50MS_EVENTS &&
+    btn_press_ctr <= LONG_PRESS_50MS_EVENTS &&
+    !btn_short_press_flag)
+    {
+      btn_short_press_flag  = true;
+    }
+  else if(btn_press_ctr >= LONG_PRESS_50MS_EVENTS &&
+          !btn_short_press_flag)
+    {
+      btn_long_press_flag  = true;
+      calibrate_sensors = true;
+    }
+}
+
 
 
 

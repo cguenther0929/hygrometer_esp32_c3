@@ -43,3 +43,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 *v0.1.2 -- Code compiles.  Text, lines, and images can all be printed to the display with success.    
 
 *v0.1.3 -- Code compiles.  Analog readings function.  Features have been added to the console.  Some cleanup has occurred.  
+
+*v0.1.4 -- Code compiles.  Processor goes into deep sleep and can be woken up via timeout or button press.  Reads from the IO expander are functional.  Trying to send an email will case the SOM to reset.    

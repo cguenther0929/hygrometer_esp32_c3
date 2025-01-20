@@ -113,7 +113,27 @@ class I2C {
          * @return nothing
          */
         void toggle_io_expander(uint8_t io_num); 
+
+        /**
+         * @brief Read inputs form the GPIO expander
+         * @details One of the ports (eight bits) has been
+         * designated for inputs.  It is these eight bits that we 
+         * want to read.    
+         * @return eight bits from the IO expander 
+         */
+        uint8_t read_io_expander( void );
         
+        /**
+         * @brief Determine if the battery is charging
+         * @return True if we are charging 
+         */
+        bool charging_is_active( void );
+
+        /**
+         * @brief Determine HW revision 
+         * @return The revision of HW 
+         */
+        uint8_t get_hw_revision( void );
 
         /**
          * @brief Set I2C mux channel 
@@ -153,9 +173,6 @@ class I2C {
          * 
          */ 
         void choose_sensor(uint8_t sensor_number);
-
-        //TODO: need to comment
-        void configure_sensor( void );
 
         //TODO: need to comment
         void disable_mux(void);

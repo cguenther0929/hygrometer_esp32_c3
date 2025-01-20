@@ -23,18 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  * 
- * TODO: Wake up processor from deep sleep with timer
- * TODO: Button press interrupt working  
- * TODO: adc for measuring battery voltage
  * TODO: get email features tested and working
- * TODO: Establish text notification at bottom of screen 
- * TODO: Need to be able to read the HW revision
- * TODO: need to be able to read the the "charging status"
  * 
  */
 
 
 #include <Arduino.h>
+#include <stdio.h>
 #include <WiFi.h>
 #include <ESP_Mail_Client.h>
 #include <SPI.h>
@@ -55,7 +50,7 @@
 // ==============================
 // Value last updated 1/12/25 
 // SW version string 
-String SW_VER_STRING = "0.1.3";
+String SW_VER_STRING = "0.1.4";
 // ==============================
 // ==============================
 
@@ -64,26 +59,14 @@ String SW_VER_STRING = "0.1.3";
 /* Instantiate the Preferences class*/
 Preferences pref;
 
-/**
- * Display parameters
- */    
-#define COLORED     0
-#define UNCOLORED   1
+//TODO the following parameters are just for testing
+uint8_t temp_uint8 = 0x00;
 
-
-/**
- * Button related
- */
- uint16_t btn_press_ctr           = 0x000;
- bool btn_interrupt_triggered     = false;
- bool btn_short_press_flag        = false;
- bool btn_long_press_flag         = false;
-#define LOCAL_BTN_GPIO_PIN        1
-#define SHORT_PRESS_50MS_EVENTS   10
-#define LONG_PRESS_50MS_EVENTS    20
-
-//TODO: this is just for testing.  The following can be removed
-uint16_t counter                = 0;
+// /**
+//  * Display parameters
+//  */    
+// #define COLORED     0
+// #define UNCOLORED   1
 
 /**
  * Health LED
@@ -91,22 +74,11 @@ uint16_t counter                = 0;
 #define HEALTH_LED                10
 
 /**
- * Sensor parameters
- */
-//TODO: can this be placed in app.h?
-// #define SENSOR_1                  1
-// #define SENSOR_2                  2
-// #define SENSOR_MUX_RST_LINE       9
-bool calibrate_sensors            = false;  //TODO we may want to put this in the sensor struct
-
-
-
-/**
  * Interrupt / button pin
  * 
  */
 //TODO: how much of this can we put in app.h?
-#define INTERRUPT_PIN             PUSH_BUTTON    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
+#define INTERRUPT_PIN             LOCAL_BTN_GPIO_PIN    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
 
 /**
  * Analog and battery parameters
@@ -117,7 +89,7 @@ bool calibrate_sensors            = false;  //TODO we may want to put this in th
  * Global variables 
  * for testing
  */
- //TODO -- this is for testing only ....
+ //TODO -- move this line?  This is for testing only ...
  float battery_voltage            = 0.0;
 
 typedef enum State {
@@ -126,18 +98,6 @@ typedef enum State {
   STATE_UPDATE_DISPLAY,
   STATE_SEND_EMAIL
 };
-
-/** 
- * E-ink Parameters
-*/
-#define TEMP_X_START            20
-#define TEMP_Y_START            130
-#define HUM_X_START             120
-#define HUM_Y_START             130
-#define BOT_ROW_X_START         12
-#define BOT_ROW_Y_START         182     //200 total pixels high - 12 pixels tall text - a little slop
-
-
 
 /**
  * Set to true to 
@@ -312,15 +272,15 @@ void IRAM_ATTR button_press()
 {
   //TODO: need statements here
   __asm__("nop\n\t");  //TODO: eventually need to remove this line
+  Serial.println("\t***DEBUG Button interrupt triggered!");
   /**
    * If the button is pushed
    * update the button counter
    */
   //TODO: need to update the button counter
   //TODO: and act accordingly
-  btn_interrupt_triggered  = true;
-
-
+  app.btn_interrupt_triggered  = true;
+  detachInterrupt(digitalPinToInterrupt(LOCAL_BTN_GPIO_PIN)); 
 }
 
 /**
@@ -333,8 +293,6 @@ void setup() {
   
   pinMode(nSENSOR_PWR_EN,OUTPUT);
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
-
-  app.sensor_power_on();    //TODO: need to remove this line.  Turn power on only when we need it
 
 
   State STATE_READ_DATA;
@@ -352,20 +310,16 @@ void setup() {
    * @details This function will allow an IO pin (RTC1-5) 
    * to wake the processor from deep sleep mode
    * It's unclear if allowing the processor to be
-   * awoken from deep sleep in the manor eats more 
+   * awoken from deep sleep in this manner eats more 
    * power. 
-   * For more information on this routine, see
-   * the notes and the web link that is pased up 
-   * above 
    */
-  //                                  A mask value needs to be passed in
+  //                                  A mask value needs to be passed in (empirically found to be one-based)
   //                                     |                Parameter for the input signal   
   //                                     |                   |
   //                                     |                   |
-  esp_deep_sleep_enable_gpio_wakeup(1 << INTERRUPT_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);    
+  esp_deep_sleep_enable_gpio_wakeup(1 << (INTERRUPT_PIN + 1), ESP_GPIO_WAKEUP_GPIO_HIGH);    
 
   Serial.begin(SERIAL_BAUD_RATE);
-
  
   // if(ENABLE_LOGGING)
   // {
@@ -535,11 +489,18 @@ void setup() {
   paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
 
-  paint.SetWidth(84);           //7 pixels wide * 12 characters
-  paint.SetHeight(12);
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "TEST BOT ROW", &Font12, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), BOT_ROW_X_START, BOT_ROW_Y_START, paint.GetWidth(), paint.GetHeight());
+
+
+  paint.eink_put_string_bottom("JUST A TEST");
+  /**
+  * Font 12 is seven pixels wide.  Therefore, we can
+  * have a total of 28 characters, as this will yield 
+  *  28*7 (196) pixels of width
+  */
+  char my_string[32];  
+  sprintf(my_string,"BAT: %0.2fV",app.get_battery_voltage());
+
+  paint.eink_put_string_bottom(my_string);
 
   /** 
    * Print the divider line 
@@ -554,6 +515,8 @@ void setup() {
   epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
   
   epd.DisplayFrame();
+
+  epd.Sleep();
 
 
 
@@ -601,32 +564,52 @@ void loop()
       Timer500msFlag = false;
       Timer1000msFlag = false;
     }
-
-    button_handler();
+    
+    app.button_handler();
 
   }
   
   if(Timer100msFlag == true) 
   {
     Timer100msFlag = false;
-    digitalWrite(HEALTH_LED,!digitalRead(HEALTH_LED));
+
+    if(app.heartbeat_enabled)
+    {
+      digitalWrite(HEALTH_LED,!digitalRead(HEALTH_LED));
+    }
   }
 
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
-
-
   }
 
   if(Timer1000msFlag == true) 
   {
     Timer1000msFlag = false;
 
+    app.seconds_counter++;
+/*  */
+    if(app.seconds_counter >= 120)
+    {
+      app.seconds_counter = 0;
+      digitalWrite(HEALTH_LED, HIGH);   // Disable the health LED
+      app.heartbeat_enabled = false;    // Precent the health LED from blinking
+      //                            Value in uS  
+      //                              |  
+      esp_sleep_enable_timer_wakeup(5 * 1000000);
+      esp_deep_sleep_start();  //This will put the module into deep sleep
+
+    }
+
+    if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&
+      !app.btn_short_press_flag && !app.btn_long_press_flag)
+    {
+        attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
+        app.btn_interrupt_triggered  = false;
+    }
     
-    //TODO: the following sensor read is in just for testing
-
-
+    //TODO: Cleanup functions that were put in for testing ... 
     /**
      * For debugging the 
      * analog battery reading
@@ -637,6 +620,23 @@ void loop()
     // Serial.print("Battery voltage: ");
     // Serial.println(battery_voltage);
     
+    /**
+     * For debugging IO read
+     * functions
+     */
+    Serial.println("\n-----------------------------------------------------------");
+    Serial.println("---------------------- Testing IO Read --------------------");
+    temp_uint8 = main_i2c.read_io_expander();
+    Serial.print("Value read from IO expander 0b");
+    Serial.println(temp_uint8,BIN);
+    if(main_i2c.charging_is_active())
+    {
+      Serial.println("\tCharging is ACTIVE.");
+    }
+    else
+    {
+      Serial.println("\t\tCharging is INACTIVE.");
+    }
 
     /**
      * For sensor debugging

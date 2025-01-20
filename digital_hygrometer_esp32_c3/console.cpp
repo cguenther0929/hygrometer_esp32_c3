@@ -103,6 +103,7 @@ void CONSOLE::console ( Preferences & pref )
 
 
         Serial.println("1)  Print SW version.");
+        Serial.println("11) Print HW version.");
         Serial.println("2)  To send test email.");
         Serial.println("3)  View RH calibration values.");
         Serial.println("4)  View network parameters.");
@@ -139,6 +140,20 @@ void CONSOLE::console ( Preferences & pref )
                 insert_line_emphasis();
             break;
 
+            /* Report the HW version */
+            case 11:            //TODO need to change this to 2
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+
+                Serial.print("HW revision: ");
+                Serial.println(i2c_function.get_hw_revision()); 
+
+
+                insert_line_emphasis();
+                insert_line_emphasis();
+            break;
+            
             /* Send test email */
             case 2:
                 __asm__("nop\n\t");
@@ -148,7 +163,7 @@ void CONSOLE::console ( Preferences & pref )
 
                 //TODO: we want these functions to be put back in
                 // console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
-                // console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
+                console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
             break;
 
             /* View RH calibration values */
@@ -226,12 +241,12 @@ void CONSOLE::console ( Preferences & pref )
                 insert_line_feeds(2);
                 insert_line_emphasis();
                 
-                pinMode(PUSH_BUTTON,INPUT);
+                pinMode(LOCAL_BTN_GPIO_PIN,INPUT);
 
 
                 Serial.print("The current state of the push button is: ");  
                 
-                if(digitalRead(PUSH_BUTTON)) 
+                if(digitalRead(LOCAL_BTN_GPIO_PIN)) 
                 {
                     Serial.println("HIGH.");  
                 }
@@ -293,12 +308,6 @@ void CONSOLE::console ( Preferences & pref )
                 
             break;
             
-            /* Not implemented */
-            case 11:
-                Serial.println("Not implemented");
-
-            break;
-
             /* Exit the application */
             case 99:
                 clear_screen();

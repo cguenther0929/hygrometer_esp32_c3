@@ -33,9 +33,20 @@
 #define ROTATE_180          2
 #define ROTATE_270          3
 
+#define COLORED     0
+#define UNCOLORED   1
+
+#define TEMP_X_START            20
+#define TEMP_Y_START            130
+#define HUM_X_START             120
+#define HUM_Y_START             130
+#define BOT_ROW_X_START         12
+#define BOT_ROW_Y_START         182     //200 total pixels high - 12 pixels tall text - a little slop
+
 // Color inverse. 1 or 0 = set or reset a bit if set a colored pixel
 #define IF_INVERT_COLOR     1
 
+// #include <String.h>
 #include "fonts.h"
 
 class Paint {
@@ -61,6 +72,9 @@ public:
     void DrawFilledRectangle(int x0, int y0, int x1, int y1, int colored);
     void DrawCircle(int x, int y, int radius, int colored);
     void DrawFilledCircle(int x, int y, int radius, int colored);
+    
+    //TODO need to comment this function 
+    void eink_put_string_bottom(const char * my_string);
 
 private:
     unsigned char* image;
