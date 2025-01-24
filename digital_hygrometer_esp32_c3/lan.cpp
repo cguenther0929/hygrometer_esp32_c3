@@ -8,80 +8,106 @@
  */
 // SMTPSession smtp_session;
 
+// WiFiClient Client;
+
+#define TEMP_BUF_SIZE             64    // Size of the temporary buffer
+char buf_temp[TEMP_BUF_SIZE];           // Temporary buffer that can be used for building strings
+
 char server[] = "smtp.gmail.com";  
 
-char buf_for_recipient_email[]      = "clinton.guenther@gmail.com";
-char buf_for_sender_email[]         = "clinton.debug@gmail.com";
-char buf_for_email_password[]       = "krrm ceex fwxm ubpk";
-char buf_for_router_password[]      = "GlockHK23";
-char buf_for_router_ssid[]          = "CJG_GbE_2G4";
+char buf_recipient_email[]      = "clinton.guenther@gmail.com";
+char buf_sender_email[]         = "clinton.debug@gmail.com";
+//Base 64 encoded results for clinton.debug@gmail.com == Y2xpbnRvbi5kZWJ1Z0BnbWFpbC5jb20=
+char buf_b64_encoded_sender_email[] = "Y2xpbnRvbi5kZWJ1Z0BnbWFpbC5jb20=";
+
+char buf_email_password[]       = "krrm ceex fwxm ubpk";
+char buf_b64_email_password[]       = "a3JybSBjZWV4IGZ3eG0gdWJwaw==k";
+
+char buf_router_ssid[]          = "CJG_GbE_2G4";
+char buf_router_password[]      = "GlockHK23";
 
 char buf_for_hyg_name[]             = "CJG HYG";
 
+#define SMTP_HOST "smtp.gmail.com"
+#define SMTP_PORT 465
+#define AUTHOR_EMAIL      "clinton.debug@gmail.com"
+#define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
+#define RECIPIENT_EMAIL "clinton.guenther@gmail.com"
+
 void LAN::init(void) 
 {
-    //TODO: Lat's just put a print here with inclusion guards
+    //TODO: Let's just put a print here with inclusion guards
+    /* Declare the global used SMTPSession object for SMTP transport */
+    // SMTPSession smtp;
     __asm__("nop\n\t");  //TODO: we need to do something different here
 
 }
 
 
-bool LAN::WiFiConnect( const char * ssid, const char * password ) 
-{
-  int i = 0;
-  int timeout = (int)WIFI_CONNECT_TIMEOUT_S/0.5;
+// bool LAN::WiFiConnect( const char * ssid, const char * password ) 
+// {
+ 
+//   if(WIFI_LOGGING) {
+//     Serial.println("Connecting to WIFI.");
+//   }
+  
+//   int i = 0;
+//   int timeout = (int)WIFI_CONNECT_TIMEOUT_S/0.5;
   
   
-  WiFi.begin(ssid, password);
+//   if(WIFI_LOGGING) {
+//     Serial.println("Calling Wifi.begin().");
+//   }
+//   WiFi.begin(ssid, password);
 
-  /**
-   * Print diagnostic data
-   * for WiFi if logging
-   * is enabled
-   */
-  if(WIFI_LOGGING) {
-    Serial.println("");
-    Serial.println("\tMy MAC address is: "); Serial.println(WiFi.macAddress());
-    Serial.println("\tConnecting to SSID: "); Serial.println(ssid);
-    Serial.println("\tSSID password: "); Serial.println(password);
-  }
+//   /**
+//    * Print diagnostic data
+//    * for WiFi if logging
+//    * is enabled
+//    */
+//   if(WIFI_LOGGING) {
+//     Serial.println("");
+//     Serial.println("\tMy MAC address is: "); Serial.println(WiFi.macAddress());
+//     Serial.println("\tConnecting to SSID: "); Serial.println(ssid);
+//     Serial.println("\tSSID password: "); Serial.println(password);
+//   }
 
   
-  if(WIFI_LOGGING) {
-    Serial.println("\tWiFi Connecting\t");
-  }
+//   if(WIFI_LOGGING) {
+//     Serial.println("\tWiFi Connecting\t");
+//   }
   
-  // Wait for connection
-  while ((WiFi.status() != WL_CONNECTED) && i < timeout) {
-    delay(500);
-    i++;
-    if(WIFI_LOGGING) {
-      Serial.print('.');
-    }
-  }
+//   // Wait for connection
+//   while ((WiFi.status() != WL_CONNECTED) && i < timeout) {
+//     delay(500);
+//     i++;
+//     if(WIFI_LOGGING) {
+//       Serial.print('.');
+//     }
+//   }
   
-  if(WIFI_LOGGING) {
-    Serial.println("");
-  }
+//   if(WIFI_LOGGING) {
+//     Serial.println("");
+//   }
 
-  if(i == timeout){
-  #if defined(WIFI_LOGGING)
-      Serial.println("\tWiFi Connection timeout!");
-      return false;
-  }
-  #endif
+//   if(i == timeout){
+//   #if defined(WIFI_LOGGING)
+//       Serial.println("\tWiFi Connection timeout!");
+//       return false;
+//   }
+//   #endif
 
-  if(WIFI_LOGGING) {
-      Serial.println("\tWiFi connected!");
-      Serial.println("\tMy local IP: ");
-      Serial.println(WiFi.localIP());
-      Serial.println("\tSeeting WiFi Transmit Power");
-  }
+//   if(WIFI_LOGGING) {
+//       Serial.println("\tWiFi connected!");
+//       Serial.println("\tMy local IP: ");
+//       Serial.println(WiFi.localIP());
+//       Serial.println("\tSeeting WiFi Transmit Power");
+//   }
     
-  // WiFi.setOutputPower(0);   //TODO: do we want this line in?
+//   // WiFi.setOutputPower(0);   //TODO: do we want this line in?
 
-  return true;
-}
+//   return true;
+// }
 
 
 /* Callback function to get the Email sending status */
@@ -179,7 +205,7 @@ void smtpCallback(SMTP_Status status)
 //   /* Set the session smtp_config */
 //   smtp_config.server.host_name = server;
 //   smtp_config.server.port = SMTP_PORT;
-//   smtp_config.login.email = buf_for_sender_email;
+//   smtp_config.login.email = buf_sender_email;
 //   smtp_config.login.password = buf_for_email_password;
 //   smtp_config.login.user_domain = "";
 
@@ -193,17 +219,17 @@ void smtpCallback(SMTP_Status status)
 //    * 
 //    * TODO: DO I NEED THIS?  
 //    */
-//   // smtp_config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
+//   // smtp_config.time.ntp_server = "pool.ntp.org,time.nist.gov");
 //   // smtp_config.time.gmt_offset = 3;
 //   // smtp_config.time.day_light_offset = 0;
 
 
 
 //   /* Set the message headers */
-//   message.sender.name = F("Hygrometer");
-//   message.sender.email = buf_for_sender_email;
-//   message.subject = F("ESP Test Email");
-//   message.addRecipient(F("CJG"), buf_for_recipient_email);
+//   message.sender.name = "Hygrometer");
+//   message.sender.email = buf_sender_email;
+//   message.subject = "ESP Test Email");
+//   message.addRecipient("CJG"), buf_recipient_email);
 
 
 //   //Send raw text message
@@ -248,17 +274,15 @@ void smtpCallback(SMTP_Status status)
 //   }
 // }
 
-#define SMTP_HOST "smtp.gmail.com"
-#define SMTP_PORT 465
-#define AUTHOR_EMAIL      "clinton.debug@gmail.com"
-#define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
-#define RECIPIENT_EMAIL "clinton.guenther@gmail.com"
+
 
 
 void LAN::send_email ( void )
 {
 
-
+  if(WIFI_LOGGING) {
+    Serial.println("Now sending email.");
+  }
 
   /* Declare the global used SMTPSession object for SMTP transport */
   SMTPSession smtp;
@@ -297,15 +321,15 @@ void LAN::send_email ( void )
   Ex. American/Denver GMT would be -6. 6 + 12 = 18
   See https://en.wikipedia.org/wiki/Time_zone for a list of the GMT/UTC timezone offsets
   */
-  // config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
+  // config.time.ntp_server = "pool.ntp.org,time.nist.gov");
   // config.time.gmt_offset = 3;
   // config.time.day_light_offset = 0;
 
 
   /* Set the message headers */
-  message.sender.name = F("ESP");
+  message.sender.name =  F("ESP");
   message.sender.email = AUTHOR_EMAIL;
-  message.subject = F("ESP Test Email");
+  message.subject = "ESP Test Email";
   message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
     
   /*Send HTML message*/
@@ -354,3 +378,313 @@ void LAN::send_email ( void )
 
 
 } /* END SEND EMAIL*/
+
+
+
+uint8_t LAN::eRcv( void )
+{
+  // uint8_t respCode;
+  // uint8_t thisByte;
+  // int loopCount = 0;
+
+  // while (!client.available()) {
+  //   delay(1);
+  //   loopCount++;
+  //   // if nothing received for 10 seconds, timeout
+  //   if (loopCount > 10000) {
+  //     client.stop();
+  //     Serial.println("\r\nTimeout");
+  //     return 0;
+  //   }
+  // }
+
+  // respCode = client.peek();
+  // while (client.available())
+  // {
+  //   thisByte = client.read();
+  //   Serial.write(thisByte);
+  // }
+
+  // if (respCode >= '4')
+  // {
+  //   //  efail();
+  //   return 0;
+  // }
+  return 1;
+}
+
+
+
+// void LAN::send_email ( void )
+// {
+
+//   Serial.println("Now sending email");
+
+//   // WiFiConnect(buf_router_ssid, buf_router_password);
+//   WiFiConnect("CJG_GbE_2G4", "GlockHK23");
+
+
+//   // AssembleEmailMessage();
+
+//   /**
+//    * @brief Make a client connection
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.println("Making client connection");
+  
+//   // if (client.connect(server, 2525) == 1) {
+//   if (client.connect(server, SMTP_PORT) == 1) {
+//       // if(WIFI_LOGGING)
+//       Serial.println("connected");
+      
+//   } 
+//   else 
+//   {
+//       // if(WIFI_LOGGING)
+//     Serial.println("connection failed");
+//   }
+//   if (!eRcv()){
+//     // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error connecting to the client");
+//     return;
+//     // FlushSerialRXBuffer( );
+//     // break;
+//   }
+
+
+//   /**
+//    * @brief Sending EHLO command
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.println("Sending EHLO");
+  
+//   client.println("EHLO www.example.com");
+//   if (!eRcv())
+//   {
+//     // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error sending EHLO command.");
+      
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     return;
+//     // break;
+//   }
+  
+
+//   /**
+//    * @brief Sending auth login command
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.println("Sending auth login");
+//   client.println("auth login");
+  
+//   if (!eRcv()){
+//     // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error sending AUTH LOGIN command.");
+    
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     return;
+//     // break;
+//   }
+
+  
+//   /**
+//    * @brief Send SMTP2GO User Account Credentials
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.print("Sending Gmail B64 Username: ");
+//   Serial.println(buf_b64_encoded_sender_email);
+  
+  
+//   client.println(buf_b64_encoded_sender_email); //B64 encoded SMTP2GO username
+//   if (!eRcv())
+//   {
+//       // if(WIFI_LOGGING)
+//     Serial.print("\t*** Error sending Gmail Username: ");
+//     Serial.println(buf_b64_encoded_sender_email);
+//     return;
+      
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     // break;
+//   }
+
+
+//   /**
+//    * @brief Send SMTP2GO Password
+//    * 
+//    * THis should be the BASE64 password 
+//    * for you SMTP2GO account
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.print("Sending B64 SMTP2GO Password: ");
+//   Serial.println(buf_b64_email_password);
+  
+
+//   client.println(buf_b64_email_password);  
+//   if (!eRcv())
+//   {
+//     // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error sending SMTP2GO password");
+//     return;
+      
+//       // FlushSerialRXBuffer( );
+//       // current_state = DEEP_SLEEP;
+//       // break;
+//   }
+  
+
+//   /**
+//    * @brief Command for MAIL From:
+//    * i.e.  --> client.println("MAIL From: clinton.debug@gmail.com"));
+//    * 
+//    */
+//   memset(buf_temp, 0, TEMP_BUF_SIZE);
+//   strcpy(buf_temp, "MAIL From: ");
+//   strcat(buf_temp, buf_sender_email);
+//   client.println(buf_temp);
+
+//   if (!eRcv())
+//   {
+//     // if(WIFI_LOGGING)
+//     Serial.print("\t*** Error on command: ");
+//     Serial.println(buf_temp);
+//     return;
+      
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     // break;
+//   }
+  
+
+//   /**
+//    * @brief Enter recipient address
+//    * First, fill temp buffer with null characters
+//    * i.e.  -->  client.println("RCPT To: clinton.guenther@gmail.com"));
+//    * 
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.print("Sending To: ");
+//   Serial.println(buf_recipient_email);
+  
+  
+//   memset(buf_temp, 0, TEMP_BUF_SIZE);
+//   strcpy(buf_temp, "RCPT To: ");
+//   strcat(buf_temp, buf_recipient_email);
+  
+//   client.println(buf_temp);
+//   if (!eRcv())
+//   {
+//     // if(WIFI_LOGGING)
+//     Serial.print("\t*** Error on command: ");
+//     Serial.println(buf_temp);
+//     return;
+      
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     // break;
+//   }
+  
+
+//   /**
+//    * @brief Send DATA command
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.println("Sending DATA");
+  
+
+//   client.println("DATA");
+//   if (!eRcv())
+//   {
+//       // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error on command \"DATA\".");
+//     return;
+      
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     // break;
+//   }
+
+
+//   /**
+//    * @brief Sending To: command
+//    * i.e.  --> client.println("To: clinton.guenther@gmail.com"));
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.println("Sending email");
+  
+//   //  client.println("To:  clinton.guenther@gmail.com"));
+//   memset(buf_temp, 0, TEMP_BUF_SIZE);
+//   strcpy(buf_temp, "To: ");
+//   strcat(buf_temp, buf_recipient_email);
+//   client.println(buf_temp);
+
+
+//   /**
+//    * @brief Sending From: command
+//    * i.e. -->  client.println("From: clinton.debug@gmail.com"));
+//    */
+//   // client.println("From: clinton.debug@gmail.com");
+//   memset(buf_temp, 0, TEMP_BUF_SIZE);
+//   strcpy(buf_temp, "From: ");
+//   strcat(buf_temp, buf_sender_email);
+//   client.println(buf_temp);
+
+
+//   /**
+//    * @brief Send the subject
+//    */
+//   client.println("Subject: Hygrometer Health Report\r\n");
+//   client.println("Just a test");
+//   client.println(".");
+//   if (!eRcv())
+//   {
+//     // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error sending DOT to complete transaction");
+//     return;
+      
+//       // FlushSerialRXBuffer( );
+//       // current_state = DEEP_SLEEP;
+//       // break;
+//   }
+
+
+//   /**
+//    * @brief Sending QUIT
+//    * 
+//    */
+//   // if(WIFI_LOGGING)
+//   Serial.println("Sending QUIT");
+  
+              
+//   client.println("QUIT");
+//   if (!eRcv()){
+//     // if(WIFI_LOGGING)
+//     Serial.println("\t*** Error sending \"QUIT\".");
+//     return;
+      
+//     // FlushSerialRXBuffer( );
+//     // current_state = DEEP_SLEEP;
+//     // break;
+//   }
+  
+  
+//   /**
+//    * @brief Disconnecting 
+//    */
+//   client.stop();
+  
+//   // if(WIFI_LOGGING)
+//   Serial.println("disconnected");
+  
+
+//   // current_state = DEEP_SLEEP;
+
+
+
+  
+// } /* END SEND EMAIL*/
+
+
+

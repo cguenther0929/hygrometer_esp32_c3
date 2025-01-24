@@ -3,6 +3,7 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 #include <WiFi.h>
+// #include <WifiClient.h> //TODO I don't think we need this
 #include <ESP_Mail_Client.h>
 
 // TODO: do we need to comment functions?
@@ -61,6 +62,8 @@ class LAN {
          * @return nothing
          */
         void send_email ( void );
+
+        uint8_t eRcv( void );
 
         /**
          * @brief Callback function for sending email

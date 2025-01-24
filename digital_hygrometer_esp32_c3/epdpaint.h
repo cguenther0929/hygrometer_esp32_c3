@@ -74,7 +74,7 @@ public:
     void DrawFilledCircle(int x, int y, int radius, int colored);
     
     //TODO need to comment this function 
-    void eink_put_string_bottom(const char * my_string);
+    void eink_put_string_bottom(const char * bottom_of_disp_string);
 
 private:
     unsigned char* image;

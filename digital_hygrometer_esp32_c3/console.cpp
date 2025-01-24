@@ -18,6 +18,8 @@ extern String SW_VER_STRING;
  */
 #define ENABLE_LOGGING                true
 
+bool WiFiConnect( const char * ssid, const char * password );
+
 
 void CONSOLE::init(void) 
 {
@@ -163,6 +165,8 @@ void CONSOLE::console ( Preferences & pref )
 
                 //TODO: we want these functions to be put back in
                 // console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
+                // console_lan.WiFiConnect("CJG_GbE_2G4","GlockHK23");
+                WiFiConnect("CJG_GbE_2G4","GlockHK23");
                 console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
             break;
 

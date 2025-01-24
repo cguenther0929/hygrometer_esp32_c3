@@ -323,7 +323,7 @@ void Paint::DrawFilledCircle(int x, int y, int radius, int colored) {
     } while(x_pos <= 0);
 }
 
-void Paint::eink_put_string_bottom(const char * my_string)
+void Paint::eink_put_string_bottom(const char * bottom_of_disp_string)
 {
     SetWidth(200);
     SetHeight(18);
@@ -331,7 +331,7 @@ void Paint::eink_put_string_bottom(const char * my_string)
     // LDirInit();  //TODO I don't think we need to call this
 
     Clear(UNCOLORED);   
-    DrawStringAt(0, 0, my_string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
+    DrawStringAt(0, 0, bottom_of_disp_string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
     
     /**
      * The memory location being targeted 

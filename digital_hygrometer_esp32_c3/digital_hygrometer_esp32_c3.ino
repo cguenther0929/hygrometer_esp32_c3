@@ -54,7 +54,12 @@ String SW_VER_STRING = "0.1.4";
 // ==============================
 // ==============================
 
+
+
+
 // TODO: how much of all of this can we put in app.h?
+
+
 
 /* Instantiate the Preferences class*/
 Preferences pref;
@@ -62,16 +67,19 @@ Preferences pref;
 //TODO the following parameters are just for testing
 uint8_t temp_uint8 = 0x00;
 
-// /**
-//  * Display parameters
-//  */    
-// #define COLORED     0
-// #define UNCOLORED   1
+/**
+ * Display parameters
+ */    
+char bottom_of_disp_string[32]; 
 
 /**
  * Health LED
  */
 #define HEALTH_LED                10
+
+//TODO the following is for testing WiFi and can be removed
+#define WIFI_SSID         "CJG_GbE_2G4"
+#define WIFI_PASSWORD     "GlockHK23"
 
 /**
  * Interrupt / button pin
@@ -428,9 +436,27 @@ void setup() {
 
 
 
+  /*~~~~~~~~~~~~~~~~~~~~~~~ THE FOLLOWING WIFI CODE IS JUST FOR TESTING AND NEEDS TO BE REMOVED ~~~~~~~~*/
 
 
+  // WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  // Serial.print("Connecting to Wi-Fi");
+  // while (WiFi.status() != WL_CONNECTED){
+  //   Serial.print(".");
+  //   delay(300);
+  // }
+  // Serial.println();
+  // Serial.print("Connected with IP: ");
+  // Serial.println(WiFi.localIP());
+  // Serial.println();
 
+
+  /*~~~~~~~~~~~~~~~~~~~~~~~ THE FOLLOWING WIFI CODE IS JUST FOR TESTING AND NEEDS TO BE REMOVED ~~~~~~~~*/
+
+  
+  
+  
+  
   //Initialize timer interrupt
   //                 The frequency of the timer   
   //                   |     
@@ -491,16 +517,13 @@ void setup() {
 
 
 
-  paint.eink_put_string_bottom("JUST A TEST");
   /**
   * Font 12 is seven pixels wide.  Therefore, we can
   * have a total of 28 characters, as this will yield 
   *  28*7 (196) pixels of width
   */
-  char my_string[32];  
-  sprintf(my_string,"BAT: %0.2fV",app.get_battery_voltage());
-
-  paint.eink_put_string_bottom(my_string);
+  sprintf(bottom_of_disp_string,"BAT: %0.2fV",app.get_battery_voltage());
+  paint.eink_put_string_bottom(bottom_of_disp_string);
 
   /** 
    * Print the divider line 
@@ -593,12 +616,21 @@ void loop()
     if(app.seconds_counter >= 120)
     {
       app.seconds_counter = 0;
-      digitalWrite(HEALTH_LED, HIGH);   // Disable the health LED
-      app.heartbeat_enabled = false;    // Precent the health LED from blinking
+      /**
+      * Font 12 is seven pixels wide.  Therefore, we can
+      * have a total of 28 characters, as this will yield 
+      *  28*7 (196) pixels of width
+      */
+      sprintf(bottom_of_disp_string,"BAT: %0.2fV",app.get_battery_voltage());
+      paint.eink_put_string_bottom(bottom_of_disp_string);
+      
+      
+      // digitalWrite(HEALTH_LED, HIGH);   // Disable the health LED
+      // app.heartbeat_enabled = false;    // Precent the health LED from blinking
       //                            Value in uS  
       //                              |  
-      esp_sleep_enable_timer_wakeup(5 * 1000000);
-      esp_deep_sleep_start();  //This will put the module into deep sleep
+      // esp_sleep_enable_timer_wakeup(5 * 1000000);
+      // esp_deep_sleep_start();  //This will put the module into deep sleep
 
     }
 
@@ -624,19 +656,19 @@ void loop()
      * For debugging IO read
      * functions
      */
-    Serial.println("\n-----------------------------------------------------------");
-    Serial.println("---------------------- Testing IO Read --------------------");
-    temp_uint8 = main_i2c.read_io_expander();
-    Serial.print("Value read from IO expander 0b");
-    Serial.println(temp_uint8,BIN);
-    if(main_i2c.charging_is_active())
-    {
-      Serial.println("\tCharging is ACTIVE.");
-    }
-    else
-    {
-      Serial.println("\t\tCharging is INACTIVE.");
-    }
+    // Serial.println("\n-----------------------------------------------------------");
+    // Serial.println("---------------------- Testing IO Read --------------------");
+    // temp_uint8 = main_i2c.read_io_expander();
+    // Serial.print("Value read from IO expander 0b");
+    // Serial.println(temp_uint8,BIN);
+    // if(main_i2c.charging_is_active())
+    // {
+    //   Serial.println("\tCharging is ACTIVE.");
+    // }
+    // else
+    // {
+    //   Serial.println("\t\tCharging is INACTIVE.");
+    // }
 
     /**
      * For sensor debugging
