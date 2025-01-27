@@ -29,7 +29,8 @@ class CONSOLE {
          * @param \p none 
          * @return nothing
          */
-        void console (Preferences & pref);
+        void console ();
+        // void console (Preferences & pref);
 
         /**
          * @brief Get number input from user (0-255)

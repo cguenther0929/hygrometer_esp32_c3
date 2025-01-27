@@ -32,19 +32,19 @@
 // String email_message = "";
 // char server[] = "mail.smtp2go.com";  
 
-bool WiFiConnect( const char * ssid, const char * password ) 
-{
+// bool WiFiConnect( const char * ssid, const char * password ) 
+// {
  
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED){
-    Serial.print(".");
-    delay(300);
-  }
-  Serial.println();
-  Serial.print("Connected with IP: ");
-  Serial.println(WiFi.localIP());
-  Serial.println();
+//   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+//   Serial.print("Connecting to Wi-Fi");
+//   while (WiFi.status() != WL_CONNECTED){
+//     Serial.print(".");
+//     delay(300);
+//   }
+//   Serial.println();
+//   Serial.print("Connected with IP: ");
+//   Serial.println(WiFi.localIP());
+//   Serial.println();
 
 
 
@@ -110,8 +110,8 @@ bool WiFiConnect( const char * ssid, const char * password )
     
   // // WiFi.setOutputPower(0);   //TODO: do we want this line in?
 
-  return true;
-}
+//   return true;
+// }
 
 
 

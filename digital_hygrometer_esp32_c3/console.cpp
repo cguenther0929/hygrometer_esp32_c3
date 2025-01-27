@@ -10,7 +10,7 @@ I2C     i2c_function;
 NVM     nvm_function;
 
 
-extern String SW_VER_STRING;
+// const char SW_VER_STRING[] = "temp.temp.temp";  //TODO need to fix this!  Do not want to hardcode like this.
 
 /**
  * Set to true to 
@@ -89,7 +89,8 @@ void CONSOLE::insert_line_emphasis( void )
     Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~");     //Send the rest of the sequence to clear the screen
 }
 
-void CONSOLE::console ( Preferences & pref )
+// void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
+void CONSOLE::console ()  
 {
 
     uint8_t user_option = 0;
@@ -138,7 +139,7 @@ void CONSOLE::console ( Preferences & pref )
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                Serial.println("The SW version: " + SW_VER_STRING);
+                Serial.println("The SW version: FIX ME");
                 insert_line_emphasis();
             break;
 
@@ -164,9 +165,8 @@ void CONSOLE::console ( Preferences & pref )
                 insert_line_emphasis();
 
                 //TODO: we want these functions to be put back in
-                // console_lan.WiFiConnect("GlockHK23", "CJG_GbE_2G4");  //TODO: don't want to hardcode these like this
-                // console_lan.WiFiConnect("CJG_GbE_2G4","GlockHK23");
-                WiFiConnect("CJG_GbE_2G4","GlockHK23");
+                console_lan.WiFiConnect("CJG_GbE_2G4","GlockHK23");  //TODO we don't want to hardcode these values like this
+                // WiFiConnect("CJG_GbE_2G4","GlockHK23");
                 console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
             break;
 
@@ -219,21 +219,21 @@ void CONSOLE::console ( Preferences & pref )
                 insert_line_feeds(2);
             break;
             
-            /* Perform NVM test */
+            /* Perform NVM test */  //TODO we need to put something back in here
             case 7:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                Serial.println("Writing 0x55 to NVM");  //TODO: need cleanup here
+                // Serial.println("Writing 0x55 to NVM");  //TODO: need cleanup here
                 
-                nvm_function.nvm_store_byte(pref, "nvm_test",0x55);
+                // nvm_function.nvm_store_byte(pref, "nvm_test",0x55);
 
-                delay(100);
+                // delay(100);
                 
-                temp_uint8t = nvm_function.nvm_read_byte(pref,"nvm_test");
+                // temp_uint8t = nvm_function.nvm_read_byte(pref,"nvm_test");
 
-                Serial.print("Value read back from NVM:");
-                Serial.println(temp_uint8t,HEX);
+                // Serial.print("Value read back from NVM:");
+                // Serial.println(temp_uint8t,HEX);
 
                 insert_line_emphasis();
                 insert_line_feeds(2);

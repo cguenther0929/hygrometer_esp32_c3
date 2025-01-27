@@ -50,11 +50,29 @@
 // ==============================
 // Value last updated 1/12/25 
 // SW version string 
-String SW_VER_STRING = "0.1.4";
+String SW_VER_STRING = "0.1.4";  //TODO maybe need to make this a const char? 
 // ==============================
 // ==============================
 
 
+
+//TODO the following is in for testing email
+#define SMTP_HOST "smtp.gmail.com"
+#define SMTP_PORT 465
+#define AUTHOR_EMAIL      "clinton.debug@gmail.com"
+#define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
+
+#define RECIPIENT_EMAIL "clinton.guenther@gmail.com"
+
+#define WIFI_SSID "CJG_GbE_2G4"
+#define WIFI_PASSWORD "GlockHK23"
+
+
+// char server[] = "smtp.gmail.com";  
+#define SMTP_HOST "smtp.gmail.com"
+
+/* Declare the global used SMTPSession object for SMTP transport */
+SMTPSession smtp;
 
 
 // TODO: how much of all of this can we put in app.h?
@@ -62,10 +80,10 @@ String SW_VER_STRING = "0.1.4";
 
 
 /* Instantiate the Preferences class*/
-Preferences pref;
+// Preferences pref;   //TODO this was in
 
 //TODO the following parameters are just for testing
-uint8_t temp_uint8 = 0x00;
+// uint8_t temp_uint8 = 0x00;
 
 /**
  * Display parameters
@@ -76,10 +94,6 @@ char bottom_of_disp_string[32];
  * Health LED
  */
 #define HEALTH_LED                10
-
-//TODO the following is for testing WiFi and can be removed
-#define WIFI_SSID         "CJG_GbE_2G4"
-#define WIFI_PASSWORD     "GlockHK23"
 
 /**
  * Interrupt / button pin
@@ -139,7 +153,7 @@ hw_timer_t *Timer1_Cfg = NULL;
   * update a partial display several times.
   * 1 byte = 8 pixels, therefore you have to set 8*N pixels at a time.
   */
-unsigned char image[1024];
+unsigned char image[1024];   
 Paint   paint(image, 0, 0);    // width should be the multiple of 8 
 Epd     epd;
 I2C     main_i2c;
@@ -303,6 +317,11 @@ void setup() {
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
 
 
+  /**
+   * Stop bluetooth since we do not use it
+   */
+  btStop();
+
   State STATE_READ_DATA;
  /**
   * @brief Define IO interrupt for push button input 
@@ -356,10 +375,10 @@ void setup() {
   nvm_functions.init();
   app.init();
 
-  // if(ENABLE_LOGGING)
-  // {
-  //   Serial.println("Printing default display image");
-  // }
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("Printing default display image");
+  }
   /** 
    *  There are 2 memory areas embedded in the e-paper display
    *  and once the display is refreshed, the memory area will be auto-toggled,
@@ -375,88 +394,15 @@ void setup() {
 
   //TODO: how do we want to initialize the display
 
-  // paint.SetWidth(200);
-  // paint.SetHeight(36);
-  // epd.SetFrameMemory(IMAGE_DATA);  
-  // epd.DisplayFrame();
-  // epd.SetFrameMemory(IMAGE_DATA);   
-  // epd.DisplayFrame();
+
 
   if(ENABLE_LOGGING)
   {
+    Serial.println("===================================================");
     Serial.println("====================== Reset ======================");
+    Serial.println("===================================================");
   }
 
-
-
-  /*~~~~~~~~~~~~~~~~~~~~~~~ ORIGINAL DISPLAY STUFF ~~~~~~~~~~~~~~~~~~~~~~~*/
-  
-  /* The following was written by me and seems to somewhat work*/
-  // paint.SetWidth(4);
-  // paint.SetHeight(80);
-  // paint.Clear(UNCOLORED);
-  // paint.DrawLine(0, 0, 1, 160, UNCOLORED);
-  // paint.DrawLine(1, 0, 2, 160, UNCOLORED);
-  // paint.DrawLine(2, 0, 3, 160, UNCOLORED);
-  // paint.DrawLine(3, 0, 4, 160, UNCOLORED);
-  // epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
-
-  // paint.SetWidth(56);         // 7 pixels wide x 8 characters 
-  // paint.SetHeight(12);        // 12 pixels tall
-  // paint.Clear(UNCOLORED);
-  // paint.DrawStringAt(0, 0, "Humidity", &Font12, UNCOLORED);    // Font12 is seven pixels wide
-
-  //                                   It seems that this is the absolute X   
-  //                                      |   It seems that this is the absolute y
-  //                                      |    |  
-  // epd.SetFrameMemory(paint.GetImage(), 17, 112, paint.GetWidth(), paint.GetHeight());
-  
-  // paint.SetWidth(77);         // 7 pixels wide x 11 characters 
-  // paint.SetHeight(12);        // 12 pixels tall
-  // paint.Clear(UNCOLORED);
-  // paint.DrawStringAt(0, 0, "Temperature", &Font12, UNCOLORED);    // Font12 is seven pixels wide
-  // epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
-  
-  // paint.SetWidth(64);         // 32 pixels wide x 2 characters = 64 
-  // paint.SetHeight(36);        // 36 pixels tall
-  // paint.Clear(UNCOLORED);
-  // paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, UNCOLORED);
-  // epd.SetFrameMemory(paint.GetImage(), 17, 142 , paint.GetWidth(), paint.GetHeight());
-  
-  // paint.SetWidth(64);
-  // paint.SetHeight(36);
-  // paint.Clear(UNCOLORED);
-  // paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, UNCOLORED);
-  // epd.SetFrameMemory(paint.GetImage(), 115, 142 , paint.GetWidth(), paint.GetHeight());
-  /* END OF WORKING EXAMPLE WRITTEN BY CJG*/
-
-  // epd.DisplayFrame();
-
-  /*~~~~~~~~~~~~~~~~~~~~~~~ ORIGINAL DISPLAY STUFF ~~~~~~~~~~~~~~~~~~~~~~~*/
-
-
-
-  /*~~~~~~~~~~~~~~~~~~~~~~~ THE FOLLOWING WIFI CODE IS JUST FOR TESTING AND NEEDS TO BE REMOVED ~~~~~~~~*/
-
-
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED){
-    Serial.print(".");
-    delay(300);
-  }
-  Serial.println();
-  Serial.print("Connected with IP: ");
-  Serial.println(WiFi.localIP());
-  Serial.println();
-
-
-  /*~~~~~~~~~~~~~~~~~~~~~~~ THE FOLLOWING WIFI CODE IS JUST FOR TESTING AND NEEDS TO BE REMOVED ~~~~~~~~*/
-
-  
-  
-  
-  
   //Initialize timer interrupt
   //                 The frequency of the timer   
   //                   |     
@@ -485,9 +431,16 @@ void setup() {
   {
     Serial.println("Initializing e-paper display");
   }
+
+  paint.SetWidth(200);
+  paint.SetHeight(36);
+  // epd.SetFrameMemory(IMAGE_DATA);  
+  // epd.DisplayFrame();
+  // epd.SetFrameMemory(IMAGE_DATA);   
+  // epd.DisplayFrame();
   
   epd.LDirInit();
-  epd.Display(IMAGE_DATA);
+  epd.Display(IMAGE_DATA);   //TODO this is what we want in
 
 
   paint.SetWidth(77);         //7 pixels wide * 11 characters
@@ -546,6 +499,121 @@ void setup() {
   /**   END OF DISPLAY TESTING */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+  //TODO the following is in for testing email features
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+  
+  /* CONNECT TO WIFI*/
+   
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED){
+    Serial.print(".");
+    delay(300);
+  }
+  Serial.println();
+  Serial.print("Connected with IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
+  /* END CONNECT TO WIFI*/
+
+  
+  if(WIFI_LOGGING) {
+    Serial.println("Now sending email.");
+  }
+
+  /* Declare the global used SMTPSession object for SMTP transport */
+  SMTPSession smtp;
+
+  /*  Set the network reconnection option */
+  MailClient.networkReconnect(true);
+
+  /** Enable the debug via Serial port
+   * 0 for no debugging
+   * 1 for basic level debugging
+   *
+   * Debug port can be changed via ESP_MAIL_DEFAULT_DEBUG_PORT in ESP_Mail_FS.h
+   */
+  smtp.debug(1);
+
+  /* Set the callback function to get the sending results */
+  // smtp.callback(smtpCallback);
+
+  /* Declare the Session_Config for user defined session credentials */
+  Session_Config config;
+
+  /* Set the session config */
+  config.server.host_name = SMTP_HOST;
+  config.server.port = SMTP_PORT;
+  config.login.email = AUTHOR_EMAIL;
+  config.login.password = AUTHOR_PASSWORD;
+  config.login.user_domain = "";
+
+  /*
+  Set the NTP config time
+  For times east of the Prime Meridian use 0-12
+  For times west of the Prime Meridian add 12 to the offset.
+  Ex. American/Denver GMT would be -6. 6 + 12 = 18
+  See https://en.wikipedia.org/wiki/Time_zone for a list of the GMT/UTC timezone offsets
+  */
+  config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
+  config.time.gmt_offset = 3;
+  config.time.day_light_offset = 0;
+
+  /* Declare the message class */
+  SMTP_Message message;
+
+  /* Set the message headers */
+  message.sender.name = F("ESP");
+  message.sender.email = AUTHOR_EMAIL;
+  message.subject = F("ESP Test Email");
+  message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
+    
+  /*Send HTML message*/
+  /*String htmlMsg = "<div style=\"color:#2f4468;\"><h1>Hello World!</h1><p>- Sent from ESP board</p></div>";
+  message.html.content = htmlMsg.c_str();
+  message.html.content = htmlMsg.c_str();
+  message.text.charSet = "us-ascii";
+  message.html.transfer_encoding = Content_Transfer_Encoding::enc_7bit;*/
+
+   
+  //Send raw text message
+  String textMsg = "Test message from hygrometer B01";
+  message.text.content = textMsg.c_str();
+  message.text.charSet = "us-ascii";
+  message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
+  
+  message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
+  message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
+
+
+  /* Connect to the server */
+  if (!smtp.connect(&config)){
+    ESP_MAIL_PRINTF("Connection error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
+    return;
+  }
+
+  if (!smtp.isLoggedIn()){
+    Serial.println("\nNot yet logged in.");
+  }
+  else{
+    if (smtp.isAuthenticated())
+      Serial.println("\nSuccessfully logged in.");
+    else
+      Serial.println("\nConnected with no Auth.");
+  }
+
+  /* Start sending Email and close the session */
+  if (!MailClient.sendMail(&smtp, &message))
+    ESP_MAIL_PRINTF("Error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
+
+
+  /**   END OF EMAIL TESTING */
+  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+
+
+
+
 
 
 }
@@ -582,7 +650,8 @@ void loop()
       {
         Serial.println("User wishes to enter the console");
       }
-      console.console(pref);       
+      // console.console(pref);    //TODO this was the original line   
+      console.console();       
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;

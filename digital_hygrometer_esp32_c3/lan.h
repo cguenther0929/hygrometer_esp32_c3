@@ -3,7 +3,6 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 #include <WiFi.h>
-// #include <WifiClient.h> //TODO I don't think we need this
 #include <ESP_Mail_Client.h>
 
 // TODO: do we need to comment functions?
