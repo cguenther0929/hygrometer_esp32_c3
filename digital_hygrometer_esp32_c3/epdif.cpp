@@ -28,6 +28,8 @@
 #include "epdif.h"
 #include <spi.h>
 
+EpdIf local_epdif ;
+
 bool spi_is_initalized = false;
 
 EpdIf::EpdIf() {
@@ -54,18 +56,30 @@ void EpdIf::SpiTransfer(unsigned char data) {
     digitalWrite(CS_PIN, HIGH);
 }
 
+void EpdIf::hyg_spi_start ( void )
+{
+    SPI.begin();
+    SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+}
+
+void EpdIf::hyg_spi_end ( void )
+{
+    SPI.endTransaction();
+}
+
 int EpdIf::IfInit(void) {
     pinMode(CS_PIN, OUTPUT);
     pinMode(RST_PIN, OUTPUT);
     pinMode(DC_PIN, OUTPUT);
     pinMode(BUSY_PIN, INPUT); 
 
+    delay(5);
+
+
     if(spi_is_initalized == false)
     {
         Serial.println("Initializing SPI");
-        SPI.begin();
-        SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
-        Serial.println("SPI Initialized");
+        local_epdif.hyg_spi_start();
         spi_is_initalized = true;
     }
 

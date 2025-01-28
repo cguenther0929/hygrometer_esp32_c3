@@ -47,3 +47,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.1.4 -- Code compiles.  Processor goes into deep sleep and can be woken up via timeout or button press.  Reads from the IO expander are functional.  Trying to send an email will cause the SOM to reset.  
 
 * v0.1.5 -- Code compiles.  We can send emails, but at the detriment of commenting out some of the display stuff (i.e. LDirInit).  
+
+* v0.1.6 -- Code compiles.  Email sending finally works.  The issue was that the SPI transactions (initialized by the display) weren't being stopped, so the module would freeze on the part of sending emails.  

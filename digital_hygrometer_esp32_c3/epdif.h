@@ -42,6 +42,8 @@ public:
     EpdIf(void);
     ~EpdIf(void);
 
+    void hyg_spi_start( void );
+    void hyg_spi_end( void );
     static int  IfInit(void);
     static void DigitalWrite(int pin, int value); 
     static int  DigitalRead(int pin);
