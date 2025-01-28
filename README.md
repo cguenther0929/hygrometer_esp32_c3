@@ -36,12 +36,14 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 
 * v0.0.9 --  Code compiles and seems to run okay on B02 HW.  The LED is blinking and the console can be accessed.  
 
-*v0.1.0 -- Code compiles and I2C functions seem to be working. Will need to update the routine for how temp data is grabbed (grab while making the RH measurement).  Choosing a sensor is working well, too.
+* v0.1.0 -- Code compiles and I2C functions seem to be working. Will need to update the routine for how temp data is grabbed (grab while making the RH measurement).  Choosing a sensor is working well, too.
 
-*v0.1.1 -- Code compiles.  The temperature and humidity values can be read reliably.  
+* v0.1.1 -- Code compiles.  The temperature and humidity values can be read reliably.  
 
-*v0.1.2 -- Code compiles.  Text, lines, and images can all be printed to the display with success.    
+* v0.1.2 -- Code compiles.  Text, lines, and images can all be printed to the display with success.    
 
-*v0.1.3 -- Code compiles.  Analog readings function.  Features have been added to the console.  Some cleanup has occurred.  
+* v0.1.3 -- Code compiles.  Analog readings function.  Features have been added to the console.  Some cleanup has occurred.  
 
-*v0.1.4 -- Code compiles.  Processor goes into deep sleep and can be woken up via timeout or button press.  Reads from the IO expander are functional.  Trying to send an email will cause the SOM to reset.    
+* v0.1.4 -- Code compiles.  Processor goes into deep sleep and can be woken up via timeout or button press.  Reads from the IO expander are functional.  Trying to send an email will cause the SOM to reset.  
+
+* v0.1.5 -- Code compiles.  We can send emails, but at the detriment of commenting out some of the display stuff (i.e. LDirInit).  

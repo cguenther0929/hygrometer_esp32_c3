@@ -64,12 +64,11 @@ String SW_VER_STRING = "0.1.4";  //TODO maybe need to make this a const char?
 
 #define RECIPIENT_EMAIL "clinton.guenther@gmail.com"
 
-#define WIFI_SSID "CJG_GbE_2G4"
-#define WIFI_PASSWORD "GlockHK23"
+// #define WIFI_SSID "CJG_GbE_2G4"
+// #define WIFI_PASSWORD "GlockHK23"
+#define WIFI_SSID         "QuEST"
+#define WIFI_PASSWORD     "doublecrossover"
 
-
-// char server[] = "smtp.gmail.com";  
-#define SMTP_HOST "smtp.gmail.com"
 
 /* Declare the global used SMTPSession object for SMTP transport */
 SMTPSession smtp;
@@ -316,12 +315,6 @@ void setup() {
   pinMode(nSENSOR_PWR_EN,OUTPUT);
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
 
-
-  /**
-   * Stop bluetooth since we do not use it
-   */
-  btStop();
-
   State STATE_READ_DATA;
  /**
   * @brief Define IO interrupt for push button input 
@@ -375,9 +368,10 @@ void setup() {
   nvm_functions.init();
   app.init();
 
+
   if(ENABLE_LOGGING)
   {
-    Serial.println("Printing default display image");
+    Serial.println("Printing splash screen.");
   }
   /** 
    *  There are 2 memory areas embedded in the e-paper display
@@ -434,65 +428,61 @@ void setup() {
 
   paint.SetWidth(200);
   paint.SetHeight(36);
-  // epd.SetFrameMemory(IMAGE_DATA);  
-  // epd.DisplayFrame();
-  // epd.SetFrameMemory(IMAGE_DATA);   
-  // epd.DisplayFrame();
   
-  epd.LDirInit();
-  epd.Display(IMAGE_DATA);   //TODO this is what we want in
+  // epd.LDirInit();            //TODO email wouldn't work unless this and the following line were commented out
+  // epd.Display(IMAGE_DATA);   //TODO email wouldn't work unless this and the above line was commented out
 
 
-  paint.SetWidth(77);         //7 pixels wide * 11 characters
-  paint.SetHeight(12);
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
+  // paint.SetWidth(77);         //7 pixels wide * 11 characters
+  // paint.SetHeight(12);
+  // paint.Clear(UNCOLORED);
+  // paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
+  // epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
   
   
-  paint.SetWidth(56);           //7 pixels wide * 8 characters
-  paint.SetHeight(12);
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
+//   paint.SetWidth(56);           //7 pixels wide * 8 characters
+//   paint.SetHeight(12);
+//   paint.Clear(UNCOLORED);
+//   paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
+//   epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
 
-  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
-  paint.SetHeight(36);          // 36 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
+//   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
+//   paint.SetHeight(36);          // 36 pixels tall
+//   paint.Clear(UNCOLORED);
+//   paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED);
+//   epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
 
-  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
-  paint.SetHeight(36);          // 36 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
+//   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
+//   paint.SetHeight(36);          // 36 pixels tall
+//   paint.Clear(UNCOLORED);
+//   paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
+//   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
 
 
 
-  /**
-  * Font 12 is seven pixels wide.  Therefore, we can
-  * have a total of 28 characters, as this will yield 
-  *  28*7 (196) pixels of width
-  */
-  sprintf(bottom_of_disp_string,"BAT: %0.2fV",app.get_battery_voltage());
-  paint.eink_put_string_bottom(bottom_of_disp_string);
+//   /**
+//   * Font 12 is seven pixels wide.  Therefore, we can
+//   * have a total of 28 characters, as this will yield 
+//   *  28*7 (196) pixels of width
+//   */
+//   sprintf(bottom_of_disp_string,"BAT: %0.2fV",app.get_battery_voltage());
+//   paint.eink_put_string_bottom(bottom_of_disp_string);
 
-  /** 
-   * Print the divider line 
-   */
-  paint.SetWidth(4);
-  paint.SetHeight(132);
-  paint.Clear(UNCOLORED);
-  paint.DrawLine(0, 0, 1, 132, COLORED);
-  paint.DrawLine(1, 0, 2, 132, COLORED);
-  paint.DrawLine(2, 0, 3, 132, COLORED);
-  paint.DrawLine(3, 0, 4, 132, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
+//   /** 
+//    * Print the divider line 
+//    */
+//   paint.SetWidth(4);
+//   paint.SetHeight(132);
+//   paint.Clear(UNCOLORED);
+//   paint.DrawLine(0, 0, 1, 132, COLORED);
+//   paint.DrawLine(1, 0, 2, 132, COLORED);
+//   paint.DrawLine(2, 0, 3, 132, COLORED);
+//   paint.DrawLine(3, 0, 4, 132, COLORED);
+//   epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
   
-  epd.DisplayFrame();
+//   epd.DisplayFrame();
 
-  epd.Sleep();
+//   epd.Sleep();
 
 
 
