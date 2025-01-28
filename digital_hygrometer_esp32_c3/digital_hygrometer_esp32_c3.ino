@@ -50,7 +50,7 @@
 // ==============================
 // Value last updated 1/12/25 
 // SW version string 
-String SW_VER_STRING = "0.1.4";  //TODO maybe need to make this a const char? 
+String SW_VER_STRING = "0.1.5";  //TODO maybe need to make this a const char? 
 // ==============================
 // ==============================
 
