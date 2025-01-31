@@ -14,30 +14,22 @@
 char buf_temp[TEMP_BUF_SIZE];           // Temporary buffer that can be used for building strings
 
 
-#define SMTP_HOST "smtp.gmail.com"
-#define SMTP_PORT 465
+#define SMTP_HOST         "smtp.gmail.com"
+#define SMTP_PORT         465
 #define AUTHOR_EMAIL      "clinton.debug@gmail.com"
 #define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
 
-#define RECIPIENT_EMAIL "clinton.guenther@gmail.com"
+#define RECIPIENT_EMAIL   "clinton.guenther@gmail.com"
 
 
-// char server[] = "smtp.gmail.com";  
 #define SMTP_HOST "smtp.gmail.com"
-
-/* Declare the global used SMTPSession object for SMTP transport */
-// SMTPSession smtp;
-
 
 void LAN::init(void) 
 {
     //TODO: Let's just put a print here with inclusion guards
-    /* Declare the global used SMTPSession object for SMTP transport */
-    // SMTPSession smtp;
     __asm__("nop\n\t");  //TODO: we need to do something different here
 
 }
-
 
 bool LAN::WiFiConnect( const char * ssid, const char * password ) 
 {
@@ -62,7 +54,6 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
     Serial.print("\tConnecting to SSID: "); Serial.println(ssid);
     Serial.print("\tSSID password: "); Serial.println(password);
   }
-
   
   // Wait for connection
   while ((WiFi.status() != WL_CONNECTED) && i < timeout) {
@@ -95,10 +86,6 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
   return true;
 }
 
-
-
-
-
 /**
  * @brief Send the email
  * 
@@ -118,126 +105,15 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
  * 
  * 
  */
-// void LAN::send_email ( void )
-// {
-
-//   if(WIFI_LOGGING) {
-//     Serial.println("Now sending email.");
-//   }
-
-//   /* Declare the global used SMTPSession object for SMTP transport */
-//   SMTPSession smtp;
-
-//   /* Declare the Session_Config for user defined session credentials */
-//   Session_Config config;
-  
-//   /* Declare the message class */
-//   SMTP_Message message;
-  
-//   /*  Set the network reconnection option */
-//   MailClient.networkReconnect(true);
-
-//   /** Enable the debug via Serial port
-//    * 0 for no debugging
-//    * 1 for basic level debugging
-//    *
-//    * Debug port can be changed via ESP_MAIL_DEFAULT_DEBUG_PORT in ESP_Mail_FS.h
-//    */
-//   smtp.debug(1);
-
-//   /* Set the callback function to get the sending results */
-//   // smtp.callback(smtpCallback);
-
-//   /* Set the session config */
-//   config.server.host_name = SMTP_HOST;
-//   config.server.port = SMTP_PORT;
-//   config.login.email = AUTHOR_EMAIL;
-//   config.login.password = AUTHOR_PASSWORD;
-//   config.login.user_domain = "";
-
-//   /**
-//    * Setting the time is imperative for this to work
-//    * Set the NTP config time
-//    * For times east of the Prime Meridian use 0-12
-//    * For times west of the Prime Meridian add 12 to the offset.
-//    * Ex. American/Denver GMT would be -6. 6 + 12 = 18
-//    * See https://en.wikipedia.org/wiki/Time_zone for a list of the GMT/UTC timezone offsets
-//    */
-  
-//   config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
-//   config.time.gmt_offset = 3;
-//   config.time.day_light_offset = 0;
-
-
-//   /* Set the message headers */
-//   message.sender.name =  F("ESP");
-//   message.sender.email = AUTHOR_EMAIL;
-//   message.subject = "ESP Test Email";
-//   message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
-    
-//   /*Send HTML message*/
-//   /*String htmlMsg = "<div style=\"color:#2f4468;\"><h1>Hello World!</h1><p>- Sent from ESP board</p></div>";
-//   message.html.content = htmlMsg.c_str();
-//   message.html.content = htmlMsg.c_str();
-//   message.text.charSet = "us-ascii";
-//   message.html.transfer_encoding = Content_Transfer_Encoding::enc_7bit;*/
-
-   
-//   //Send raw text message
-//   String textMsg = "Hello World! - Sent from HYGROMETER A01";  //TODO will my fix work?  trying char opposed to string
-//   // char textMsg[] = "Hello World! - Sent from HYGROMETER A01";
-//   message.text.content = textMsg.c_str();
-//   // message.text.content = textMsg;
-//   message.text.charSet = "us-ascii";
-//   message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
-  
-//   message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
-//   message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
-
-
-//   /* Connect to the server */
-//   if (!smtp.connect(&config)){
-//     ESP_MAIL_PRINTF("Connection error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
-//     return;
-//   }
-
-//   if (!smtp.isLoggedIn()){
-//     Serial.println("\nNot yet logged in.");
-//   }
-//   else{
-//     if (smtp.isAuthenticated())
-//       Serial.println("\nSuccessfully logged in.");
-//     else
-//       Serial.println("\nConnected with no Auth.");
-//   }
-
-//   /* Start sending Email and close the session */
-//   if (!MailClient.sendMail(&smtp, &message))
-//   {
-//     ESP_MAIL_PRINTF("Error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
-//   }
-
-
-
-
-// } /* END SEND EMAIL*/
-
-
-
-
-
 void LAN::send_email ( void )
 {
 
+  SMTPSession smtp; 
 
-  // void smtpCallback(SMTP_Status status);
 
   if(WIFI_LOGGING) {
     Serial.println("Now sending email.");
   }
-
-  /* Declare the global used SMTPSession object for SMTP transport */
-  SMTPSession smtp;
 
   /*  Set the network reconnection option */
   MailClient.networkReconnect(true);
@@ -250,18 +126,15 @@ void LAN::send_email ( void )
    */
   smtp.debug(1);
 
-  /* Set the callback function to get the sending results */
-  // smtp.callback(smtpCallback);
-
   /* Declare the Session_Config for user defined session credentials */
   Session_Config config;
 
   /* Set the session config */
-  config.server.host_name = SMTP_HOST;
-  config.server.port = SMTP_PORT;
-  config.login.email = AUTHOR_EMAIL;
-  config.login.password = AUTHOR_PASSWORD;
-  config.login.user_domain = "";
+  config.server.host_name   = SMTP_HOST;
+  config.server.port        = SMTP_PORT;
+  config.login.email        = AUTHOR_EMAIL;
+  config.login.password     = AUTHOR_PASSWORD;
+  config.login.user_domain  = "";
 
   /*
   Set the NTP config time
@@ -278,18 +151,11 @@ void LAN::send_email ( void )
   SMTP_Message message;
 
   /* Set the message headers */
-  message.sender.name = F("ESP");
+  message.sender.name = F("Hygrometer Test");
   message.sender.email = AUTHOR_EMAIL;
   message.subject = F("ESP Test Email");
   message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
     
-  /*Send HTML message*/
-  /*String htmlMsg = "<div style=\"color:#2f4468;\"><h1>Hello World!</h1><p>- Sent from ESP board</p></div>";
-  message.html.content = htmlMsg.c_str();
-  message.html.content = htmlMsg.c_str();
-  message.text.charSet = "us-ascii";
-  message.html.transfer_encoding = Content_Transfer_Encoding::enc_7bit;*/
-
    
   //Send raw text message
   String textMsg = "Test message from hygrometer B01";
@@ -323,19 +189,3 @@ void LAN::send_email ( void )
 
 
 } /* END SEND EMAIL*/
-
-
-
-/* Callback function to get the Email sending status */
-void smtpCallback(SMTP_Status status)
-{
-  //TODO: do we want to do anything in this function?
-  __asm__("nop\n\t");
-
-} /* END smtpCallback*/
-
-
-
-
-
-

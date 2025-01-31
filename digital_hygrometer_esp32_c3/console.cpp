@@ -18,9 +18,6 @@ NVM     nvm_function;
  */
 #define ENABLE_LOGGING                true
 
-bool WiFiConnect( const char * ssid, const char * password );
-
-
 void CONSOLE::init(void) 
 {
     //TODO: Do we want to modify these lines?
@@ -165,8 +162,8 @@ void CONSOLE::console ()
                 insert_line_emphasis();
 
                 //TODO: we want these functions to be put back in
-                console_lan.WiFiConnect("CJG_GbE_2G4","GlockHK23");  //TODO we don't want to hardcode these values like this
-                // WiFiConnect("CJG_GbE_2G4","GlockHK23");
+                // console_lan.WiFiConnect("CJG_GbE_2G4","GlockHK23");  //TODO we don't want to hardcode these values like this
+                console_lan.WiFiConnect(WIFI_SSID,WIFI_PASSWORD);  //TODO we don't want to hardcode these values like this
                 console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
             break;
 

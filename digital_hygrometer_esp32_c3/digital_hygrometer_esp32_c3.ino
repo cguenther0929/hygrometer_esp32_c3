@@ -50,33 +50,12 @@
 // ==============================
 // Value last updated 1/12/25 
 // SW version string 
-String SW_VER_STRING = "0.1.5";  //TODO maybe need to make this a const char? 
+String SW_VER_STRING = "0.1.7";  //TODO maybe need to make this a const char? 
 // ==============================
 // ==============================
-
-
-
-//TODO the following is in for testing email
-#define SMTP_HOST "smtp.gmail.com"
-#define SMTP_PORT 465
-#define AUTHOR_EMAIL      "clinton.debug@gmail.com"
-#define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
-
-#define RECIPIENT_EMAIL "clinton.guenther@gmail.com"
-
-// #define WIFI_SSID "CJG_GbE_2G4"
-// #define WIFI_PASSWORD "GlockHK23"
-#define WIFI_SSID         "QuEST"
-#define WIFI_PASSWORD     "doublecrossover"
-
-
-/* Declare the global used SMTPSession object for SMTP transport */
-SMTPSession smtp;
 
 
 // TODO: how much of all of this can we put in app.h?
-
-
 
 /* Instantiate the Preferences class*/
 // Preferences pref;   //TODO this was in
@@ -492,118 +471,6 @@ void setup() {
   /**   END OF DISPLAY TESTING */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-  //TODO the following is in for testing email features
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  
-  /* CONNECT TO WIFI*/
-   
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED){
-    Serial.print(".");
-    delay(300);
-  }
-  Serial.println();
-  Serial.print("Connected with IP: ");
-  Serial.println(WiFi.localIP());
-  Serial.println();
-  /* END CONNECT TO WIFI*/
-
-  
-  if(WIFI_LOGGING) {
-    Serial.println("Now sending email.");
-  }
-
-  /* Declare the global used SMTPSession object for SMTP transport */
-  SMTPSession smtp;
-
-  /*  Set the network reconnection option */
-  MailClient.networkReconnect(true);
-
-  /** Enable the debug via Serial port
-   * 0 for no debugging
-   * 1 for basic level debugging
-   *
-   * Debug port can be changed via ESP_MAIL_DEFAULT_DEBUG_PORT in ESP_Mail_FS.h
-   */
-  smtp.debug(1);
-
-  /* Set the callback function to get the sending results */
-  // smtp.callback(smtpCallback);
-
-  /* Declare the Session_Config for user defined session credentials */
-  Session_Config config;
-
-  /* Set the session config */
-  config.server.host_name = SMTP_HOST;
-  config.server.port = SMTP_PORT;
-  config.login.email = AUTHOR_EMAIL;
-  config.login.password = AUTHOR_PASSWORD;
-  config.login.user_domain = "";
-
-  /*
-  Set the NTP config time
-  For times east of the Prime Meridian use 0-12
-  For times west of the Prime Meridian add 12 to the offset.
-  Ex. American/Denver GMT would be -6. 6 + 12 = 18
-  See https://en.wikipedia.org/wiki/Time_zone for a list of the GMT/UTC timezone offsets
-  */
-  config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
-  config.time.gmt_offset = 3;
-  config.time.day_light_offset = 0;
-
-  /* Declare the message class */
-  SMTP_Message message;
-
-  /* Set the message headers */
-  message.sender.name = F("ESP");
-  message.sender.email = AUTHOR_EMAIL;
-  message.subject = F("ESP Test Email");
-  message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
-    
-  /*Send HTML message*/
-  /*String htmlMsg = "<div style=\"color:#2f4468;\"><h1>Hello World!</h1><p>- Sent from ESP board</p></div>";
-  message.html.content = htmlMsg.c_str();
-  message.html.content = htmlMsg.c_str();
-  message.text.charSet = "us-ascii";
-  message.html.transfer_encoding = Content_Transfer_Encoding::enc_7bit;*/
-
-   
-  //Send raw text message
-  String textMsg = "Test message from hygrometer B01";
-  message.text.content = textMsg.c_str();
-  message.text.charSet = "us-ascii";
-  message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
-  
-  message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
-  message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
-
-
-  /* Connect to the server */
-  if (!smtp.connect(&config)){
-    ESP_MAIL_PRINTF("Connection error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
-    return;
-  }
-
-  if (!smtp.isLoggedIn()){
-    Serial.println("\nNot yet logged in.");
-  }
-  else{
-    if (smtp.isAuthenticated())
-      Serial.println("\nSuccessfully logged in.");
-    else
-      Serial.println("\nConnected with no Auth.");
-  }
-
-  /* Start sending Email and close the session */
-  if (!MailClient.sendMail(&smtp, &message))
-    ESP_MAIL_PRINTF("Error, Status Code: %d, Error Code: %d, Reason: %s", smtp.statusCode(), smtp.errorCode(), smtp.errorReason().c_str());
-
-
-  /**   END OF EMAIL TESTING */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-
 
 
 
@@ -702,63 +569,6 @@ void loop()
         attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
         app.btn_interrupt_triggered  = false;
     }
-    
-    //TODO: Cleanup functions that were put in for testing ... 
-    /**
-     * For debugging the 
-     * analog battery reading
-     */
-    // Serial.println("-----------------------------------------------------------");
-    // Serial.println("--------------- Testing Battery Voltage Sensor ------------");
-    // battery_voltage = app.get_battery_voltage();
-    // Serial.print("Battery voltage: ");
-    // Serial.println(battery_voltage);
-    
-    /**
-     * For debugging IO read
-     * functions
-     */
-    // Serial.println("\n-----------------------------------------------------------");
-    // Serial.println("---------------------- Testing IO Read --------------------");
-    // temp_uint8 = main_i2c.read_io_expander();
-    // Serial.print("Value read from IO expander 0b");
-    // Serial.println(temp_uint8,BIN);
-    // if(main_i2c.charging_is_active())
-    // {
-    //   Serial.println("\tCharging is ACTIVE.");
-    // }
-    // else
-    // {
-    //   Serial.println("\t\tCharging is INACTIVE.");
-    // }
-
-    /**
-     * For sensor debugging
-     * Get readings from the first sensor
-     */
-    // Serial.println("-----------------------------------------------------------");
-    // Serial.println("-------------------- Testing Sensors ----------------------");
-    // main_i2c.choose_sensor(SENSOR_1);   //TODO: this is just in for testing
-    
-    // main_i2c.get_sensor_data();
-    // Serial.print("Humidity #1: ");
-    // Serial.println(main_i2c.hum_val1);
-    // Serial.print("Temperature #1: ");
-    // Serial.println(main_i2c.temp_val1);
-    // Serial.println(' ');
-    
-    
-    // main_i2c.choose_sensor(SENSOR_2);   //TODO: this is just in for testing
-    
-    // main_i2c.get_sensor_data();
-    // Serial.print("\tHumidity #2: ");
-    // Serial.println(main_i2c.hum_val2);
-    // Serial.print("\tTemperature #2: ");
-    // Serial.println(main_i2c.temp_val2);
-
-    
-    
-    // main_i2c.disable_mux();   //TODO: this is just in for testing
   }
 
 }

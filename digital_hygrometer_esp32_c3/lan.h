@@ -32,6 +32,9 @@
 #define WIFI_CONNECT_TIMEOUT_S  5
 #define WIFI_LOGGING            true         //TODO: do we want to comment this out? 
 
+#define WIFI_SSID         "CJG_GbE_2G4"
+#define WIFI_PASSWORD     "GlockHK23"
+
 
 
 #define SMTP_PORT                   465
@@ -62,32 +65,6 @@ class LAN {
          */
         void send_email ( void );
 
-        uint8_t eRcv( void );
-
-        /**
-         * @brief Callback function for sending email
-         * @param \p none 
-         * @return nothing
-         */
-        void smtpCallback(SMTP_Status status);
-
-
-
-        // /**
-        //  * @brief Console routine
-        //  * @details Serves the CLI to the user
-        //  * @param \p none 
-        //  * @return nothing
-        //  */
-        // void console (void);
-
-        // /**
-        //  * @brief Get number input from user (0-255)
-        //  * @param \p none 
-        //  * @return users input
-        //  */
-        // uint8_t get_user_uint8t_value ( void );
-        
 };
 
 #endif
