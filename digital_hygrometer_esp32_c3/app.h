@@ -36,6 +36,16 @@
 #include "epdif.h"
 #include "driver/rtc_io.h"
 
+// ==============================
+// ==============================
+// Value last updated 1/12/25 
+// SW version string 
+// String SW_VER_STRING = "0.1.7";  //TODO maybe need to make this a const char? 
+#define     SW_VER_STRING       "0.1.7"  //TODO maybe need to make this a const char? 
+// ==============================
+// ==============================
+
+
 /**
  * Serial parameters
  */
@@ -66,13 +76,25 @@
 #define SENSOR_MUX_RST_LINE         9
 
 /**
- * Analog related parameters
+ * ESP 32 Analog related parameters
+ * It seems that that informaiton available online 
+ * is incorrect.  
+ * Some of the following values had to be 
+ * empirically derived. 
+ * We know the attenuation is 11db, which works 
+ * out to a voltage gain of 3.548.  Knowing 
+ * this, we demanded the digital code be printed 
+ * out from the ADC during the "battery read"
+ * routein.  Knowing the voltage feeding the pin, 
+ * the internal attenuation value, and the fact that
+ * we are dealing with 4096 steps (12 bit), we are 
+ * able to discern the analog reference voltage. 
  */
 #define ANALOG_BATT_PIN             A0      // The analog pin on the ESP32-C that is 'watching' the battery voltage
-#define HYG_ADC_REFERENCE           1.10    // ESP32-C3 ADC reference
+#define HYG_ADC_REFERENCE           0.50    // ESP32-C3 ADC reference (calculated)
 #define HYG_ADC_BIT_VALUE           4096    // ESP32-C3 Full scale digital reading +1
 #define HYG_PCB_ATTEN               5.435   // Attenuation that is applied on the hygrometer PCB
-#define HYG_ESP32_INTERNAL_ATTEN    2.34    // The ESP32-C3 employes some amount of internal attenuation (this was empirically derived)
+#define HYG_ESP32_INTERNAL_ATTEN    3.548   // The ESP32-C3 employs 11db of attenuation
 
 
 typedef struct network_info  //TODO I think we can put these down in the class

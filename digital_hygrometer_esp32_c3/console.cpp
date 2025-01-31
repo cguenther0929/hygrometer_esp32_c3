@@ -11,6 +11,7 @@ NVM     nvm_function;
 
 
 // const char SW_VER_STRING[] = "temp.temp.temp";  //TODO need to fix this!  Do not want to hardcode like this.
+// extern const char SW_VER_STRING; //TODO remove
 
 /**
  * Set to true to 
@@ -41,7 +42,7 @@ void CONSOLE::init(void)
  */
 uint8_t CONSOLE::get_user_uint8t_value ( void )  
 {
-    String user_input = "";
+    // String user_input = "";  //TODO can this be removed?
     uint16_t return_number = 0;
     
     while (Serial.available() <= 0);    // Pause until we start receiving data
@@ -136,7 +137,8 @@ void CONSOLE::console ()
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                Serial.println("The SW version: FIX ME");
+                Serial.print("The SW version: ");
+                Serial.println(SW_VER_STRING);
                 insert_line_emphasis();
             break;
 

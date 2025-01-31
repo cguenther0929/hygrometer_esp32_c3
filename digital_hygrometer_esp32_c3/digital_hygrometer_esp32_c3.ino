@@ -46,13 +46,7 @@
 #include "app.h"
 
 
-// ==============================
-// ==============================
-// Value last updated 1/12/25 
-// SW version string 
-String SW_VER_STRING = "0.1.7";  //TODO maybe need to make this a const char? 
-// ==============================
-// ==============================
+
 
 
 // TODO: how much of all of this can we put in app.h?
@@ -470,10 +464,6 @@ void setup() {
 
   /**   END OF DISPLAY TESTING */
   /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-
-
-
 
 
 }
