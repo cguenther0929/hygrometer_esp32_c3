@@ -1,15 +1,128 @@
 #include "app.h"
 
+/**
+  * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
+  * In this case, a smaller image buffer is allocated and you have to 
+  * update a partial display several times.
+  * 1 byte = 8 pixels, therefore you have to set 8*N pixels at a time.
+  */
+unsigned char image[1024];   
+Paint   paint(image, 0, 0);    // width should be the multiple of 8 
+Epd     epd;
+EpdIf   epdif;
+
+
+/**
+ * Display parameters
+ */    
+char bottom_of_disp_string[32]; 
 
 void APP::init(void) 
 {
-    __asm__("nop\n\t");
+    this -> state = STATE_READ_DATA;
+}
+
+void APP::state_handler( State current_state ) 
+{
+  switch(current_state) 
+  {
+    case STATE_SLEEP:
+      if(ENABLE_LOGGING)
+      {
+        Serial.println("In state sleep");
+      }
+      this -> state = STATE_READ_DATA;
+    break;
+    case STATE_READ_DATA:
+      if(ENABLE_LOGGING)
+      {
+        Serial.println("In state read data");
+      }
+      this -> state = STATE_UPDATE_DISPLAY;
+    break;
+    case STATE_UPDATE_DISPLAY:
+      if(ENABLE_LOGGING)
+      {
+        Serial.println("In state update display");
+      }
+      this -> state = STATE_SEND_EMAIL;
+    break;
+    case STATE_SEND_EMAIL:
+      if(ENABLE_LOGGING)
+      {
+        Serial.println("In state send email");
+      }
+      this -> state = STATE_SLEEP;
+    break;
+    default:
+     this -> state = STATE_SLEEP;
+    break;
+  }
+
 }
 
 void APP::display_splash_screen( void ) 
 {
-    //TODO: need to define this function 
-    __asm__("nop\n\t");
+  paint.SetWidth(200);
+  paint.SetHeight(36);
+  
+  epd.LDirInit();            
+  epd.Display(IMAGE_DATA);   
+
+
+  paint.SetWidth(77);         //7 pixels wide * 11 characters
+  paint.SetHeight(12);
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
+  
+  
+  paint.SetWidth(56);           //7 pixels wide * 8 characters
+  paint.SetHeight(12);
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
+
+  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
+  paint.SetHeight(36);          // 36 pixels tall
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
+
+  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
+  paint.SetHeight(36);          // 36 pixels tall
+  paint.Clear(UNCOLORED);
+  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
+
+
+
+  /**
+  * Font 12 is seven pixels wide.  Therefore, we can
+  * have a total of 28 characters, as this will yield 
+  *  28*7 (196) pixels of width
+  */
+  get_battery_voltage();
+  sprintf(bottom_of_disp_string,"BAT: %0.2fV",this -> battery_voltage);
+  paint.eink_put_string_bottom(bottom_of_disp_string);
+
+  /** 
+   * Print the divider line 
+   */
+  paint.SetWidth(4);
+  paint.SetHeight(132);
+  paint.Clear(UNCOLORED);
+  paint.DrawLine(0, 0, 1, 132, COLORED);
+  paint.DrawLine(1, 0, 2, 132, COLORED);
+  paint.DrawLine(2, 0, 3, 132, COLORED);
+  paint.DrawLine(3, 0, 4, 132, COLORED);
+  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
+
+  epd.DisplayFrame();
+
+  epdif.hyg_spi_end();
+
+  epd.Sleep();
 }
 
 bool APP:: network_parameters_valid( void )
@@ -83,6 +196,8 @@ float APP::get_battery_voltage (void)
   voltage_reading = (float)(voltage_reading * HYG_ESP32_INTERNAL_ATTEN);        //  ESP32-C3 internal attenuation (Empirically derived)
   voltage_reading = (float)(voltage_reading * HYG_PCB_ATTEN);       // To account for the attenuator on the PCB
   
+  this -> battery_voltage = voltage_reading;
+
   return voltage_reading;
 }
 

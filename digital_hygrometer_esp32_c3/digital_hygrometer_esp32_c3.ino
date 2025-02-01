@@ -23,7 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  * 
- * TODO: get email features tested and working
+ * TODO somewhere we need to indicate the SW version.  
+ * TODO the SW version needs to come across in email. 
  * 
  */
 
@@ -36,76 +37,22 @@
 #include <Wire.h>
 #include <esp_timer.h>
 #include <Preferences.h>
-#include "epd1in54_V2.h"
 #include "nvm.h"
-#include "epdpaint.h"
-#include "imagedata.h"
 #include "i2c.h"
 #include "console.h"
-#include "lan.h"
 #include "app.h"
-
-
-
-
-
-// TODO: how much of all of this can we put in app.h?
+#include "lan.h"
 
 /* Instantiate the Preferences class*/
-// Preferences pref;   //TODO this was in
-
-//TODO the following parameters are just for testing
-// uint8_t temp_uint8 = 0x00;
-
-/**
- * Display parameters
- */    
-char bottom_of_disp_string[32]; 
-
-/**
- * Health LED
- */
-#define HEALTH_LED                10
-
-/**
- * Interrupt / button pin
- * 
- */
-//TODO: how much of this can we put in app.h?
-#define INTERRUPT_PIN             LOCAL_BTN_GPIO_PIN    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
-
-/**
- * Analog and battery parameters
- */
-#define MIN_BATT_VOLTAGE          3.0
-
-/**
- * Global variables 
- * for testing
- */
- //TODO -- move this line?  This is for testing only ...
- float battery_voltage            = 0.0;
-
-typedef enum State {
-  STATE_SLEEP,
-  STATE_READ_DATA,
-  STATE_UPDATE_DISPLAY,
-  STATE_SEND_EMAIL
-};
-
-/**
- * Set to true to 
- * enable logging
- */
-#define ENABLE_LOGGING                true
+// Preferences pref;   //TODO I think we want to put this back in
 
 /**
  * Timer parameters
  */
-unsigned int    ms_ticks_50           =0;
-unsigned int    ms_ticks_100          =0;
-unsigned int    ms_ticks_500          =0;
-unsigned int    ms_ticks_1000         =0;
+unsigned int    ms_ticks_50           = 0;
+unsigned int    ms_ticks_100          = 0;
+unsigned int    ms_ticks_500          = 0;
+unsigned int    ms_ticks_1000         = 0;
 
 bool            Timer50msFlag         = false;
 bool            Timer100msFlag        = false;
@@ -119,16 +66,6 @@ char rx_char                          = '\n';
  */
 hw_timer_t *Timer1_Cfg = NULL;     
 
-/**
-  * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
-  * In this case, a smaller image buffer is allocated and you have to 
-  * update a partial display several times.
-  * 1 byte = 8 pixels, therefore you have to set 8*N pixels at a time.
-  */
-unsigned char image[1024];   
-Paint   paint(image, 0, 0);    // width should be the multiple of 8 
-Epd     epd;
-EpdIf   epdif;
 I2C     main_i2c;
 CONSOLE console;
 LAN     lan;
@@ -181,6 +118,12 @@ APP     app;
  * the "INTERRUPT PIN" value mentioned above, I assume, would be 0 for GPIO0, 1 for GPIO1, 
  * and so on and so forth.  
  * 
+ * 
+ // This is how to place the ESP32 into deep sleep 
+ //                               Value in uS  
+ //                                 |  
+ // esp_sleep_enable_timer_wakeup(1000);
+ // esp_deep_sleep_start();  //This will put the module into deep sleep
  */
 
 /**
@@ -289,7 +232,8 @@ void setup() {
   pinMode(nSENSOR_PWR_EN,OUTPUT);
   digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
 
-  State STATE_READ_DATA;
+  // State state = STATE_READ_DATA;
+
  /**
   * @brief Define IO interrupt for push button input 
   */
@@ -315,19 +259,6 @@ void setup() {
 
   Serial.begin(SERIAL_BAUD_RATE);
  
-  // if(ENABLE_LOGGING)
-  // {
-  //   Serial.println("Initializing e-paper display");
-  // }
-  // if (epd.Init(lut_full_update) != 0) 
-  // { 
-  //   if(ENABLE_LOGGING)
-  //   {
-  //     Serial.println("e-Paper init failed");
-  //   }
-  //   while(true);
-  // }
-
   /**
    * Remaining initialization functions
    */
@@ -347,22 +278,7 @@ void setup() {
   {
     Serial.println("Printing splash screen.");
   }
-  /** 
-   *  There are 2 memory areas embedded in the e-paper display
-   *  and once the display is refreshed, the memory area will be auto-toggled,
-   *  i.e. the next action of SetFrameMemory will set the other memory area
-   *  therefore you have to clear the frame memory twice.
-   */
-  // epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  // epd.DisplayFrame();
-  // epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  // epd.DisplayFrame();
-
-  // paint.SetRotate(ROTATE_0);  
-
-  //TODO: how do we want to initialize the display
-
-
+  app.display_splash_screen();
 
   if(ENABLE_LOGGING)
   {
@@ -391,79 +307,6 @@ void setup() {
 
 
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/**   HERE WE ARE JUST TESTING DISPLAY STUFF */
-
-
- if(ENABLE_LOGGING)
-  {
-    Serial.println("Initializing e-paper display");
-  }
-
-  paint.SetWidth(200);
-  paint.SetHeight(36);
-  
-  epd.LDirInit();            //TODO email wouldn't work unless this and the following line were commented out
-  epd.Display(IMAGE_DATA);   //TODO email wouldn't work unless this and the above line was commented out
-
-
-  paint.SetWidth(77);         //7 pixels wide * 11 characters
-  paint.SetHeight(12);
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Temperature", &Font12, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), 12, 112, paint.GetWidth(), paint.GetHeight());
-  
-  
-  paint.SetWidth(56);           //7 pixels wide * 8 characters
-  paint.SetHeight(12);
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "Humidity", &Font12, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
-
-  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
-  paint.SetHeight(36);          // 36 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
-
-  paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
-  paint.SetHeight(36);          // 36 pixels tall
-  paint.Clear(UNCOLORED);
-  paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
-
-
-
-//   /**
-//   * Font 12 is seven pixels wide.  Therefore, we can
-//   * have a total of 28 characters, as this will yield 
-//   *  28*7 (196) pixels of width
-//   */
-  sprintf(bottom_of_disp_string,"BAT: %0.2fV",app.get_battery_voltage());
-  paint.eink_put_string_bottom(bottom_of_disp_string);
-
-//   /** 
-//    * Print the divider line 
-//    */
-  paint.SetWidth(4);
-  paint.SetHeight(132);
-  paint.Clear(UNCOLORED);
-  paint.DrawLine(0, 0, 1, 132, COLORED);
-  paint.DrawLine(1, 0, 2, 132, COLORED);
-  paint.DrawLine(2, 0, 3, 132, COLORED);
-  paint.DrawLine(3, 0, 4, 132, COLORED);
-  epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
-  
-  epd.DisplayFrame();
-
-  epdif.hyg_spi_end();
-
-  epd.Sleep();
-
-
-
-  /**   END OF DISPLAY TESTING */
-  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 
 }
@@ -473,12 +316,7 @@ void setup() {
  */
 void loop() 
 {
-  //TODO: This is how we put the the unit in to deep sleep mode
-  //TODO: this note was confirmed on 10/24/24
-  //                               Value in uS  
-  //                                 |  
-  // esp_sleep_enable_timer_wakeup(1000);
-  // esp_deep_sleep_start();  //This will put the module into deep sleep
+
 
 
   /**
@@ -493,6 +331,10 @@ void loop()
   
   if(Timer50msFlag == true) 
   {
+    
+    app.state_handler(app.state);
+    
+    
     Timer50msFlag = false;
     rx_char = Serial.read();
     if (rx_char == 'z'){
@@ -531,26 +373,11 @@ void loop()
     Timer1000msFlag = false;
 
     app.seconds_counter++;
-/*  */
-    if(app.seconds_counter >= 120)
+    
+    if(app.seconds_counter >= 120)  //TODO probably need to remove / rework the following
     {
       app.seconds_counter = 0;
-      /**
-      * Font 12 is seven pixels wide.  Therefore, we can
-      * have a total of 28 characters, as this will yield 
-      *  28*7 (196) pixels of width
-      */
-      sprintf(bottom_of_disp_string,"BAT: %0.2fV",app.get_battery_voltage());
-      paint.eink_put_string_bottom(bottom_of_disp_string);
-      
-      
-      // digitalWrite(HEALTH_LED, HIGH);   // Disable the health LED
-      // app.heartbeat_enabled = false;    // Precent the health LED from blinking
-      //                            Value in uS  
-      //                              |  
-      // esp_sleep_enable_timer_wakeup(5 * 1000000);
-      // esp_deep_sleep_start();  //This will put the module into deep sleep
-
+      Serial.println("120s passed.");
     }
 
     if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&

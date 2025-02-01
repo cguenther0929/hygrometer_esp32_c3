@@ -21,10 +21,6 @@ NVM     nvm_function;
 
 void CONSOLE::init(void) 
 {
-    //TODO: Do we want to modify these lines?
-    //TODO: for example, do we instead want to grab 
-    //TODO: rhoffset values from EEPROM
-    this -> user_selection = 99;
 
 }
 
@@ -42,7 +38,6 @@ void CONSOLE::init(void)
  */
 uint8_t CONSOLE::get_user_uint8t_value ( void )  
 {
-    // String user_input = "";  //TODO can this be removed?
     uint16_t return_number = 0;
     
     while (Serial.available() <= 0);    // Pause until we start receiving data

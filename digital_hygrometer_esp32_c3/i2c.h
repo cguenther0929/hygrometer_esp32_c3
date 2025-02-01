@@ -3,12 +3,13 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 
+
 // TODO: do we need to comment functions?
 
 /**
  * Note, for I2C addresses, 
  * only the base address should be considered
- * as the Wire function will automatically add
+ * as the Wire function will automaticagit statuslly add
  * the R/#W bit
  */
 #define IOEXPANDER_7B_0_7_ADDRESS           0x68
@@ -177,7 +178,11 @@ class I2C {
         //TODO: need to comment
         void disable_mux(void);
         
+        //TODO need to comment
         void get_sensor_data(void);
+
+        //TODO need to comment
+        void print8b_bin(uint8_t aByte);
 
 };
 

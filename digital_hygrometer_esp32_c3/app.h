@@ -35,15 +35,38 @@
 #include "nvm.h"
 #include "epdif.h"
 #include "driver/rtc_io.h"
+#include "epd1in54_V2.h"
+#include "epdpaint.h"
+#include "imagedata.h"
 
 // ==============================
 // ==============================
-// Value last updated 1/12/25 
-// SW version string 
-// String SW_VER_STRING = "0.1.7";  //TODO maybe need to make this a const char? 
-#define     SW_VER_STRING       "0.1.7"  //TODO maybe need to make this a const char? 
+#define     SW_VER_STRING       "0.1.8" 
 // ==============================
 // ==============================
+
+/**
+ * Set to true to 
+ * enable logging
+ */
+#define ENABLE_LOGGING                true
+
+/**
+ * Health LED
+ */
+#define HEALTH_LED                10
+
+/**
+ * Interrupt / button pin
+ * 
+ */
+#define INTERRUPT_PIN             LOCAL_BTN_GPIO_PIN    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
+
+/**
+ * Analog and battery parameters
+ */
+#define MIN_BATT_VOLTAGE          3.0
+
 
 
 /**
@@ -74,6 +97,13 @@
 /* Define IO */
 #define nSENSOR_PWR_EN              3
 #define SENSOR_MUX_RST_LINE         9
+
+typedef enum State {
+  STATE_SLEEP,
+  STATE_READ_DATA,
+  STATE_UPDATE_DISPLAY,
+  STATE_SEND_EMAIL
+};
 
 /**
  * ESP 32 Analog related parameters
@@ -113,6 +143,8 @@ typedef struct network_info  //TODO I think we can put these down in the class
 class APP
 {
     public:
+        State state                     = STATE_SLEEP;
+        
         uint16_t btn_press_ctr          = 0x000;
         bool btn_interrupt_triggered    = false;
         bool btn_short_press_flag       = false;
@@ -120,6 +152,8 @@ class APP
         bool calibrate_sensors          = false;  
 
         uint16_t seconds_counter        = 0x0000;
+
+        float battery_voltage           = 0.0;
 
         bool heartbeat_enabled          = true;
 
@@ -163,6 +197,9 @@ class APP
          * @return nothing 
          */
         void button_handler ( void );
+        
+        //TODO need to comment
+        void state_handler( State current_state );
 
 
         

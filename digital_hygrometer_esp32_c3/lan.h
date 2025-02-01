@@ -40,8 +40,6 @@
 #define SMTP_PORT                   465
 
 class LAN {
-    // private:
-    //     uint8_t user_selection      = 0;
 
     public:
         /**

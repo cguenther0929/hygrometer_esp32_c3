@@ -74,6 +74,11 @@ public:
     void DrawFilledCircle(int x, int y, int radius, int colored);
     
     //TODO need to comment this function 
+    /**
+    * Font 12 is seven pixels wide.  Therefore, we can
+    * have a total of 28 characters, as this will yield 
+    *  28*7 (196) pixels of width
+    */
     void eink_put_string_bottom(const char * bottom_of_disp_string);
 
 private:

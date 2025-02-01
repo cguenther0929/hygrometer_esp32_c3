@@ -88,9 +88,6 @@
 
 
 class NVM {
-    //TODO: remove the following lines? 
-    // private:
-    //     uint8_t user_selection      = 0;
 
     public:
         /**

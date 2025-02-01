@@ -12,9 +12,6 @@
 // TODO: do we need to comment functions?
 
 class CONSOLE {
-    private:
-        uint8_t user_selection      = 0;
-
     public:
         /**
          * @brief Console init function

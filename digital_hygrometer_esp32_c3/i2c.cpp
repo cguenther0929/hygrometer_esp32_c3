@@ -7,6 +7,17 @@
 
 APP     i2c_app_functions;
 
+void I2C::print8b_bin(uint8_t aByte)
+ {
+    for (int8_t aBit = 7; aBit >= 0; aBit--)
+    {
+        Serial.print(bitRead(aByte, aBit) ? '1' : '0');
+    }
+    
+    Serial.print('\n');
+}
+
+
 void I2C::init(void) {
     //TODO: Do we want to modify these lines?
     //TODO: for example, do we instead want to grab 
