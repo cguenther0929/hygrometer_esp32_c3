@@ -4,83 +4,109 @@
 
 void NVM::init(void) 
 {
-    //TODO: need to define this function 
     __asm__("nop\n\t");
 }
 
-// void NVM::nvm_erase ( void )  
-// {
-    // __asm__("nop\n\t");
-    // uint16_t i = 0;             
-    // for(i = 0; i < EEPROM_SIZE_IN_BYTES; i++) 
-    // {
-        
-    //     EEPROM.write(i, NULL);  // Write NULL to the EEPROM, one byte at a time
-    // }
-    
-
-// }
-
 /**
- * The nvmkey parameter is arg [1] while the value
- * is arg[0]
- *                                                                     Key of key:value pair
- *                                                                         |            Value to write to NVM  
- *                                                                         |               |
+ *                                                     Key of key:value pair
+ *                                                         |            Value to write to NVM  
+ *                                                         |               |
  */
 void NVM::nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value)
 {
-    // __asm__("nop\n\t");
-    
-    // Preferences pref;
 
-    pref.begin("My Test", false); //Pass in false to use the algorithm in read/write mode
-    pref.clear();
+    pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
+    // pref.clear(); //TODO remove this line?
+    pref.remove(nvmkey);            
     
-    pref.putBytes(nvmkey, &value, 1);      //Store the value.  The function used will depend on the data type
+    pref.putBytes(nvmkey, &value, 1);    // Store the string value. Define the length to be one
     
-    pref.end();              //Use to close
+    pref.end();                         // Use to close
 
 }
 
 uint8_t NVM::nvm_read_byte (Preferences & pref, const char * nvmkey)
 {
-    // __asm__("nop\n\t");
-    
-    // Preferences pref;
     uint8_t uint8t_data_buffer[4];
 
-    pref.begin("My Test", true); //Pass in false to use the algorithm in read/write mode
+    pref.begin(NVM_NAMESPACE, true);            // for readOnly, we pass in true
     
     pref.getBytes(nvmkey, uint8t_data_buffer, 1);
     
-    pref.end();              //Use to close
-    
+    pref.end();                             // Use to close
 
     return uint8t_data_buffer[0];
 }
 
-// void NVM::nvm_store_float (uint16_t nvmkey, uint8_t value)
-// {
-//     //TODO: need to define this function 
-//     __asm__("nop\n\t");
+void NVM::nvm_store_string(Preferences & pref, const char * nvmkey, const char * value)
+{
 
-// }
+    pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
+    pref.remove(nvmkey);            
+    
+    pref.putString(nvmkey, value);     // Store the string value. 
+    
+    pref.end();                         // Use to close
+}
 
+void NVM::nvm_read_string(Preferences & pref, const char * nvmkey, char * data_buffer)
+{
+    //TODO this needs a lot of work
+    // char test_read_buffer[32] = {NULL};
+    // char test_write_buffer[5] = {'7','7','7','7','\0'};
+    
 
-// void NVM::nvm_store_string(uint16_t nvmkey, const char * string_in)
-// {
-//     //TODO: need to define this function 
-//     __asm__("nop\n\t");
+    // String test_write_string    = "77777";
+    // String test_read_string     = "";
 
-// }
+    // getString(const char* key, char* value, const size_t maxLen)
 
+    // pref.begin(NVM_NAMESPACE, false);      
+    
+    // TODO this is the line we want 
+    // pref.begin(NVM_NAMESPACE, true);            // for read only, we pass in true
+    
+    // pref.putString(nvmkey, test_write_string);     // Store the string value. 
+    // delay(500);
+    
+    
+    // if(pref.getString(nvmkey, data_buffer, 5))
+    // if(pref.getString(nvmkey, test_read_buffer, sizeof(test_write_buffer)))
+    // if(pref.getString(nvmkey, test_read_buffer, sizeof(test_read_buffer)))
+    // test_read_string = pref.getString(nvmkey,"");
+    // {
+    //     Serial.println("\t***DEBUG FUNCTION PASSED");
+    // }
+    // else{
+    //     Serial.println("\t***DEBUG FUNCTION FAILED");
+    // }
+
+    // Serial.print("***DEBUG buffer in function: ");
+    // Serial.println(test_read_string);
+
+    
+    // pref.end();                             // Use to close
+    
+}
+    
 // void NVM::nvm_read_string(uint16_t nvmkey, char * string_buffer)
 // {
 //     //TODO: need to define this function 
 //     __asm__("nop\n\t");
 
 // }
+
+
+// void NVM::nvm_store_float (Preferences & pref, const char * nvmkey, float value)
+// {
+    // pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
+    // pref.remove(nvmkey);            
+        // pref.putFloat(nvmkey, value);
+    // pref.end();                         // Use to close
+
+// }
+
+
 
 // void NVM::nvm_parse_float(float float_value, uint8_t four_byte_data_array[])
 // {

@@ -10,6 +10,14 @@ I2C     i2c_function;
 NVM     nvm_function;
 
 
+//TODO lets put these in the .h file
+char        temp_buffer[128]            = {'\n'};
+uint8_t     user_option                 = 0;
+uint8_t     temp_uint8t                 = 0;    
+uint8_t     temp_float                  = 0;    
+float       temporary_voltage_value     = 0.0;
+uint8_t     save_0x55                   = 0x55;
+
 // const char SW_VER_STRING[] = "temp.temp.temp";  //TODO need to fix this!  Do not want to hardcode like this.
 // extern const char SW_VER_STRING; //TODO remove
 
@@ -56,6 +64,34 @@ uint8_t CONSOLE::get_user_uint8t_value ( void )
     return (return_number);
 }
 
+void CONSOLE::get_char_buffer_from_user(char * char_buffer)
+{
+    char        received_char   = '\n';
+    uint8_t     index           = 0x00;
+    
+    flush_serial_input_buffer();
+
+    Serial.setTimeout(3000);   // Value is in milli-seconds
+
+    while (Serial.available() <= 0);    // Pause until we start receiving data
+    received_char = Serial.read();
+    
+    while (received_char != 0x0D && index < 255) //TODO need to allow the enter key to terminate this
+    {
+        // Serial.print("***DEBUG char received: ");
+        // Serial.println(received_char);
+        char_buffer[index] = received_char;
+        delay(10);
+        index++;
+        while (Serial.available() <= 0);    // Pause until we receive more data
+        received_char = Serial.read();
+    }
+
+    // Serial.print("***DEBUG entered: ");
+    // Serial.println(char_buffer);
+    
+}
+
 void CONSOLE:: insert_line_feeds( uint8_t spaces ) 
 {
     uint16_t i = 0;         //Use this as a counter
@@ -82,15 +118,10 @@ void CONSOLE::insert_line_emphasis( void )
     Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~");     //Send the rest of the sequence to clear the screen
 }
 
-// void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
-void CONSOLE::console ()  
+void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
 {
 
-    uint8_t user_option = 0;
-    uint8_t temp_uint8t = 0;    
-    uint8_t temp_float = 0;    
-    float   temporary_voltage_value = 0.0;
-    uint8_t save_0x55 = 0x55;
+    
 
     clear_screen(); //Don't want to run insid the while
     
@@ -105,11 +136,11 @@ void CONSOLE::console ()
         Serial.println("4)  View network parameters.");
         Serial.println("5)  Vew battery voltage.");
         Serial.println("6)  View sensor readings.");
-        Serial.println("7)  Perform EEPROM test.");
+        Serial.println("7)  Perform NVM test.");
         Serial.println("8)  Read the state of the push button.");
         Serial.println("9)  Read the busy input as sourced by the display.");
         Serial.println("10) Look at charge enable bit.");
-        Serial.println("11) Not implemented.");
+        Serial.println("12) Enther network parameters.");
 
         Serial.println("99) To exit the console.");
 
@@ -213,21 +244,32 @@ void CONSOLE::console ()
                 insert_line_feeds(2);
             break;
             
-            /* Perform NVM test */  //TODO we need to put something back in here
+            /* Perform NVM test */  
             case 7:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                // Serial.println("Writing 0x55 to NVM");  //TODO: need cleanup here
-                
-                // nvm_function.nvm_store_byte(pref, "nvm_test",0x55);
 
-                // delay(100);
+                Serial.print("Writing this byte to the NVM:");  
+                Serial.println(save_0x55);  
                 
-                // temp_uint8t = nvm_function.nvm_read_byte(pref,"nvm_test");
+                nvm_function.nvm_store_byte(pref, NVM_NAMESPACE, save_0x55);
 
-                // Serial.print("Value read back from NVM:");
-                // Serial.println(temp_uint8t,HEX);
+                delay(100);
+                
+                temp_uint8t = nvm_function.nvm_read_byte(pref,NVM_NAMESPACE);
+
+                Serial.print("Value read back from NVM:");
+                Serial.println(temp_uint8t,HEX);
+
+                if(temp_uint8t ==  save_0x55 ) 
+                { 
+                    Serial.println("NVM test passed! ");
+                }
+                else 
+                {
+                    Serial.println("NVM test failed.");
+                }
 
                 insert_line_emphasis();
                 insert_line_feeds(2);
@@ -306,10 +348,76 @@ void CONSOLE::console ()
                 
             break;
             
+            /** Enter network parameters */
+            case 12:
+            {
+
+
+                // Some links that we may want to check out to 
+                // get this preference string store stuff to work 
+                // https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/preferences.html
+                // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html#:~:text=The%20Preferences%20library%20is%20unique,power%20events%20to%20the%20system.
+                //
+
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                           
+                /**
+                 * Get author's email address
+                 * Get character buffer from user
+                 */
+                get_char_buffer_from_user(temp_buffer);
+
+                Serial.print("***DEBUG buffer: ");
+                Serial.println(temp_buffer);
+                /**
+                 * Store the author's email 
+                 * address
+                 */
+                // nvm_function.nvm_store_string(pref,  PREF_EMAIL_AUTHOR_KEY, temp_buffer);
+
+                /**
+                 * Clear the temporary buffer
+                 */
+                // memset(temp_buffer, '\0', sizeof(temp_buffer));
+                
+
+                //TODO the following is just for testing and need to be removed
+                // delay(500);  //TODO this is just in for testing -- remove this
+                
+                
+                //TODO the following is just for testing
+                String test_write_string    = "77777";
+                String test_read_string     = "";
+                pref.begin(NVM_NAMESPACE, false);    
+
+                pref.putString(PREF_EMAIL_AUTHOR_KEY, test_write_string);     // Store the string value. 
+                
+                test_read_string = pref.getString(PREF_EMAIL_AUTHOR_KEY,"");
+                // nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, temp_buffer);
+                    
+                Serial.print ("***DEBUG String read from preferences: ");
+                Serial.println(test_read_string);
+
+                pref.end();    
+                /**
+                 * Clear the temporary buffer
+                 */
+                // memset(temp_buffer, '\0', sizeof(temp_buffer));
+                
+                // flush_serial_input_buffer();
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                
+            }
+            break;
+            
             /* Exit the application */
             case 99:
                 clear_screen();
-                 Serial.print("Exiting terminal...");
+                Serial.print("Exiting terminal...");
             break;
 
             default:

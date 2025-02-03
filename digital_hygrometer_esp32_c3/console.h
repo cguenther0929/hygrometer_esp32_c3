@@ -9,6 +9,10 @@
 #include "nvm.h"
 #include "epdif.h"
 
+
+#define SERIAL_STRING_TIMEOUT_MSX10          300
+
+
 // TODO: do we need to comment functions?
 
 class CONSOLE {
@@ -26,8 +30,7 @@ class CONSOLE {
          * @param \p none 
          * @return nothing
          */
-        void console ();
-        // void console (Preferences & pref);
+        void console (Preferences & pref);
 
         /**
          * @brief Get number input from user (0-255)
@@ -35,6 +38,9 @@ class CONSOLE {
          * @return users input
          */
         uint8_t get_user_uint8t_value ( void );
+
+       //TODO need to comment 
+       void get_char_buffer_from_user(char * temp_buffer);
 
         /**
          * @brief For console -- insert spaces

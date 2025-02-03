@@ -43,8 +43,11 @@
 #include "app.h"
 #include "lan.h"
 
-/* Instantiate the Preferences class*/
-// Preferences pref;   //TODO I think we want to put this back in
+/**
+ * Instantiate the Preferences class
+ * which is used for NVM
+ */ 
+Preferences pref;   
 
 /**
  * Timer parameters
@@ -326,7 +329,7 @@ void loop()
   //TODO: we'll need something here, but it's not the EEPROM! 
   // if(!nvm_functions.nvm_is_initalized() && !nvm_functions.nvm_is_calibrated())   
   // {
-  //   nvm_functions.nvm_erase();
+  //  nvm_functions.clear()
   // }
   
   if(Timer50msFlag == true) 
@@ -342,8 +345,8 @@ void loop()
       {
         Serial.println("User wishes to enter the console");
       }
-      // console.console(pref);    //TODO this was the original line   
-      console.console();       
+      console.console(pref);    //TODO this was the original line   
+      // console.console();       
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;

@@ -14,15 +14,6 @@
 char buf_temp[TEMP_BUF_SIZE];           // Temporary buffer that can be used for building strings
 
 
-#define SMTP_HOST         "smtp.gmail.com"
-#define SMTP_PORT         465
-#define AUTHOR_EMAIL      "clinton.debug@gmail.com"
-#define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
-
-#define RECIPIENT_EMAIL   "clinton.guenther@gmail.com"
-
-
-#define SMTP_HOST "smtp.gmail.com"
 
 void LAN::init(void) 
 {

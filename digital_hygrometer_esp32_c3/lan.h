@@ -8,36 +8,40 @@
 // TODO: do we need to comment functions?
 
 /**
- * Email related
- * 
- * Declare the global used SMTPSession 
- * object for SMTP transport 
- */
-// SMTPSession smtp;
-
-// char server[] = "smtp.gmail.com";  
-
-// char buf_for_recipient_email[]      = "clinton.guenther@gmail.com";
-// char buf_for_sender_email[]         = "clinton.guenther@gmail.com";
-// char buf_for_email_password[]       = "TYgvik uoit bdja grxu";
-// char buf_for_router_password[]      = "GlockHK23";
-// char buf_for_router_ssid[]          = "CJG_GbE_2G4";
-
-// char buf_for_hyg_name[]             = "CJG HYG";
-
-/**
  * WiFi and Email 
  * Related 
  */
-#define WIFI_CONNECT_TIMEOUT_S  5
-#define WIFI_LOGGING            true         //TODO: do we want to comment this out? 
+#define WIFI_LOGGING            true        // Set to true if we want to see logs from the wifi/email routeins  
+#define WIFI_CONNECT_TIMEOUT_S  5           //Timeout value in seconds
+#define SMTP_HOST         "smtp.gmail.com"
+#define SMTP_PORT         465
 
-#define WIFI_SSID         "CJG_GbE_2G4"
+
+#define PREF_EMAIL_AUTHOR_KEY           "nvm_email_author_key"
+#define PREF_EMAIL_RECIPIENT_KEY        "nvm_email_recipient_key"
+#define PREF_EMAIL_AUTHOR_PASSWORD_KEY  "nvm_email_author_password_key"
+#define PREF_WIFI_SSID                  "nvm_wifi_ssid"
+#define PREF_WIFI_PASSWORD              "nvm_wifi_password"
+
+#define PREF_CALIBRATION_STATUS_KEY     "nvm_calibration_status_key"
+#define PREF_NETWORK_VALID_KEY          "nvm_network_valid_key"
+
+
+
+// TODO Remove the following after capturing via preferences
+#define AUTHOR_EMAIL      "clinton.debug@gmail.com"
+#define AUTHOR_PASSWORD   "krrm ceex fwxm ubpk"
+
+#define RECIPIENT_EMAIL   "clinton.guenther@gmail.com"
+
+#define SMTP_HOST "smtp.gmail.com"
+#define SMTP_PORT                   465
+
+#define WIFI_SSID         "CJG_GbE_2G4"  //TODO need to remove these once this is captured via PREFERENCES 
 #define WIFI_PASSWORD     "GlockHK23"
 
 
 
-#define SMTP_PORT                   465
 
 class LAN {
 

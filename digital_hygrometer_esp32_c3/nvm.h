@@ -44,6 +44,11 @@
  * EEPROM start addresses for 
  * the digital hygrometer
  */
+
+#define NVM_NAMESPACE                               "HYG_NVM"
+
+//TODO can we do away with these?  
+// TODO "keys" for preferences are defined in lan.h
 #define EEPROM_ADDR_RH_ONE_OFFSET                   0x00
 #define EEPROM_ADDR_RH_TWO_OFFSET                   0x04
 #define EEPROM_ADDR_STAT_DWORD                      0x08
@@ -78,14 +83,6 @@
 
 
 // TODO: do we need to comment functions?
-// typedef union nvm_32b_union
-// {
-//     float nvm_float;          // Floats should be four bytes
-//     uint8_t nvm_byte_buffer[4];
-//     unsigned long ulong_nvm_number;
-// };
-
-
 
 class NVM {
 
@@ -113,7 +110,15 @@ class NVM {
          * @return nothing
          */
         void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
+
+        //TODO need to comment
+        void nvm_store_string (Preferences & pref, const char * nvmkey, const char * value);
         
+
+        //TODO need to comment 
+        void nvm_read_string(Preferences & pref, const char * nvmkey, char * data_buffer);
+
+
         /**
          * @brief NVM store float 
          * @details NVM is 512 bytes
