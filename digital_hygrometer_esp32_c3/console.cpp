@@ -11,7 +11,7 @@ NVM     nvm_function;
 
 
 //TODO lets put these in the .h file
-char        temp_buffer[128]            = {'\n'};
+char        temp_buffer[PREF_ELEMENTS]            = {NULL};
 uint8_t     user_option                 = 0;
 uint8_t     temp_uint8t                 = 0;    
 uint8_t     temp_float                  = 0;    
@@ -121,9 +121,14 @@ void CONSOLE::insert_line_emphasis( void )
 void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
 {
 
-    
+    String test_read_string = "";
 
-    clear_screen(); //Don't want to run insid the while
+    const char buff_string_to_store[5] = {'T','E','S','T',NULL};  //TODO this is in just for testing
+
+    char buffer_for_readback[32] = {NULL};  //TODO this is in just for testing
+    uint8_t temp_value = 0x00;  //TODO this is for testing only
+
+    clear_screen(); //Don't want to run insid the while  
     
     while(user_option != 99)
     {
@@ -251,7 +256,7 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 insert_line_emphasis();
 
                 Serial.print("Writing this byte to the NVM:");  
-                Serial.println(save_0x55);  
+                Serial.println(save_0x55, HEX);  
                 
                 nvm_function.nvm_store_byte(pref, NVM_NAMESPACE, save_0x55);
 
@@ -260,7 +265,7 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 temp_uint8t = nvm_function.nvm_read_byte(pref,NVM_NAMESPACE);
 
                 Serial.print("Value read back from NVM:");
-                Serial.println(temp_uint8t,HEX);
+                Serial.println(temp_uint8t, HEX);
 
                 if(temp_uint8t ==  save_0x55 ) 
                 { 
@@ -369,44 +374,47 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                  */
                 get_char_buffer_from_user(temp_buffer);
 
-                Serial.print("***DEBUG buffer: ");
+                Serial.print("***DEBUG user entered: ");
                 Serial.println(temp_buffer);
+                
                 /**
                  * Store the author's email 
                  * address
                  */
-                // nvm_function.nvm_store_string(pref,  PREF_EMAIL_AUTHOR_KEY, temp_buffer);
+                nvm_function.nvm_store_string(pref,  PREF_EMAIL_AUTHOR_KEY, temp_buffer);
 
                 /**
                  * Clear the temporary buffer
                  */
-                // memset(temp_buffer, '\0', sizeof(temp_buffer));
+                memset(temp_buffer, NULL, sizeof(temp_buffer));
                 
 
                 //TODO the following is just for testing and need to be removed
-                // delay(500);  //TODO this is just in for testing -- remove this
+                delay(500);  //TODO this is just in for testing -- remove this
                 
-                
-                //TODO the following is just for testing
-                String test_write_string    = "77777";
-                String test_read_string     = "";
-                pref.begin(NVM_NAMESPACE, false);    
+                nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, temp_buffer);
 
-                pref.putString(PREF_EMAIL_AUTHOR_KEY, test_write_string);     // Store the string value. 
-                
-                test_read_string = pref.getString(PREF_EMAIL_AUTHOR_KEY,"");
-                // nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, temp_buffer);
-                    
-                Serial.print ("***DEBUG String read from preferences: ");
-                Serial.println(test_read_string);
+                Serial.print ("***DEBUG String read back from memory: ");
+                Serial.println(temp_buffer);
 
-                pref.end();    
-                /**
-                 * Clear the temporary buffer
-                 */
-                // memset(temp_buffer, '\0', sizeof(temp_buffer));
-                
-                // flush_serial_input_buffer();
+                //TODO here we perform a very very basic test 
+                // pref.begin(NVM_NAMESPACE, false);    
+
+                // pref.putString(PREF_EMAIL_AUTHOR_KEY, buff_string_to_store);     // Store the string value. 
+                // delay(500);
+                // pref.end();    
+
+                // pref.begin(NVM_NAMESPACE, true);    
+                // temp_value = pref.getString(PREF_EMAIL_AUTHOR_KEY,buffer_for_readback,sizeof(buffer_for_readback));
+                // pref.end();    
+
+                // Serial.print ("***DEBUG String read from preferences: ");
+                // Serial.println(buffer_for_readback);
+
+                // Serial.print("Value from the read: ");
+                // Serial.println(temp_value);
+
+
                 
                 insert_line_emphasis();
                 insert_line_feeds(2);

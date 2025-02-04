@@ -17,14 +17,14 @@
 #define SMTP_PORT         465
 
 
-#define PREF_EMAIL_AUTHOR_KEY           "nvm_email_author_key"
-#define PREF_EMAIL_RECIPIENT_KEY        "nvm_email_recipient_key"
-#define PREF_EMAIL_AUTHOR_PASSWORD_KEY  "nvm_email_author_password_key"
-#define PREF_WIFI_SSID                  "nvm_wifi_ssid"
-#define PREF_WIFI_PASSWORD              "nvm_wifi_password"
+#define PREF_EMAIL_AUTHOR_KEY           "auth"
+#define PREF_EMAIL_RECIPIENT_KEY        "recipient"
+#define PREF_EMAIL_AUTHOR_PASSWORD_KEY  "auth_pass"
+#define PREF_WIFI_SSID                  "wifi_ssid"
+#define PREF_WIFI_PASSWORD              "wifi_password"
 
-#define PREF_CALIBRATION_STATUS_KEY     "nvm_calibration_status_key"
-#define PREF_NETWORK_VALID_KEY          "nvm_network_valid_key"
+#define PREF_CALIBRATION_STATUS_KEY     "cal_stat"
+#define PREF_NETWORK_VALID_KEY          "net_valid"
 
 
 

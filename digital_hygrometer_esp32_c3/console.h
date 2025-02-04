@@ -10,6 +10,7 @@
 #include "epdif.h"
 
 
+
 #define SERIAL_STRING_TIMEOUT_MSX10          300
 
 

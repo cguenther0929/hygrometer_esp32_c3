@@ -33,6 +33,7 @@
 #include <Arduino.h>    //This likely defines wire.h
 #include <Preferences.h>
 
+#define PREF_ELEMENTS                       32
 
 /**
  * General EEPROM parameters
@@ -85,6 +86,8 @@
 // TODO: do we need to comment functions?
 
 class NVM {
+    private:
+        uint8_t     characters_read_back    = 0x00;
 
     public:
         /**
@@ -112,11 +115,11 @@ class NVM {
         void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
 
         //TODO need to comment
-        void nvm_store_string (Preferences & pref, const char * nvmkey, const char * value);
+        void nvm_store_string (Preferences & pref, const char * nvmkey, const char * data_buffer);
         
 
         //TODO need to comment 
-        void nvm_read_string(Preferences & pref, const char * nvmkey, char * data_buffer);
+        void nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[32]);
 
 
         /**

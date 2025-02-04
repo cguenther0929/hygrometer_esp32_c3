@@ -38,54 +38,74 @@ uint8_t NVM::nvm_read_byte (Preferences & pref, const char * nvmkey)
     return uint8t_data_buffer[0];
 }
 
-void NVM::nvm_store_string(Preferences & pref, const char * nvmkey, const char * value)
+void NVM::nvm_store_string(Preferences & pref, const char * nvmkey, const char * data_buffer)
 {
+    char buffer_for_readback[32] = {NULL}; //TODO this is in just for testing
+
+
+    Serial.print("***DEBUG buffer passed in: ");
+    Serial.println(data_buffer);
+
+    // data_buffer = data_buffer.c_str();
 
     pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
-    pref.remove(nvmkey);            
+    // pref.remove(nvmkey);             //TODO can we put this back in?
     
-    pref.putString(nvmkey, value);     // Store the string value. 
+    pref.putString(nvmkey, data_buffer);     // Store the string value. 
     
     pref.end();                         // Use to close
+
+
+    //TODO the following is just for testing
+    delay(500);
+
+    pref.begin(NVM_NAMESPACE, true);    
+    pref.getString(nvmkey,buffer_for_readback,sizeof(buffer_for_readback));
+    pref.end();    
+
+    Serial.print ("***DEBUG String read back in this function: ");
+    Serial.println(buffer_for_readback);
+
+
 }
 
-void NVM::nvm_read_string(Preferences & pref, const char * nvmkey, char * data_buffer)
+void NVM::nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[32])
 {
-    //TODO this needs a lot of work
-    // char test_read_buffer[32] = {NULL};
-    // char test_write_buffer[5] = {'7','7','7','7','\0'};
-    
 
-    // String test_write_string    = "77777";
-    // String test_read_string     = "";
+    char local_data_buffer[15]; //TODO this is just for testing
+    
+    
+    pref.begin(NVM_NAMESPACE, true);            // for read only, we pass in false
 
-    // getString(const char* key, char* value, const size_t maxLen)
+    // Serial.print("The size of the data buffer: "); //TODO this is just for testing
+    // Serial.println(sizeof(data_buffer));            //TODO this is just for testing
 
-    // pref.begin(NVM_NAMESPACE, false);      
     
-    // TODO this is the line we want 
-    // pref.begin(NVM_NAMESPACE, true);            // for read only, we pass in true
+    // this -> characters_read_back = pref.getString(nvmkey, data_buffer, sizeof(data_buffer));
+    this -> characters_read_back = pref.getString(nvmkey, arr, sizeof(arr));
+
+    // Serial.print("***DEBUG value of local data buffer: ");
+    // Serial.println(local_data_buffer);
+
     
-    // pref.putString(nvmkey, test_write_string);     // Store the string value. 
-    // delay(500);
+    pref.end();                             // Use to close
     
+    Serial.print("***DEBUG chars read in function: ");
+    Serial.println(this->characters_read_back);
     
-    // if(pref.getString(nvmkey, data_buffer, 5))
-    // if(pref.getString(nvmkey, test_read_buffer, sizeof(test_write_buffer)))
-    // if(pref.getString(nvmkey, test_read_buffer, sizeof(test_read_buffer)))
-    // test_read_string = pref.getString(nvmkey,"");
-    // {
-    //     Serial.println("\t***DEBUG FUNCTION PASSED");
-    // }
-    // else{
-    //     Serial.println("\t***DEBUG FUNCTION FAILED");
-    // }
+    if(this -> characters_read_back <= 0)
+    {
+        Serial.println("***DEBUG FUNCTION **FAILED**");
+    }
+    else
+    {
+        Serial.println("***DEBUG FUNCTION PASSED");
+    }
 
     // Serial.print("***DEBUG buffer in function: ");
-    // Serial.println(test_read_string);
+    // Serial.println(data_buffer);
 
     
-    // pref.end();                             // Use to close
     
 }
     
