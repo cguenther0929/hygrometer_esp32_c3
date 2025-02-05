@@ -10,16 +10,14 @@ I2C     i2c_function;
 NVM     nvm_function;
 
 
-//TODO lets put these in the .h file
-char        temp_buffer[PREF_ELEMENTS]            = {NULL};
-uint8_t     user_option                 = 0;
-uint8_t     temp_uint8t                 = 0;    
-uint8_t     temp_float                  = 0;    
-float       temporary_voltage_value     = 0.0;
-uint8_t     save_0x55                   = 0x55;
+char        temp_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
 
-// const char SW_VER_STRING[] = "temp.temp.temp";  //TODO need to fix this!  Do not want to hardcode like this.
-// extern const char SW_VER_STRING; //TODO remove
+uint8_t     user_option                                 = 0;
+uint8_t     temp_uint8t                                 = 0;    
+uint8_t     save_0x55                                   = 0x55;
+
+float       temp_float                                  = 0;    
+float       temporary_voltage_value                     = 0.0;
 
 /**
  * Set to true to 
@@ -61,6 +59,17 @@ uint8_t CONSOLE::get_user_uint8t_value ( void )
         return_number = 255;
     }
 
+    return (return_number);
+}
+
+float CONSOLE::get_user_float_value( void )
+{
+    while (Serial.available() <= 0);    // Pause until we start receiving data
+    
+    Serial.setTimeout(10000);            // Value is in milli-seconds
+
+    float return_number = Serial.parseFloat();
+    
     return (return_number);
 }
 
@@ -146,6 +155,7 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
         Serial.println("9)  Read the busy input as sourced by the display.");
         Serial.println("10) Look at charge enable bit.");
         Serial.println("12) Enther network parameters.");
+        Serial.println("13) Overwrite relative humidity offsets.");
 
         Serial.println("99) To exit the console.");
 
@@ -356,8 +366,6 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
             /** Enter network parameters */
             case 12:
             {
-
-
                 // Some links that we may want to check out to 
                 // get this preference string store stuff to work 
                 // https://espressif-docs.readthedocs-hosted.com/projects/arduino-esp32/en/latest/api/preferences.html
@@ -372,10 +380,15 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                  * Get author's email address
                  * Get character buffer from user
                  */
+                Serial.print("Enter the sender's email address: ");
                 get_char_buffer_from_user(temp_buffer);
+                Serial.println();
 
-                Serial.print("***DEBUG user entered: ");
-                Serial.println(temp_buffer);
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("User entered character buffer: ");
+                    Serial.println(temp_buffer);
+                }
                 
                 /**
                  * Store the author's email 
@@ -388,38 +401,59 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                  */
                 memset(temp_buffer, NULL, sizeof(temp_buffer));
                 
-
-                //TODO the following is just for testing and need to be removed
-                delay(500);  //TODO this is just in for testing -- remove this
-                
                 nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, temp_buffer);
 
-                Serial.print ("***DEBUG String read back from memory: ");
-                Serial.println(temp_buffer);
-
-                //TODO here we perform a very very basic test 
-                // pref.begin(NVM_NAMESPACE, false);    
-
-                // pref.putString(PREF_EMAIL_AUTHOR_KEY, buff_string_to_store);     // Store the string value. 
-                // delay(500);
-                // pref.end();    
-
-                // pref.begin(NVM_NAMESPACE, true);    
-                // temp_value = pref.getString(PREF_EMAIL_AUTHOR_KEY,buffer_for_readback,sizeof(buffer_for_readback));
-                // pref.end();    
-
-                // Serial.print ("***DEBUG String read from preferences: ");
-                // Serial.println(buffer_for_readback);
-
-                // Serial.print("Value from the read: ");
-                // Serial.println(temp_value);
-
-
-                
                 insert_line_emphasis();
                 insert_line_feeds(2);
                 
             }
+            break;
+
+            /* Overwrite RH Offset Values */
+            case 13:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(temp_buffer, NULL, sizeof(temp_buffer));
+
+                Serial.println("User wishes to overwrite relative humidity offset values.");
+                Serial.println("Relative humidity offset values are positive numbers.");
+                Serial.print("Are you absolutely sure you want to do this (y/n): ");
+                get_char_buffer_from_user(temp_buffer);
+                Serial.println('\n');
+                
+                
+                if(temp_buffer[0] == 'y' || temp_buffer[0] =='Y')
+                {
+                    Serial.println("User is proceeding with overwriting relative humidity offset values.");
+                    Serial.print("Enter the value for how low (value is percent) RH **1** is: ");
+                    temp_float = get_user_float_value();
+                    Serial.println();
+                    nvm_function.nvm_store_float(pref, PREF_RH_OFFSET1, temp_float);
+
+                    Serial.print("Enter the value for how low (value is percent) RH **2** is: ");
+                    temp_float = get_user_float_value();
+                    Serial.println('\n');
+                    nvm_function.nvm_store_float(pref, PREF_RH_OFFSET2, temp_float);
+
+                }
+                
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("Value entered for RH **1**: ");
+                    Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET1));
+                    
+                    Serial.print("Value entered for RH **2**: ");
+                    Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET2));
+                }
+
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
             break;
             
             /* Exit the application */

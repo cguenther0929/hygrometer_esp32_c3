@@ -17,15 +17,6 @@
 #define SMTP_PORT         465
 
 
-#define PREF_EMAIL_AUTHOR_KEY           "auth"
-#define PREF_EMAIL_RECIPIENT_KEY        "recipient"
-#define PREF_EMAIL_AUTHOR_PASSWORD_KEY  "auth_pass"
-#define PREF_WIFI_SSID                  "wifi_ssid"
-#define PREF_WIFI_PASSWORD              "wifi_password"
-
-#define PREF_CALIBRATION_STATUS_KEY     "cal_stat"
-#define PREF_NETWORK_VALID_KEY          "net_valid"
-
 
 
 // TODO Remove the following after capturing via preferences
@@ -39,9 +30,6 @@
 
 #define WIFI_SSID         "CJG_GbE_2G4"  //TODO need to remove these once this is captured via PREFERENCES 
 #define WIFI_PASSWORD     "GlockHK23"
-
-
-
 
 class LAN {
 

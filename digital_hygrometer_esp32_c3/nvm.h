@@ -32,8 +32,27 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 #include <Preferences.h>
+#include "app.h"
 
-#define PREF_ELEMENTS                       32
+#define PREF_BUFF_ELEMENTS              32
+
+/**
+ * Keys for key-value 
+ * NVM storage 
+ */
+#define PREF_EMAIL_AUTHOR_KEY           "auth"
+#define PREF_EMAIL_RECIPIENT_KEY        "recipient"
+#define PREF_EMAIL_AUTHOR_PASSWORD_KEY  "auth_pass"
+#define PREF_WIFI_SSID                  "wifi_ssid"
+#define PREF_WIFI_PASSWORD              "wifi_password"
+
+#define PREF_RH_OFFSET1                 "rhoffset_1"
+#define PREF_RH_OFFSET2                 "rhoffset_2"
+
+#define PREF_CALIBRATION_STATUS_KEY     "cal_stat"
+#define PREF_NETWORK_VALID_KEY          "net_valid"
+
+
 
 /**
  * General EEPROM parameters
@@ -114,14 +133,6 @@ class NVM {
          */
         void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
 
-        //TODO need to comment
-        void nvm_store_string (Preferences & pref, const char * nvmkey, const char * data_buffer);
-        
-
-        //TODO need to comment 
-        void nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[32]);
-
-
         /**
          * @brief NVM store float 
          * @details NVM is 512 bytes
@@ -129,7 +140,19 @@ class NVM {
          * @param \p value (float)s
          * @return nothing
          */
-        // void nvm_store_float (uint16_t address, uint8_t value);
+        void nvm_store_float (Preferences & pref, const char * nvmkey, float value);
+
+        //TODO need to comment
+        float nvm_get_float (Preferences & pref, const char * nvmkey);
+        
+        //TODO need to comment
+        void nvm_store_string (Preferences & pref, const char * nvmkey, const char * data_buffer);
+        
+
+        //TODO need to comment 
+        void nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[PREF_BUFF_ELEMENTS]);
+
+
         
         /**
          * @brief NVM read byte

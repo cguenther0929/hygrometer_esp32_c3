@@ -127,16 +127,16 @@ typedef enum State {
 #define HYG_ESP32_INTERNAL_ATTEN    3.548   // The ESP32-C3 employs 11db of attenuation
 
 
-typedef struct network_info  //TODO I think we can put these down in the class
-{
-    char hyg_name[HYG_NAME_STR_LEN];
-    char wifi_ssid[WIFI_SSID_STR_LEN];
-    char wifi_password[WIFI_PASS_STR_LEN];
-    char recipient_email_address [RECIPIENT_EMAIL_STR_LEN];
-    char sender_email_address[HYG_SENDER_EMAIL_USER_NAME_STR_LEN ];
+// typedef struct network_info  //TODO I think we can put these down in the class
+// {
+//   char hyg_name[HYG_NAME_STR_LEN];
+//   char wifi_ssid[WIFI_SSID_STR_LEN];
+//   char wifi_password[WIFI_PASS_STR_LEN];
+//   char recipient_email_address [RECIPIENT_EMAIL_STR_LEN];
+//   char sender_email_address[HYG_SENDER_EMAIL_USER_NAME_STR_LEN ];
 
-    bool enable_email;                                      //Flag to determine if emails shall be sent
-};
+//   bool enable_email;                                      //Flag to determine if emails shall be sent
+// };
 
 
 

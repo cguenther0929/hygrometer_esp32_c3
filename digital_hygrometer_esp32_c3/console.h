@@ -41,6 +41,9 @@ class CONSOLE {
         uint8_t get_user_uint8t_value ( void );
 
        //TODO need to comment 
+        float get_user_float_value( void );
+
+       //TODO need to comment 
        void get_char_buffer_from_user(char * temp_buffer);
 
         /**

@@ -25,6 +25,7 @@
  * 
  * TODO somewhere we need to indicate the SW version.  
  * TODO the SW version needs to come across in email. 
+ * TODO if a key already exists, then we need to remove if from memory
  * 
  */
 

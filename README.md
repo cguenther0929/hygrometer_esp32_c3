@@ -55,3 +55,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.1.8 -- Code compiles and seems to run fine.  Release cleanup has commenced, and the code is starting to take the form of the final application.  The display splash screen has moved, and it appears the device is properly cycling through the states. Many parameters have moved into app.h
 
 * v0.1.9 -- Code compiles.  Tagging since reading a string back from the preferences class is finally working. It is working if the array is passed by reference.  It does not seem to work if the array is passed by a pointer.  Much cleanup is needed.  
+
+* v0.2.0 -- Code compiles.  Expanding on the capabilities of preferences routines, we can now store and retrieve floats.
