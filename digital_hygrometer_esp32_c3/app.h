@@ -33,6 +33,7 @@
 #include <Arduino.h>    //This likely defines wire.h
 #include <esp_sleep.h>    //This likely defines wire.h
 #include "nvm.h"
+#include "i2c.h"
 #include "epdif.h"
 #include "driver/rtc_io.h"
 #include "epd1in54_V2.h"
@@ -41,7 +42,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.1.8" 
+#define     SW_VER_STRING       "0.2.0" 
 // ==============================
 // ==============================
 
@@ -170,12 +171,22 @@ class APP
         //TODO: need to comment
         void sensor_power_off(void);
         
+        //TODO: need to comment
+        void display_post_message( void );
+
         /**
          * @brief Display splash screen (i.e. SW ver)
          * @param \p none 
          * @return nothing
          */
-        void display_splash_screen(void);
+        void full_screen_refresh(void);
+        
+        /**
+         * @brief Update the Eink display 
+         * @param \p none 
+         * @return nothing
+         */
+        void update_display( void );
         
         /**
          * @brief Determins if network parameters are valid 

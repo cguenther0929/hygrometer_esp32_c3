@@ -393,10 +393,12 @@ void I2C::get_sensor_data( void )
         if(this -> sensor_number == 1)
         {
             this -> hum_val1 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_1);
+            this -> hum_val1 =  (char)(this -> hum_val1);
         }
         else 
         {
             this -> hum_val2 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_2);
+            this -> hum_val2 =  (char)(this -> hum_val2);
         }
         
         /**
@@ -431,10 +433,12 @@ void I2C::get_sensor_data( void )
         if(this -> sensor_number == 1)
         {
             this -> temp_val1 =  (float)(temp_uint16t/207.1983 - 52.33);  //For Deg F
+            this -> temp_val1 =  (char)(this -> temp_val1);  
         }
         else 
         {
             this -> temp_val2 =  (float)(temp_uint16t/207.1983 - 52.33);  // For deg F
+            this -> temp_val2 =  (char)(this -> temp_val2); 
         }
     }
 

@@ -278,19 +278,14 @@ void setup() {
   app.init();
 
 
-  if(ENABLE_LOGGING)
-  {
-    Serial.println("Printing splash screen.");
-  }
-  app.display_splash_screen();
-
+  
   if(ENABLE_LOGGING)
   {
     Serial.println("===================================================");
     Serial.println("====================== Reset ======================");
     Serial.println("===================================================");
   }
-
+  
   //Initialize timer interrupt
   //                 The frequency of the timer   
   //                   |     
@@ -301,17 +296,27 @@ void setup() {
   //                     |        |     true (the tutorial did not indicate what this mans)
   //                     |        |        |     
   timerAttachInterrupt(Timer1_Cfg,&onTimer);    
-
+  
   //       This is the timer struct 
   //           |        This is the alarm value (so alarm when we count up to this value)       
   //           |          |    true = to tell the timer to reload 
   //           |          |      |  Value to reload into the timer when auto reloading
   //           |          |      |   |
   timerAlarm(Timer1_Cfg, 50000, true,0);   
-
-
-
-
+  
+  /**
+   * Print inital POST screen and 
+   * then refresh the display
+   */
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("Printing splash screen.");
+  }
+ 
+  app.display_post_message();
+  delay(2000);
+  
+  app.full_screen_refresh();
 
 }
 
@@ -320,9 +325,6 @@ void setup() {
  */
 void loop() 
 {
-
-
-
   /**
    * Determine if the EEPROM has been
    * initialized.  If not, it shall be erased 
@@ -332,22 +334,32 @@ void loop()
   // {
   //  nvm_functions.clear()
   // }
+
+  
   
   if(Timer50msFlag == true) 
   {
     
-    app.state_handler(app.state);
+    // app.state_handler(app.state); //TODO not sure if we want this hear
     
     
     Timer50msFlag = false;
     rx_char = Serial.read();
+    
+    if(app.heartbeat_enabled)
+    {
+      if(!digitalRead(HEALTH_LED))  //IF ON TURN OFF
+      {
+        digitalWrite(HEALTH_LED,HIGH);
+      }
+    }
+      
     if (rx_char == 'z'){
       if(ENABLE_LOGGING)
       {
         Serial.println("User wishes to enter the console");
       }
-      console.console(pref);    //TODO this was the original line   
-      // console.console();       
+      console.console(pref);    
       Timer100msFlag = false;
       Timer500msFlag = false;
       Timer1000msFlag = false;
@@ -360,28 +372,38 @@ void loop()
   if(Timer100msFlag == true) 
   {
     Timer100msFlag = false;
-
-    if(app.heartbeat_enabled)
-    {
-      digitalWrite(HEALTH_LED,!digitalRead(HEALTH_LED));
-    }
   }
-
+  
   if(Timer500msFlag == true) 
   {
     Timer500msFlag = false;
+    
   }
-
+  
   if(Timer1000msFlag == true) 
   {
     Timer1000msFlag = false;
-
+    
+    if(app.heartbeat_enabled)
+    {
+      if(digitalRead(HEALTH_LED))   //IF OFF turn LED ON
+      {
+        digitalWrite(HEALTH_LED,LOW);
+      }
+    }
+    
     app.seconds_counter++;
     
-    if(app.seconds_counter >= 120)  //TODO probably need to remove / rework the following
+    /* The following is nice for longer delays */
+    if(app.seconds_counter >= 30)  //TODO probably need to remove / rework the following
     {
+      if(ENABLE_LOGGING)
+      {
+        Serial.println("Updating the display");
+      }
       app.seconds_counter = 0;
-      Serial.println("120s passed.");
+      main_i2c.get_sensor_data();
+      app.update_display();
     }
 
     if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&
