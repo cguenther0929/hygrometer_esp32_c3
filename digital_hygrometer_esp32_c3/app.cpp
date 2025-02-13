@@ -79,7 +79,7 @@ void APP::display_post_message( void )
   paint.SetWidth(200);
   paint.SetHeight(36);
   
-  epd.LDirInit();          //TODO shouldn't need to call this again      
+  epd.LDirInit();          
   epd.Display(IMAGE_DATA);   
 
   paint.SetWidth(84);       // 7 pixels wide * 12 characters
@@ -108,13 +108,15 @@ void APP::display_post_message( void )
 
 void APP::full_screen_refresh( void ) 
 {
+  app_i2c.get_sensor_data();
+
   epdif.hyg_spi_start();
 
   paint.SetWidth(200); 
   paint.SetHeight(36); 
   
-  epd.LDirInit();          //TODO shouldn't need to call this again      
-  epd.Display(IMAGE_DATA);   //TODO shouldn't have to call this again
+  epd.LDirInit();          
+  epd.Display(IMAGE_DATA);   
 
   paint.SetWidth(77);         //7 pixels wide * 11 characters
   paint.SetHeight(12);
@@ -129,22 +131,30 @@ void APP::full_screen_refresh( void )
   epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
 
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  dtostrf(app_i2c.temp_val1,2,0,app_temp_buffer);
-  
+  sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
+  if(ENABLE_LOGGING)
+  {
+    Serial.print("The temperature value is:");
+    Serial.println(app_temp_buffer);
+  }
+      
   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
   paint.SetHeight(36);          // 36 pixels tall
   paint.Clear(UNCOLORED);
-  // paint.DrawStringAt(0, 0, "75", &SevenSeg_Font36, COLORED); //TODO need to remove this line
   paint.DrawStringAt(0, 0, app_temp_buffer, &SevenSeg_Font36, COLORED);
   epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
   
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  dtostrf(app_i2c.hum_val1,2,0,app_temp_buffer);
-  
+  sprintf(app_temp_buffer,"%02d",(int)app_i2c.hum_val1);
+  if(ENABLE_LOGGING)
+  {
+    Serial.print("The humidity value is:");
+    Serial.println(app_temp_buffer);
+  }
+      
   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
   paint.SetHeight(36);          // 36 pixels tall
   paint.Clear(UNCOLORED);
-  // paint.DrawStringAt(0, 0, "68", &SevenSeg_Font36, COLORED); // TODO need to remove this line
   paint.DrawStringAt(0, 0, app_temp_buffer, &SevenSeg_Font36, COLORED);
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
@@ -177,10 +187,19 @@ void APP::full_screen_refresh( void )
   
   epd.Sleep();
 }
+        
+void APP::update_display( void )
+{
+  
+  app_i2c.get_sensor_data();
 
-void APP::update_display( void ){
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  dtostrf(app_i2c.temp_val1,2,0,app_temp_buffer);
+  sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
+  if(ENABLE_LOGGING)
+  {
+    Serial.print("The temperature value is:");
+    Serial.println(app_temp_buffer);
+  }
   
   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
   paint.SetHeight(36);          // 36 pixels tall
@@ -189,23 +208,35 @@ void APP::update_display( void ){
   epd.SetFrameMemory(paint.GetImage(), TEMP_X_START, TEMP_Y_START, paint.GetWidth(), paint.GetHeight());
   
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  dtostrf(app_i2c.hum_val1,2,0,app_temp_buffer);
-  
+  sprintf(app_temp_buffer,"%02d",(int)app_i2c.hum_val1);
+  if(ENABLE_LOGGING)
+  {
+
+    Serial.print("The humidity value is:");
+    Serial.println(app_temp_buffer);
+  }
+
   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
   paint.SetHeight(36);          // 36 pixels tall
   paint.Clear(UNCOLORED);
   paint.DrawStringAt(0, 0, app_temp_buffer, &SevenSeg_Font36, COLORED);
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
+
+  epd.DisplayFrame();
+  
+  epdif.hyg_spi_end();
+
 }
-
+        
 bool APP::network_parameters_valid( void )
-{
-
-    // network_info network_info;
-
-    /**
-     * If the first characters 
+        {
+          
+          // network_info network_info;
+          
+          
+          /**
+           * If the first characters 
      * of the various network parameters are 
      * non-null, the routine will assume the parameters are 
      * valid

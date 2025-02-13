@@ -57,3 +57,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.1.9 -- Code compiles.  Tagging since reading a string back from the preferences class is finally working. It is working if the array is passed by reference.  It does not seem to work if the array is passed by a pointer.  Much cleanup is needed.  
 
 * v0.2.0 -- Code compiles.  Expanding on the capabilities of preferences routines, we can now store and retrieve floats.
+
+* v0.2.1 -- Display post and refresh routines are working well.  Much focus is being put on developing the final application.  
