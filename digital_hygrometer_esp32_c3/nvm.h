@@ -49,8 +49,11 @@
 #define PREF_RH_OFFSET1                 "rhoffset_1"
 #define PREF_RH_OFFSET2                 "rhoffset_2"
 
+#define PREF_TEMP_OFFSET1                "tempoffset_1"
+#define PREF_TEMP_OFFSET2                "tempoffset_2"
+
 #define PREF_CALIBRATION_STATUS_KEY     "cal_stat"
-#define PREF_NETWORK_VALID_KEY          "net_valid"
+#define PREF_NETWORK_VALID_KEY          "net_valid"     //TODO not sure if we'll need this
 
 
 
@@ -151,7 +154,13 @@ class NVM {
 
         //TODO need to comment 
         void nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[PREF_BUFF_ELEMENTS]);
-
+        
+        
+        //TODO need to comment 
+        void load_network_parameters (void);
+        
+        //TODO need to comment 
+        bool network_valid(Preferences & pref);
 
         
         /**

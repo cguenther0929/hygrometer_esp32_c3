@@ -10,7 +10,9 @@ I2C     i2c_function;
 NVM     nvm_function;
 
 
-char        temp_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
+char        console_buffer[PREF_BUFF_ELEMENTS]              = {NULL};
+char        console_ssid[PREF_BUFF_ELEMENTS]                = {NULL};
+char        console_wifi_pass[PREF_BUFF_ELEMENTS]           = {NULL};
 
 uint8_t     user_option                                 = 0;
 uint8_t     temp_uint8t                                 = 0;    
@@ -144,18 +146,19 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
 
 
         Serial.println("1)  Print SW version.");
-        Serial.println("11) Print HW version.");
-        Serial.println("2)  To send test email.");
-        Serial.println("3)  View RH calibration values.");
-        Serial.println("4)  View network parameters.");
-        Serial.println("5)  Vew battery voltage.");
-        Serial.println("6)  View sensor readings.");
-        Serial.println("7)  Perform NVM test.");
-        Serial.println("8)  Read the state of the push button.");
-        Serial.println("9)  Read the busy input as sourced by the display.");
-        Serial.println("10) Look at charge enable bit.");
+        Serial.println("2)  Print HW version.");
+        Serial.println("3)  To send test email.");
+        Serial.println("4)  View RH calibration values.");
+        Serial.println("5)  View network parameters.");
+        Serial.println("6)  Vew battery voltage.");
+        Serial.println("7)  View sensor readings.");
+        Serial.println("8)  Perform NVM test.");
+        Serial.println("9)  Read the state of the push button.");
+        Serial.println("10) Read the busy input as sourced by the display.");
+        Serial.println("11) Look at charge enable bit.");
         Serial.println("12) Enther network parameters.");
         Serial.println("13) Overwrite relative humidity offsets.");
+        Serial.println("14) Enter temperature offsets.");
 
         Serial.println("99) To exit the console.");
 
@@ -167,24 +170,30 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
 
         if(ENABLE_LOGGING)      // TODO:  I think we want to make this a variable up in main .ino so we can use extern here...
         {
-            Serial.print("User entered option: ");
+            Serial.print("^User entered option: ");
             Serial.println(user_option);
         }
 
         switch (user_option) 
         {
+            /************************************/
             /* Print the SW version */
+            /************************************/
             case 1:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
+
                 Serial.print("The SW version: ");
                 Serial.println(SW_VER_STRING);
+
                 insert_line_emphasis();
             break;
 
+            /************************************/
             /* Report the HW version */
-            case 11:            //TODO need to change this to 2
+            /************************************/
+            case 2:           
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -194,48 +203,179 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
 
 
                 insert_line_emphasis();
-                insert_line_emphasis();
             break;
-            
+                
+            /************************************/
             /* Send test email */
-            case 2:
-                __asm__("nop\n\t");
+            /************************************/
+            case 3:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                if(nvm_function.network_valid(pref))
+                {
+
+                    /**
+                    * Clear the temporary
+                    * character buffer just to be 
+                    * safe
+                    */
+                    memset(console_ssid, NULL, sizeof(console_ssid));
+                    
+                    /**
+                     * Get the SSID of the router 
+                     */
+                    nvm_function.nvm_read_string(pref, PREF_WIFI_SSID, console_ssid);
+                    // memcpy(console_ssid, console_buffer, sizeof(console_buffer)); //TODO clean this up
+
+                    
+                    /**
+                    * Clear the temporary
+                    * character buffer just to be 
+                    * safe
+                    */
+                    memset(console_wifi_pass, NULL, sizeof(console_wifi_pass));
+                    
+                    /**
+                     * Get the router's password 
+                     */
+                    nvm_function.nvm_read_string(pref, PREF_WIFI_PASSWORD, console_wifi_pass);
+
+                    console_lan.WiFiConnect(console_ssid,console_wifi_pass);  
+                    console_lan.send_email(pref);  
+
+                }
+                else {
+                    Serial.println("Network parameters are invalid");
+                }
+
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+            break;
+                
+            /************************************/
+            /* View RH calibration values */
+            /************************************/
+            case 4:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
 
-                //TODO: we want these functions to be put back in
-                // console_lan.WiFiConnect("CJG_GbE_2G4","GlockHK23");  //TODO we don't want to hardcode these values like this
-                console_lan.WiFiConnect(WIFI_SSID,WIFI_PASSWORD);  //TODO we don't want to hardcode these values like this
-                console_lan.send_email();  //TODO: 12/13/24 uncommenting this causes boot messages to blow up.  Something is wrong here.  
+                Serial.print("Value stored for RH offset **1**: ");
+                Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET1));
+                
+                Serial.print("Value stored for RH offset **2**: ");
+                Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET2));
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
             break;
-
-            /* View RH calibration values */
-            case 3:
-                __asm__("nop\n\t");
-            break;
-
+                    
+            /************************************/
             /* View network parameters */
-            case 4:
-                __asm__("nop\n\t");
-            break;
-
-            /* View battery voltage */
+            /************************************/
             case 5:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
+                
+                /**
+                * Clear the temporary
+                * character buffer just to be 
+                * safe
+                */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Check the WIFI's SSID
+                 */
+                nvm_function.nvm_read_string(pref, PREF_WIFI_SSID, console_buffer);
+                Serial.print("WiFi SSID: ");
+                Serial.println(console_buffer);
+                
+                /**
+                 * Clear the temporary
+                 * character buffer just to be 
+                 * safe
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Check the WIFI's 
+                 */
+                nvm_function.nvm_read_string(pref, PREF_WIFI_PASSWORD, console_buffer);
+                Serial.print("WiFi password: ");
+                Serial.println(console_buffer);
+                
+                /**
+                 * Clear the temporary
+                 * character buffer just to be 
+                 * safe
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Check author's email address 
+                 */
+                nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, console_buffer);
+                Serial.print("Sender email address: ");
+                Serial.println(console_buffer);
+                
+                /**
+                 * Clear the temporary
+                 * character buffer just to be 
+                 * safe
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Check the recipient email address
+                 */
+                nvm_function.nvm_read_string(pref, PREF_EMAIL_RECIPIENT_KEY, console_buffer);
+                Serial.print("Recipient email address: ");
+                Serial.println(console_buffer);
+                
+                /**
+                 * Clear the temporary
+                 * character buffer just to be 
+                 * safe
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Check the author's email password
+                 */
+                nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_PASSWORD_KEY, console_buffer);
+                Serial.print("Password of sending email address: ");
+                Serial.println(console_buffer);
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
 
-                temporary_voltage_value = app_function.get_battery_voltage();
-                Serial.print("Battery voltage: ");
-                Serial.println(temporary_voltage_value);
+            break;
+                
+            /************************************/
+            /* View battery voltage */
+            /************************************/
+            case 6:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+
+                app_function.get_battery_health();
+                Serial.print("Battery charge percentage: ");
+                Serial.println(app_function.battery_charge_percentage);
 
                 insert_line_emphasis();
                 insert_line_feeds(2);
             break;
 
+            /************************************/
             /* Read values from sensors */
-            case 6:
+            /************************************/
+            case 7:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -259,8 +399,10 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 insert_line_feeds(2);
             break;
             
-            /* Perform NVM test */  
-            case 7:
+            /************************************/ 
+            /* Perform NVM test */ 
+            /************************************/ 
+            case 8:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -290,8 +432,10 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 insert_line_feeds(2);
             break;
             
+            /************************************/
             /* Read the state of the push button */
-            case 8:
+            /************************************/
+            case 9:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -314,31 +458,9 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 insert_line_feeds(2);
             break;
             
+            /************************************/ 
             /* Read the display's busy flag */
-            case 9:
-                clear_screen();
-                insert_line_feeds(2);
-                insert_line_emphasis();
-                
-                pinMode(BUSY_PIN,INPUT);
-
-
-                Serial.print("The current state of the busy pin is: ");  
-                
-                if(digitalRead(BUSY_PIN)) 
-                {
-                    Serial.println("HIGH.");  
-                }
-                else
-                {
-                    Serial.println("LOW.");  
-                }
-
-                insert_line_emphasis();
-                insert_line_feeds(2);
-            break;
-            
-            /* Look at charging bit */
+            /************************************/ 
             case 10:
                 clear_screen();
                 insert_line_feeds(2);
@@ -360,10 +482,38 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
 
                 insert_line_emphasis();
                 insert_line_feeds(2);
+            break;
+
+            /************************************/
+            /* Look at charging bit */ 
+            /************************************/
+            case 11:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                pinMode(BUSY_PIN,INPUT);
+
+
+                Serial.print("The current state of the busy pin is: ");  
+                
+                if(digitalRead(BUSY_PIN)) 
+                {
+                    Serial.println("HIGH.");  
+                }
+                else
+                {
+                    Serial.println("LOW.");  
+                }
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
                 
             break;
             
+            /************************************/
             /** Enter network parameters */
+            /************************************/
             case 12:
             {
                 // Some links that we may want to check out to 
@@ -375,33 +525,136 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                           
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+
+                /**
+                 * Get WIFI SSID
+                 */
+                Serial.print("Enter WIFI SSID: ");
+                get_char_buffer_from_user(console_buffer);
+                Serial.println();
+                
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("^User entered: ");
+                    Serial.println(console_buffer);
+                }
+                
+                /**
+                 * Store WIFI password
+                 */
+                nvm_function.nvm_store_string(pref, PREF_WIFI_SSID, console_buffer);
+
+
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Get WIFI password
+                 */
+                Serial.print("Enter WIFI password: ");
+                get_char_buffer_from_user(console_buffer);
+                Serial.println();
+                
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("^User entered: ");
+                    Serial.println(console_buffer);
+                }
+                
+                /**
+                 * Store the WIFI password
+                 */
+                nvm_function.nvm_store_string(pref, PREF_WIFI_PASSWORD, console_buffer);
+                
+                
+                
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
                 /**
                  * Get author's email address
                  * Get character buffer from user
                  */
                 Serial.print("Enter the sender's email address: ");
-                get_char_buffer_from_user(temp_buffer);
+                get_char_buffer_from_user(console_buffer);
                 Serial.println();
 
                 if(ENABLE_LOGGING)
                 {
-                    Serial.print("User entered character buffer: ");
-                    Serial.println(temp_buffer);
+                    Serial.print("^User entered: ");
+                    Serial.println(console_buffer);
                 }
                 
                 /**
                  * Store the author's email 
                  * address
                  */
-                nvm_function.nvm_store_string(pref,  PREF_EMAIL_AUTHOR_KEY, temp_buffer);
+                nvm_function.nvm_store_string(pref, PREF_EMAIL_AUTHOR_KEY, console_buffer);
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                /**
+                 * Get author's email password
+                 */
+                Serial.print("Enter password of the sending email address: ");
+                get_char_buffer_from_user(console_buffer);
+                Serial.println();
+
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("^User entered: ");
+                    Serial.println(console_buffer);
+                }
+                
+                /**
+                 * Store the password for the author's email
+                 */
+                nvm_function.nvm_store_string(pref,PREF_EMAIL_AUTHOR_PASSWORD_KEY, console_buffer);
 
                 /**
                  * Clear the temporary buffer
                  */
-                memset(temp_buffer, NULL, sizeof(temp_buffer));
+                memset(console_buffer, NULL, sizeof(console_buffer));
                 
-                nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, temp_buffer);
+                /**
+                 * Get recipient's email address
+                 */
+                Serial.print("Enter the recipient's email address: ");
+                get_char_buffer_from_user(console_buffer);
+                Serial.println();
+
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("^User entered: ");
+                    Serial.println(console_buffer);
+                }
+                
+                /**
+                 * Store the recipient's email address
+                 */
+                nvm_function.nvm_store_string(pref, PREF_EMAIL_RECIPIENT_KEY, console_buffer);
+
+
+
+
+
+
+
+                
+                // nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, console_buffer); //TODO we can move this to "view network parameters"
 
                 insert_line_emphasis();
                 insert_line_feeds(2);
@@ -409,7 +662,9 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
             }
             break;
 
+            /************************************/
             /* Overwrite RH Offset Values */
+            /************************************/
             case 13:
                 clear_screen();
                 insert_line_feeds(2);
@@ -418,16 +673,16 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 /**
                  * Clear the temporary buffer
                  */
-                memset(temp_buffer, NULL, sizeof(temp_buffer));
+                memset(console_buffer, NULL, sizeof(console_buffer));
 
                 Serial.println("User wishes to overwrite relative humidity offset values.");
                 Serial.println("Relative humidity offset values are positive numbers.");
                 Serial.print("Are you absolutely sure you want to do this (y/n): ");
-                get_char_buffer_from_user(temp_buffer);
+                get_char_buffer_from_user(console_buffer);
                 Serial.println('\n');
                 
                 
-                if(temp_buffer[0] == 'y' || temp_buffer[0] =='Y')
+                if(console_buffer[0] == 'y' || console_buffer[0] =='Y')
                 {
                     Serial.println("User is proceeding with overwriting relative humidity offset values.");
                     Serial.print("Enter the value for how low (value is percent) RH **1** is: ");
@@ -444,19 +699,55 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 
                 if(ENABLE_LOGGING)
                 {
-                    Serial.print("Value entered for RH **1**: ");
+                    Serial.print("^Value entered for RH **1**: ");
                     Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET1));
                     
-                    Serial.print("Value entered for RH **2**: ");
+                    Serial.print("^Value entered for RH **2**: ");
                     Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET2));
                 }
 
                 
                 insert_line_emphasis();
                 insert_line_feeds(2);
+                break;
+                
+                /************************************/
+                /* Enter Temperature Offsets */
+                /************************************/
+                case 14:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+
+                Serial.println("User wishes to enter temperature offsets.");
+                
+                Serial.print("Enter the offset value for temperature (two will be set to the same): ");
+                temp_float = get_user_float_value();
+                Serial.println();
+                nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET1, temp_float);
+                nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET2, temp_float);
+                
+                if(ENABLE_LOGGING)
+                {
+                    Serial.print("^Value entered for temp offset **1**: ");
+                    Serial.println(nvm_function.nvm_get_float(pref,PREF_TEMP_OFFSET1));
+                    
+                    Serial.print("^Value entered for temp offset **2**: ");
+                    Serial.println(nvm_function.nvm_get_float(pref,PREF_TEMP_OFFSET2));
+                }
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
             break;
             
+            /************************************/
             /* Exit the application */
+            /************************************/
             case 99:
                 clear_screen();
                 Serial.print("Exiting terminal...");

@@ -71,8 +71,9 @@ void I2C::init(void) {
     /* Determine the value_mask */
     value_mask = (0b00000001) << (shift_value);
     #if defined(ENABLE_LOGGING)
-        Serial.print("Mask --> ");
+        Serial.print("^Mask --> ");
         print8b_bin(value_mask);
+        Serial.println(" ");
     #endif
 
 
@@ -97,8 +98,9 @@ void I2C::init(void) {
     current_value = Wire.read();  
 
     #if defined(ENABLE_LOGGING)
-        Serial.print("GPIO Read --> ");
+        Serial.print("^GPIO Read --> ");
         print8b_bin(current_value);
+        Serial.println(" ");
     #endif
 
     /**
@@ -172,8 +174,9 @@ void I2C::toggle_io_expander(uint8_t io_num)
     current_value = Wire.read();  
 
     #if defined(ENABLE_LOGGING)
-        Serial.print("GPIO Read --> ");
+        Serial.print("^GPIO Read --> ");
         print8b_bin(current_value);
+        Serial.println(" ");
     #endif
 
     /**
@@ -207,8 +210,9 @@ uint8_t I2C::read_io_expander( void )
     Wire.endTransmission();
 
     #if defined(ENABLE_LOGGING)
-        Serial.print("GPIO Read --> ");
+        Serial.print("^GPIO Read --> ");
         print8b_bin(uint8_value);
+        Serial.println(" ");
     #endif
 
     return (uint8_value);

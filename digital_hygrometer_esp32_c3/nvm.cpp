@@ -1,6 +1,8 @@
 #include "nvm.h"
 
 
+char        nvm_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
+
 
 void NVM::init(void) 
 {
@@ -50,6 +52,7 @@ float NVM::nvm_get_float (Preferences & pref, const char * nvmkey)
 
 }
 
+
 void NVM::nvm_store_string(Preferences & pref, const char * nvmkey, const char * data_buffer)
 {
     pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
@@ -72,51 +75,101 @@ void NVM::nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[P
     {
         if(ENABLE_LOGGING)
         {
-            Serial.println("NVM read function failed");
+            Serial.println("^NVM read function failed");
         }
     }
     else
     {
         if(ENABLE_LOGGING)
         {
-            Serial.println("NVM read function passed");
+            Serial.println("^NVM read function passed");
         }
     }
 }
+
+bool NVM::network_valid(Preferences & pref) {
     
-
-// {
-        
-//     //TODO: need to define this function 
-//     __asm__("nop\n\t");
-   
-
-// }
-
-// bool NVM::nvm_is_calibrated ( void )
-// {
-//     __asm__("nop\n\t");  //TODO: need to define this function
-//     /**
-//      * Read the configuration word 
-//      * to see if we are calibrated
-//     */
-//     //    nvm_get_status_word();
-
-//     // uint8_t i = 0;             
-//     // for(i = 0; i < 4; i++)
-//     //  {
-        
-//     //     convert.nvm_byte_buffer[i] = EEPROM.read(EEPROM_ADDR_STAT_DWORD + i);  // Grabs one byte of info from the EEPROM
-//     // }
+    /**
+     * Clear the temporary
+     * character buffer just to be 
+     * safe
+     */
+    memset(nvm_buffer, NULL, sizeof(nvm_buffer));
     
-//     // if (convert.ulong_nvm_number == DWORD_EEPROM_CAL_INDICATION)
-//     // {
-//     //     return true;
-//     // }
-//     // else 
-//     // {
-//     //     return false;
-//     // }
-// }
+    /**
+     * Check the WIFI's SSID
+     */
+    nvm_read_string(pref, PREF_WIFI_SSID, nvm_buffer);
+    if(sizeof(nvm_buffer) <= 1) {
+        return false;
+    }
+    
+    /**
+     * Clear the temporary
+     * character buffer just to be 
+     * safe
+     */
+    memset(nvm_buffer, NULL, sizeof(nvm_buffer));
+    
+    /**
+     * Check the WIFI's PASSWORD
+     */
+    nvm_read_string(pref, PREF_WIFI_PASSWORD, nvm_buffer);
+    if(sizeof(nvm_buffer) <= 1) {
+        return false;
+    }
+
+    /**
+     * Clear the temporary
+     * character buffer just to be 
+     * safe
+     */
+    memset(nvm_buffer, NULL, sizeof(nvm_buffer));
+    
+    /**
+     * Check author's email address 
+     */
+    nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, nvm_buffer);
+    if(sizeof(nvm_buffer) <= 1) {
+        return false;
+    }
+    
+    /**
+     * Clear the temporary
+     * character buffer just to be 
+     * safe
+     */
+    memset(nvm_buffer, NULL, sizeof(nvm_buffer));
+    
+    /**
+     * Check the recipient email address
+     */
+    nvm_read_string(pref, PREF_EMAIL_RECIPIENT_KEY, nvm_buffer);
+    if(sizeof(nvm_buffer) <= 1) {
+        return false;
+    }
+    
+    /**
+     * Clear the temporary
+     * character buffer just to be 
+     * safe
+     */
+    memset(nvm_buffer, NULL, sizeof(nvm_buffer));
+    
+    /**
+     * Check the author's email password
+     */
+    nvm_read_string(pref, PREF_EMAIL_AUTHOR_PASSWORD_KEY, nvm_buffer);
+    if(sizeof(nvm_buffer) <= 1) {
+        return false;
+    }
+ 
+    return true;
+}
+
+void NVM::load_network_parameters (void) {  //TODO can we remove this?
+
+}
+    
 
 

@@ -42,7 +42,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.1" 
+#define     SW_VER_STRING       "0.2.2" 
 // ==============================
 // ==============================
 
@@ -154,7 +154,7 @@ class APP
 
         uint16_t seconds_counter        = 0x0000;
 
-        float battery_voltage           = 0.0;
+        float battery_charge_percentage           = 0.0;
 
         bool heartbeat_enabled          = true;
 
@@ -200,7 +200,7 @@ class APP
          * @param \p none 
          * @return float value of battery voltage
          */
-        float get_battery_voltage ( void ); 
+        void get_battery_health ( void ); 
 
         /**
          * @brief Handle button press   

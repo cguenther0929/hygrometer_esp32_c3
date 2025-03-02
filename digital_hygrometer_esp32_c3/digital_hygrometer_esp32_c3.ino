@@ -268,7 +268,7 @@ void setup() {
    */
   if(ENABLE_LOGGING)
   {
-    Serial.println("Calling remaining initialization functions");
+    Serial.println("^Calling remaining initialization functions");
   }
 
   main_i2c.init();          
@@ -279,12 +279,9 @@ void setup() {
 
 
   
-  if(ENABLE_LOGGING)
-  {
-    Serial.println("===================================================");
-    Serial.println("====================== Reset ======================");
-    Serial.println("===================================================");
-  }
+  Serial.println("===================================================");
+  Serial.println("====================== Reset ======================");
+  Serial.println("===================================================");
   
   //Initialize timer interrupt
   //                 The frequency of the timer   
@@ -310,7 +307,7 @@ void setup() {
    */
   if(ENABLE_LOGGING)
   {
-    Serial.println("Printing splash screen.");
+    Serial.println("^Printing splash screen.");
   }
  
   app.display_post_message();
@@ -332,6 +329,8 @@ void loop()
   //TODO: we'll need something here, but it's not the EEPROM! 
   // if(!nvm_functions.nvm_is_initalized() && !nvm_functions.nvm_is_calibrated())   
   // {
+  //   nvm_functions.load_network_parameters();
+
   //  nvm_functions.clear()
   // }
 
@@ -357,7 +356,7 @@ void loop()
     if (rx_char == 'z'){
       if(ENABLE_LOGGING)
       {
-        Serial.println("User wishes to enter the console");
+        Serial.println("^User wishes to enter the console");
       }
       console.console(pref);    
       Timer100msFlag = false;
@@ -399,7 +398,7 @@ void loop()
     {
       if(ENABLE_LOGGING)
       {
-        Serial.println("Updating the display");
+        Serial.println("^Updating the display");
       }
       app.seconds_counter = 0;
       main_i2c.get_sensor_data();

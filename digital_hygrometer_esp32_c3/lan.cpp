@@ -10,10 +10,9 @@
 
 // WiFiClient Client;
 
-#define TEMP_BUF_SIZE             64    // Size of the temporary buffer
-char buf_temp[TEMP_BUF_SIZE];           // Temporary buffer that can be used for building strings
+char  lan_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
 
-
+NVM   lan_nvm;
 
 void LAN::init(void) 
 {
@@ -96,7 +95,7 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
  * 
  * 
  */
-void LAN::send_email ( void )
+void LAN::send_email ( Preferences & pref )
 {
 
   SMTPSession smtp; 
@@ -123,10 +122,26 @@ void LAN::send_email ( void )
   /* Set the session config */
   config.server.host_name   = SMTP_HOST;
   config.server.port        = SMTP_PORT;
-  config.login.email        = AUTHOR_EMAIL;
-  config.login.password     = AUTHOR_PASSWORD;
+  
+  /**
+   * Clear the temporary buffer
+   */
+  memset(lan_buffer, NULL, sizeof(lan_buffer));
+  
+  // config.login.email        = AUTHOR_EMAIL;
+  lan_nvm.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, lan_buffer);
+  config.login.email        = lan_buffer;
+  
+  
+  /**
+   * Clear the temporary buffer
+   */
+  memset(lan_buffer, NULL, sizeof(lan_buffer));
+  // config.login.password     = AUTHOR_PASSWORD;
+  lan_nvm.nvm_read_string(pref, PREF_EMAIL_AUTHOR_PASSWORD_KEY, lan_buffer);
+  config.login.password     = lan_buffer;
   config.login.user_domain  = "";
-
+  
   /*
   Set the NTP config time
   For times east of the Prime Meridian use 0-12
@@ -134,26 +149,41 @@ void LAN::send_email ( void )
   Ex. American/Denver GMT would be -6. 6 + 12 = 18
   See https://en.wikipedia.org/wiki/Time_zone for a list of the GMT/UTC timezone offsets
   */
-  config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
-  config.time.gmt_offset = 3;
-  config.time.day_light_offset = 0;
-
-  /* Declare the message class */
-  SMTP_Message message;
-
-  /* Set the message headers */
-  message.sender.name = F("Hygrometer Test");
-  message.sender.email = AUTHOR_EMAIL;
-  message.subject = F("ESP Test Email");
-  message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
-    
-   
-  //Send raw text message
-  String textMsg = "Test message from hygrometer B01";
-  message.text.content = textMsg.c_str();
-  message.text.charSet = "us-ascii";
-  message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
-  
+ config.time.ntp_server = F("pool.ntp.org,time.nist.gov");
+ config.time.gmt_offset = 3;
+ config.time.day_light_offset = 0;
+ 
+ /* Declare the message class */
+ SMTP_Message message;
+ 
+ 
+ /**
+  * Clear the temporary buffer
+  */
+ memset(lan_buffer, NULL, sizeof(lan_buffer));
+ lan_nvm.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, lan_buffer);
+ 
+ /* Set the message headers */
+ message.sender.name = F("Hygrometer Test");
+ message.sender.email = lan_buffer;
+//  message.sender.email = AUTHOR_EMAIL;
+ message.subject = F("ESP Test Email");
+ 
+ /**
+  * Clear the temporary buffer
+  */
+ memset(lan_buffer, NULL, sizeof(lan_buffer));
+ lan_nvm.nvm_read_string(pref, PREF_EMAIL_RECIPIENT_KEY, lan_buffer);
+ message.addRecipient(F("CJG"), lan_buffer);
+//  message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
+ 
+ 
+ //Send raw text message
+ String textMsg = "Test message from hygrometer B01";
+ message.text.content = textMsg.c_str();
+ message.text.charSet = "us-ascii";
+ message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
+ 
   message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_low;
   message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
 

@@ -4,6 +4,7 @@
 #include <Arduino.h>    //This likely defines wire.h
 #include <WiFi.h>
 #include <ESP_Mail_Client.h>
+#include "nvm.h"
 
 // TODO: do we need to comment functions?
 
@@ -53,7 +54,7 @@ class LAN {
          * @param \p none 
          * @return nothing
          */
-        void send_email ( void );
+        void send_email ( Preferences & pref );
 
 };
 

@@ -31,19 +31,19 @@ void APP::state_handler( State current_state )
     case STATE_SLEEP:
       if(ENABLE_LOGGING)
       {
-        Serial.println("In state sleep");
+        Serial.println("^In state sleep");
       }
       this -> state = STATE_READ_DATA;
     break;
     case STATE_READ_DATA:
       if(ENABLE_LOGGING)
       {
-        Serial.println("In state read data");
+        Serial.println("^In state read data");
       }
       
       app_i2c.get_sensor_data();    //This will get the data from both sensors.  Values are stored into class variables
       
-      app_functions.get_battery_voltage(); // Will store into class variable.
+      app_functions.get_battery_health(); // Will store into class variable.
     
     
       this -> state = STATE_UPDATE_DISPLAY;
@@ -51,7 +51,7 @@ void APP::state_handler( State current_state )
     case STATE_UPDATE_DISPLAY:
       if(ENABLE_LOGGING)
       {
-        Serial.println("In state update display");
+        Serial.println("^In state update display");
       }
     
       app_functions.update_display();
@@ -62,7 +62,7 @@ void APP::state_handler( State current_state )
     case STATE_SEND_EMAIL:
       if(ENABLE_LOGGING)
       {
-        Serial.println("In state send email");
+        Serial.println("^In state send email");
       }
       this -> state = STATE_SLEEP;
     break;
@@ -134,7 +134,7 @@ void APP::full_screen_refresh( void )
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
   if(ENABLE_LOGGING)
   {
-    Serial.print("The temperature value is:");
+    Serial.print("^The temperature value is:");
     Serial.println(app_temp_buffer);
   }
       
@@ -148,7 +148,7 @@ void APP::full_screen_refresh( void )
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.hum_val1);
   if(ENABLE_LOGGING)
   {
-    Serial.print("The humidity value is:");
+    Serial.print("^The humidity value is:");
     Serial.println(app_temp_buffer);
   }
       
@@ -165,8 +165,8 @@ void APP::full_screen_refresh( void )
    *  28*7 (196) pixels of width
    */
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  get_battery_voltage();
-  sprintf(app_temp_buffer,"BAT: %0.2fV",this -> battery_voltage);
+  get_battery_health();
+  sprintf(app_temp_buffer,"BAT: %0.2fV",this -> battery_charge_percentage);
   paint.eink_put_string_bottom(app_temp_buffer);
   
   /** 
@@ -197,7 +197,7 @@ void APP::update_display( void )
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
   if(ENABLE_LOGGING)
   {
-    Serial.print("The temperature value is:");
+    Serial.print("^The temperature value is:");
     Serial.println(app_temp_buffer);
   }
   
@@ -212,7 +212,7 @@ void APP::update_display( void )
   if(ENABLE_LOGGING)
   {
 
-    Serial.print("The humidity value is:");
+    Serial.print("^The humidity value is:");
     Serial.println(app_temp_buffer);
   }
 
@@ -268,7 +268,8 @@ bool APP::network_parameters_valid( void )
 /**
  * @brief Get Battery Voltage
  */
-float APP::get_battery_voltage (void) 
+//TODO: this may need to move to the I2C routine
+void APP::get_battery_health (void) 
 {
   uint16_t    digital_reading       = 0;
   float       voltage_reading       = 0.0;
@@ -298,9 +299,9 @@ float APP::get_battery_voltage (void)
   voltage_reading = (float)(voltage_reading * HYG_ESP32_INTERNAL_ATTEN);        //  ESP32-C3 internal attenuation (Empirically derived)
   voltage_reading = (float)(voltage_reading * HYG_PCB_ATTEN);       // To account for the attenuator on the PCB
   
-  this -> battery_voltage = voltage_reading;
+  // this -> battery_charge_percentage = voltage_reading;
+  this -> battery_charge_percentage = 75.33;  //TODO hardcoded number, for now
 
-  return voltage_reading;
 }
 
 void APP::sensor_power_on(void)
