@@ -2,6 +2,7 @@
 #define HYGROMETERI2C_H
 
 #include <Arduino.h>    //This likely defines wire.h
+#include <Preferences.h>
 
 
 // TODO: do we need to comment functions?
@@ -87,13 +88,14 @@ class I2C {
         float   temp_val1       = 0.0;
         float   hum_val2        = 0.0;
         float   temp_val2       = 0.0;
+        float   temp_offset     = 0.0;
 
         /**
          * @brief I2C init function
          * @param \p none 
          * @return nothing
          */
-        void init(void);
+        void init( void );
 
         /**
          * @brief Set IO expander output pin to defined level 
@@ -179,7 +181,7 @@ class I2C {
         void disable_mux(void);
         
         //TODO need to comment
-        void get_sensor_data(void);
+        void get_sensor_data(Preferences & pref);
 
         //TODO need to comment
         void print8b_bin(uint8_t aByte);

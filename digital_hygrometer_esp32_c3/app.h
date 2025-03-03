@@ -32,6 +32,7 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 #include <esp_sleep.h>    //This likely defines wire.h
+#include <Preferences.h>
 #include "nvm.h"
 #include "i2c.h"
 #include "epdif.h"
@@ -42,7 +43,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.2" 
+#define     SW_VER_STRING       "0.2.3" 
 // ==============================
 // ==============================
 
@@ -179,14 +180,14 @@ class APP
          * @param \p none 
          * @return nothing
          */
-        void full_screen_refresh(void);
+        void full_screen_refresh(Preferences & pref);
         
         /**
          * @brief Update the Eink display 
          * @param \p none 
          * @return nothing
          */
-        void update_display( void );
+        void update_display( Preferences & pref );
         
         /**
          * @brief Determins if network parameters are valid 
@@ -210,7 +211,7 @@ class APP
         void button_handler ( void );
         
         //TODO need to comment
-        void state_handler( State current_state );
+        void state_handler( State current_state, Preferences & pref );
 
 
         

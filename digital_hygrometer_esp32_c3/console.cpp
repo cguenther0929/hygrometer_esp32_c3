@@ -380,7 +380,7 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 insert_line_feeds(2);
                 insert_line_emphasis();
 
-                i2c_function.get_sensor_data(); 
+                i2c_function.get_sensor_data(pref); 
 
                 Serial.print("Humidity #1: ");
                 Serial.println(i2c_function.hum_val1);
@@ -647,15 +647,6 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                  */
                 nvm_function.nvm_store_string(pref, PREF_EMAIL_RECIPIENT_KEY, console_buffer);
 
-
-
-
-
-
-
-                
-                // nvm_function.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, console_buffer); //TODO we can move this to "view network parameters"
-
                 insert_line_emphasis();
                 insert_line_feeds(2);
                 
@@ -731,6 +722,8 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 Serial.println();
                 nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET1, temp_float);
                 nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET2, temp_float);
+                
+                i2c_function.temp_offset = temp_float;
                 
                 if(ENABLE_LOGGING)
                 {

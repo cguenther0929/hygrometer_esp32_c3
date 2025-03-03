@@ -309,11 +309,21 @@ void setup() {
   {
     Serial.println("^Printing splash screen.");
   }
- 
+  
+  /**
+   * Get the temperature offset from memory
+   */
+  main_i2c.temp_offset = nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET1); //TODO we are using the same temp offset
+  if(ENABLE_LOGGING)
+  {
+    Serial.print("^Temp offset: ");
+    Serial.println(main_i2c.temp_offset);
+  }
+  
   app.display_post_message();
   delay(2000);
   
-  app.full_screen_refresh();
+  app.full_screen_refresh(pref);
 
 }
 
@@ -401,8 +411,8 @@ void loop()
         Serial.println("^Updating the display");
       }
       app.seconds_counter = 0;
-      main_i2c.get_sensor_data();
-      app.update_display();
+      main_i2c.get_sensor_data(pref);
+      app.update_display(pref);
     }
 
     if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&

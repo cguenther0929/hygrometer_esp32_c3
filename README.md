@@ -61,3 +61,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.2.1 -- Display post and refresh routines are working well.  Much focus is being put on developing the final application.  
 
 * v0.2.2 -- Network parameters can be stored and recalled from NVM.  Emails are sent using network parameters that are recalled from NVM.  Code was compiled and tested.
+
+* v0.2.3 -- Temp offset has been implemented and is working.  Code was compiled and tested.

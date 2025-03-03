@@ -6,6 +6,7 @@
 #define I2C_SCL     9
 
 APP     i2c_app_functions;
+NVM     i2c_nvm_functions; //TODO I think we can remove this
 
 void I2C::print8b_bin(uint8_t aByte)
  {
@@ -18,7 +19,7 @@ void I2C::print8b_bin(uint8_t aByte)
 }
 
 
-void I2C::init(void) {
+void I2C::init( void ) {
     //TODO: Do we want to modify these lines?
     //TODO: for example, do we instead want to grab 
     //TODO: rhoffset values from NVM
@@ -28,7 +29,6 @@ void I2C::init(void) {
 
     // The following is required to enable I2C lines
     Wire.begin(I2C_SDA, I2C_SCL);
-    // Wire.setClock(10000); //TODO: should be able to remove
 
 
 }
@@ -345,7 +345,7 @@ void I2C::disable_mux(void)
  *  
                          
  */ 
-void I2C::get_sensor_data( void ) 
+void I2C::get_sensor_data( Preferences & pref ) 
 {
     uint8_t     lsb_byte        = 0x00;
     uint8_t     i               = 0;
@@ -434,14 +434,30 @@ void I2C::get_sensor_data( void )
          * of the class 
          * i.e. humidity / temperature
          */
+        this -> temp_offset = i2c_nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET1);
+        
         if(this -> sensor_number == 1)
         {
+
+            
             this -> temp_val1 =  (float)(temp_uint16t/207.1983 - 52.33);  //For Deg F
-            this -> temp_val1 =  (char)(this -> temp_val1);  
-        }
-        else 
-        {
+            this -> temp_val1 -= (float)(this -> temp_offset); 
+            
+            // if(ENABLE_LOGGING)
+            // {
+                //   Serial.print("^Temp offset: ");
+                //   Serial.println(this -> temp_offset);
+                // }
+                
+                // this -> temp_val1 -= (float)(27);  
+                this -> temp_val1 =  (char)(this -> temp_val1);  
+            }
+            else 
+            {
+            
             this -> temp_val2 =  (float)(temp_uint16t/207.1983 - 52.33);  // For deg F
+            this -> temp_val2 -=  (float)(this -> temp_offset);  
+            // this -> temp_val2 -=  (float)(27);  
             this -> temp_val2 =  (char)(this -> temp_val2); 
         }
     }

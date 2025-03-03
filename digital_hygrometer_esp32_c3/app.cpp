@@ -24,7 +24,7 @@ void APP::init(void)
     this -> state = STATE_READ_DATA;
 }
 
-void APP::state_handler( State current_state ) 
+void APP::state_handler( State current_state, Preferences & pref ) 
 {
   switch(current_state) 
   {
@@ -41,7 +41,7 @@ void APP::state_handler( State current_state )
         Serial.println("^In state read data");
       }
       
-      app_i2c.get_sensor_data();    //This will get the data from both sensors.  Values are stored into class variables
+      app_i2c.get_sensor_data(pref);    //This will get the data from both sensors.  Values are stored into class variables
       
       app_functions.get_battery_health(); // Will store into class variable.
     
@@ -54,7 +54,7 @@ void APP::state_handler( State current_state )
         Serial.println("^In state update display");
       }
     
-      app_functions.update_display();
+      app_functions.update_display(pref);
     
     
       this -> state = STATE_SEND_EMAIL;
@@ -106,9 +106,9 @@ void APP::display_post_message( void )
   
 }
 
-void APP::full_screen_refresh( void ) 
+void APP::full_screen_refresh( Preferences & pref ) 
 {
-  app_i2c.get_sensor_data();
+  app_i2c.get_sensor_data(pref);
 
   epdif.hyg_spi_start();
 
@@ -131,7 +131,8 @@ void APP::full_screen_refresh( void )
   epd.SetFrameMemory(paint.GetImage(), 112, 112, paint.GetWidth(), paint.GetHeight());
 
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
+  sprintf(app_temp_buffer,"%02d",(int)(app_i2c.temp_val1));
+  
   if(ENABLE_LOGGING)
   {
     Serial.print("^The temperature value is:");
@@ -188,10 +189,10 @@ void APP::full_screen_refresh( void )
   epd.Sleep();
 }
         
-void APP::update_display( void )
+void APP::update_display( Preferences & pref )
 {
   
-  app_i2c.get_sensor_data();
+  app_i2c.get_sensor_data(pref);
 
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
