@@ -208,21 +208,26 @@ void IRAM_ATTR onTimer()
  * @brief Button Press Interrupt 
  * @details This function has to 'live' 
  * up above the setup routine
- * 
  */
 void IRAM_ATTR button_press()    
 {
   //TODO: need statements here
   __asm__("nop\n\t");  //TODO: eventually need to remove this line
-  Serial.println("\t***DEBUG Button interrupt triggered!");
+
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("^Button interrupt triggered.");
+  }
+  
   /**
-   * If the button is pushed
-   * update the button counter
+   * All we need this function to 
+   * do is to wake up the processor.
+   * The buttonhandler routine will
+   * increment the button counter
+   * and act accordingly 
    */
-  //TODO: need to update the button counter
-  //TODO: and act accordingly
   app.btn_interrupt_triggered  = true;
-  detachInterrupt(digitalPinToInterrupt(LOCAL_BTN_GPIO_PIN)); 
+  detachInterrupt(digitalPinToInterrupt(LOCAL_BTN_GPIO_PIN));  
 }
 
 /**

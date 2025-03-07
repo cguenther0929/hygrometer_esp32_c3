@@ -81,8 +81,8 @@
  */
 
 #define LOCAL_BTN_GPIO_PIN        1
-#define SHORT_PRESS_50MS_EVENTS   10
-#define LONG_PRESS_50MS_EVENTS    20
+#define SHORT_PRESS_50MS_EVENTS   20      // 20 of these in a second
+#define LONG_PRESS_50MS_EVENTS    60      // 20 of these in a second
 #define WAKEUP_GPIO               GPIO_NUM_1   
 
 /**

@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <ESP_Mail_Client.h>
 #include "nvm.h"
+#include "i2c.h"
 
 // TODO: do we need to comment functions?
 

@@ -167,7 +167,7 @@ void APP::full_screen_refresh( Preferences & pref )
    */
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
   get_battery_health();
-  sprintf(app_temp_buffer,"BAT: %0.2fV",this -> battery_charge_percentage);
+  sprintf(app_temp_buffer,"BAT: %0.2f%%",this -> battery_charge_percentage);
   paint.eink_put_string_bottom(app_temp_buffer);
   
   /** 
@@ -317,41 +317,88 @@ void APP::sensor_power_off(void)
 
 void APP::button_handler ( void )
 {
-  //TODO: do we want to do something with the following flag?
-  //TODO:  "btn_interrupt_triggered "
-  //TODO: if not, make sure this flag is cleared.
+
+  pinMode(LOCAL_BTN_GPIO_PIN,INPUT);
+
+  // if(digitalRead(LOCAL_BTN_GPIO_PIN))
+  // {
+  //   Serial.println("\t***BTN PRESSED");
+  //   if(!btn_short_press_flag && !btn_long_press_flag) {
+  //     Serial.println("\t***FLAGS ARE CLEARED");
+  //   }
+  // }
+
 
   /**
    * if the button is pushed, simply
    * update the counter
    */
-  if(digitalRead(LOCAL_BTN_GPIO_PIN &&
-      !btn_short_press_flag && 
-      !btn_long_press_flag))
-  {
-    btn_press_ctr++;
-  }
-  else 
-  {
-    btn_press_ctr=0;
-  }
+  if(digitalRead(LOCAL_BTN_GPIO_PIN) &&
+     !btn_short_press_flag && 
+     !btn_long_press_flag
+    )
+    {
+      btn_press_ctr++;
+      // Serial.println("\t***DEBUG INCREMENTING COUNTER");
+    }
 
+    else 
+    {
+      if(
+         ENABLE_LOGGING && btn_press_ctr > 5
+        )
+      {
+        Serial.print("^Button counter before clearing: ");
+        Serial.println(btn_press_ctr);
+      }
+
+      /**
+       * Determine if we need to define 
+       * a short or long press flag
+       * before we clear the counter
+       */
+      if(btn_press_ctr >= SHORT_PRESS_50MS_EVENTS &&
+         btn_press_ctr < LONG_PRESS_50MS_EVENTS &&
+         !btn_short_press_flag && !digitalRead(LOCAL_BTN_GPIO_PIN)
+        )
+        {
+          btn_short_press_flag  = true;
+        }
+      else if (btn_press_ctr >= LONG_PRESS_50MS_EVENTS &&
+               !btn_long_press_flag && !btn_short_press_flag &&
+               !digitalRead(LOCAL_BTN_GPIO_PIN)
+              )
+        {
+          btn_long_press_flag  = true;
+        }
+      
+      btn_press_ctr=0;
+    }
+    
+    
   /**
-   * Determine if we need to define 
-   * a short or long press flag
+   * Determine what to do based on 
+   * press duration flags that were
+   * set above
    */
-  if(btn_press_ctr >= SHORT_PRESS_50MS_EVENTS &&
-    btn_press_ctr <= LONG_PRESS_50MS_EVENTS &&
-    !btn_short_press_flag)
+  if(btn_short_press_flag) 
+  {
+    btn_short_press_flag = false;
+    if(ENABLE_LOGGING)
     {
-      btn_short_press_flag  = true;
+      Serial.println("^Button short press has been triggered");
     }
-  else if(btn_press_ctr >= LONG_PRESS_50MS_EVENTS &&
-          !btn_short_press_flag)
+  }
+  
+  if(btn_long_press_flag) 
+  {
+    btn_long_press_flag = false;
+    calibrate_sensors = true;
+    if(ENABLE_LOGGING)
     {
-      btn_long_press_flag  = true;
-      calibrate_sensors = true;
+      Serial.println("^Button long press has been triggered -- calibrate sensors.");
     }
+  }
 }
 
 

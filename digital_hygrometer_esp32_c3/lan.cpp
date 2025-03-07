@@ -13,6 +13,10 @@
 char  lan_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
 
 NVM   lan_nvm;
+I2C   lan_i2c;
+
+
+
 
 void LAN::init(void) 
 {
@@ -98,6 +102,8 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
 void LAN::send_email ( Preferences & pref )
 {
 
+  lan_i2c.get_sensor_data(pref);
+
   SMTPSession smtp; 
 
 
@@ -166,7 +172,6 @@ void LAN::send_email ( Preferences & pref )
  /* Set the message headers */
  message.sender.name = F("Hygrometer Test");
  message.sender.email = lan_buffer;
-//  message.sender.email = AUTHOR_EMAIL;
  message.subject = F("ESP Test Email");
  
  /**
@@ -175,11 +180,17 @@ void LAN::send_email ( Preferences & pref )
  memset(lan_buffer, NULL, sizeof(lan_buffer));
  lan_nvm.nvm_read_string(pref, PREF_EMAIL_RECIPIENT_KEY, lan_buffer);
  message.addRecipient(F("CJG"), lan_buffer);
-//  message.addRecipient(F("CJG"), RECIPIENT_EMAIL);
  
  
  //Send raw text message
- String textMsg = "Test message from hygrometer B01";
+ String textMsg  = "";
+ textMsg += "Humidity 1:" + String(lan_i2c.hum_val1) + "\n";
+ textMsg += "Humidity 2:" + String(lan_i2c.hum_val2) + "\n";
+ textMsg += "Temp 1:" + String(lan_i2c.temp_val1) + "\n";
+ textMsg += "Temp 2:" + String(lan_i2c.temp_val2) + "\n";
+
+
+//  String textMsg = "Test message from hygrometer B01";  //TODO can we remove this?
  message.text.content = textMsg.c_str();
  message.text.charSet = "us-ascii";
  message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
