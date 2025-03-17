@@ -6,6 +6,7 @@
 #include <ESP_Mail_Client.h>
 #include "nvm.h"
 #include "i2c.h"
+#include "app.h"
 
 // TODO: do we need to comment functions?
 
@@ -17,9 +18,6 @@
 #define WIFI_CONNECT_TIMEOUT_S  5           //Timeout value in seconds
 #define SMTP_HOST         "smtp.gmail.com"
 #define SMTP_PORT         465
-
-
-
 
 // TODO Remove the following after capturing via preferences
 #define AUTHOR_EMAIL      "clinton.debug@gmail.com"
@@ -34,8 +32,12 @@
 #define WIFI_PASSWORD     "GlockHK23"
 
 class LAN {
-
     public:
+        bool email_enabled          = true;
+        //TODO remove the following?  
+        // I2C sensor_data;            // Instantiate this class here so we can access humidity and temp data.  
+        // APP battery_data;           // Instantiate this class here so we can get to the battery data.  
+
         /**
          * @brief Wifi init function
          * @param \p none 

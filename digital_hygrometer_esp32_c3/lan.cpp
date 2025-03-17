@@ -13,8 +13,9 @@
 char  lan_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
 
 NVM   lan_nvm;
+LAN   lan_class;
 I2C   lan_i2c;
-
+APP   lan_app;
 
 
 
@@ -102,7 +103,9 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
 void LAN::send_email ( Preferences & pref )
 {
 
-  lan_i2c.get_sensor_data(pref);
+
+  lan_i2c.get_sensor_data(pref);  //TODO since the variables are now defined as static, I don't think we need this.  
+  lan_app.get_battery_health();
 
   SMTPSession smtp; 
 
@@ -184,13 +187,12 @@ void LAN::send_email ( Preferences & pref )
  
  //Send raw text message
  String textMsg  = "";
- textMsg += "Humidity 1:" + String(lan_i2c.hum_val1) + "\n";
- textMsg += "Humidity 2:" + String(lan_i2c.hum_val2) + "\n";
- textMsg += "Temp 1:" + String(lan_i2c.temp_val1) + "\n";
- textMsg += "Temp 2:" + String(lan_i2c.temp_val2) + "\n";
+ textMsg += "Humidity 1:" + String(lan_i2c.hum_val1) + " %\n";
+ textMsg += "Humidity 2:" + String(lan_i2c.hum_val2) + " %\n";
+ textMsg += "Temp 1:" + String(lan_i2c.temp_val1) + " F \n";
+ textMsg += "Temp 2:" + String(lan_i2c.temp_val2) + " F \n";
+ textMsg += "Battery:" + String(lan_app.battery_charge_percentage) + " %\n";
 
-
-//  String textMsg = "Test message from hygrometer B01";  //TODO can we remove this?
  message.text.content = textMsg.c_str();
  message.text.charSet = "us-ascii";
  message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;

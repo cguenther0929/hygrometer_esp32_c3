@@ -27,7 +27,7 @@ float       temporary_voltage_value                     = 0.0;
  */
 #define ENABLE_LOGGING                true
 
-void CONSOLE::init(void) 
+void CONSOLE::init(void) //TODO REMOVE?
 {
 
 }
@@ -157,6 +157,7 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
         Serial.println("10) Read the busy input as sourced by the display.");
         Serial.println("11) Look at charge enable bit.");
         Serial.println("12) Enther network parameters.");
+        Serial.println("15) Enable/disable email sending.");
         Serial.println("13) Overwrite relative humidity offsets.");
         Serial.println("14) Enter temperature offsets.");
 
@@ -227,7 +228,6 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                      * Get the SSID of the router 
                      */
                     nvm_function.nvm_read_string(pref, PREF_WIFI_SSID, console_ssid);
-                    // memcpy(console_ssid, console_buffer, sizeof(console_buffer)); //TODO clean this up
 
                     
                     /**
@@ -574,8 +574,6 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 nvm_function.nvm_store_string(pref, PREF_WIFI_PASSWORD, console_buffer);
                 
                 
-                
-                
                 /**
                  * Clear the temporary buffer
                  */
@@ -652,6 +650,54 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                 
             }
             break;
+
+            /************************************/
+            /* Enable/disable the sending of emails
+            /************************************/
+            case 15:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                if(console_lan.email_enabled) 
+                {
+                    Serial.println("The email feature is currently enabled");
+                }
+                else 
+                {
+                    Serial.println("The email feature is currently disabled");
+                }
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+                
+                
+                /**
+                 * Get author's email password
+                 */
+                Serial.print("Do you wish to enable the email feature? (Y/N): ");
+                get_char_buffer_from_user(console_buffer);
+                Serial.println();
+                
+                if(console_buffer[0] == 'y' || console_buffer[0] =='Y')
+                {
+                    console_lan.email_enabled = true;  
+                }
+                
+                if(console_lan.email_enabled) 
+                {
+                    Serial.println("The email feature is currently enabled");
+                }
+                else 
+                {
+                    Serial.println("The email feature is currently disabled");
+                }
+
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                break;
 
             /************************************/
             /* Overwrite RH Offset Values */

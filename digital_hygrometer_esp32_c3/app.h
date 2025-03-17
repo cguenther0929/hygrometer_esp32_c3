@@ -33,6 +33,8 @@
 #include <Arduino.h>    //This likely defines wire.h
 #include <esp_sleep.h>    //This likely defines wire.h
 #include <Preferences.h>
+#include <esp_timer.h>
+#include <WiFi.h>
 #include "nvm.h"
 #include "i2c.h"
 #include "epdif.h"
@@ -40,12 +42,24 @@
 #include "epd1in54_V2.h"
 #include "epdpaint.h"
 #include "imagedata.h"
+#include "lan.h"
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.3" 
+#define     SW_VER_STRING       "0.2.4" 
 // ==============================
 // ==============================
+
+/**
+ * Sleep Time
+ * According to at least one 
+ * online source, the maximum sleep time is 
+ * 35 minutes.  
+ */
+# define SLEEP_TIME_MIN         0.5      //The value that the user shall modify //TODO this is just for testing
+// # define SLEEP_TIME_MIN         = 30      //The value that the user shall modify
+# define SLEEP_TIME_SEC         SLEEP_TIME_MIN * 60.0 
+# define SLEEP_TIME_MICROS      SLEEP_TIME_SEC * 1000000.0 // ESP32 sleep function allows for a 64 bit int  (584,942 years)
 
 /**
  * Set to true to 
@@ -145,19 +159,20 @@ typedef enum State {
 class APP
 {
     public:
-        State state                     = STATE_SLEEP;
+        State state                             = STATE_SLEEP; //Initialize the state to sleep 
         
-        uint16_t btn_press_ctr          = 0x000;
-        bool btn_interrupt_triggered    = false;
-        bool btn_short_press_flag       = false;
-        bool btn_long_press_flag        = false;
-        bool calibrate_sensors          = false;  
+        uint16_t btn_press_ctr                  = 0x000;
+        bool btn_interrupt_triggered            = false;
+        bool btn_short_press_flag               = false;
+        bool btn_long_press_flag                = false;
+        bool calibrate_sensors                  = false;  
+        bool valid_calibration                  = false;  
 
-        uint16_t seconds_counter        = 0x0000;
+        uint16_t seconds_counter                = 0x0000;
 
-        float battery_charge_percentage           = 0.0;
+        float battery_charge_percentage  = 0.0;
 
-        bool heartbeat_enabled          = true;
+        bool heartbeat_enabled                  = true;
 
         /**
          * @brief APP init function

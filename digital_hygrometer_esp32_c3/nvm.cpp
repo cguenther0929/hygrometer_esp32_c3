@@ -6,7 +6,19 @@ char        nvm_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
 
 void NVM::init(void) 
 {
-    __asm__("nop\n\t");
+    __asm__("nop\n\t"); //TODO I think we can just remove this line and leave this function empty
+}
+
+/**
+ *                                                     Key of key:value pair
+ *                                                         |            Value to write to NVM  
+ *                                                         |               |
+ */
+void NVM::nvm_store_int (Preferences & pref, const char * nvmkey, uint8_t value)
+{
+    pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
+    pref.putBytes(nvmkey, &value, 2);       // Store the string value. Define the length to be one
+    pref.end();                            
 }
 
 /**
@@ -17,8 +29,8 @@ void NVM::init(void)
 void NVM::nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value)
 {
     pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
-    pref.putBytes(nvmkey, &value, 1);    // Store the string value. Define the length to be one
-    pref.end();                         // Use to close
+    pref.putBytes(nvmkey, &value, 1);       //  Define the length to be one
+    pref.end();                             
 }
 
 uint8_t NVM::nvm_read_byte (Preferences & pref, const char * nvmkey)
@@ -33,6 +45,22 @@ uint8_t NVM::nvm_read_byte (Preferences & pref, const char * nvmkey)
 
     return uint8t_data_buffer[0];
 }
+
+uint16_t NVM::nvm_read_int (Preferences & pref, const char * nvmkey)
+{
+    uint8_t uint8t_data_buffer[4];
+
+    pref.begin(NVM_NAMESPACE, true);            // for readOnly, we pass in true
+    
+    pref.getBytes(nvmkey, uint8t_data_buffer, 1);
+    
+    pref.end();                             // Use to close
+
+    return (uint8t_data_buffer[1] << 8) | uint8t_data_buffer[0];
+}
+
+
+
 
 void NVM::nvm_store_float (Preferences & pref, const char * nvmkey, float value)
 {

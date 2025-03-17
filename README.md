@@ -65,3 +65,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.2.3 -- Temp offset has been implemented and is working.  Code was compiled and tested.
 
 * v0.2.4 -- The email message is now comprised of sensor data.  The bottom row that is printed on the display will print the percent sign after the battery percentage value.  The button press algorithm for long and short presses seems to be working fine.      
+
+* v0.2.5 -- The deep sleep routine is working pretty well.  Need to better utilize the boot counter.  

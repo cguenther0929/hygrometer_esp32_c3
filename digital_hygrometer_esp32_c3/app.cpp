@@ -1,5 +1,7 @@
 #include "app.h"
 
+extern uint8_t boot_counter;
+
 /**
   * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
   * In this case, a smaller image buffer is allocated and you have to 
@@ -12,6 +14,11 @@ Epd     epd;
 EpdIf   epdif;
 I2C     app_i2c;
 APP     app_functions;
+LAN     app_lan;
+NVM     app_nvm;
+
+char        app_wifi_pass[PREF_BUFF_ELEMENTS]       = {NULL};
+char        app_ssid[PREF_BUFF_ELEMENTS]            = {NULL};
 
 
 /**
@@ -21,7 +28,7 @@ char app_temp_buffer[32];
 
 void APP::init(void) 
 {
-    this -> state = STATE_READ_DATA;
+    this -> state = STATE_READ_DATA; //TODO I think we need to change this to sleep and remove calls in other locaitons?
 }
 
 void APP::state_handler( State current_state, Preferences & pref ) 
@@ -31,14 +38,63 @@ void APP::state_handler( State current_state, Preferences & pref )
     case STATE_SLEEP:
       if(ENABLE_LOGGING)
       {
-        Serial.println("^In state sleep");
+        Serial.println("^In state **sleep**");
       }
-      this -> state = STATE_READ_DATA;
+      
+      if(boot_counter >= 1){
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^Transitioning to state update display");
+        }
+        this -> state = STATE_UPDATE_DISPLAY; 
+        boot_counter = 0;
+      }
+      else
+      {
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^Increasing boot count");
+        }
+        boot_counter += 1;
+      }
+      
+      /**
+       * According to the doc
+       * the serial buffer has to be flushed 
+       * before deep sleep.  Also, WIFI
+       * needs to be shutoff
+       */
+      WiFi.mode(WIFI_OFF);
+      Serial.flush();
+      
+      
+      
+      //TODO the sleep routine only seems to work if we call it 
+      //TODO it from the main .ino script...
+      //TODO so maybe we need to set a flag here and 
+      //TODO put the module to sleep in the main loop
+      //                           Value in uS  
+      //                             |  
+      esp_sleep_enable_timer_wakeup(1);     // This value is a uint64_t
+      // esp_sleep_enable_timer_wakeup((uint64_t)(SLEEP_TIME_MICROS));     // This value is a uint64_t
+      if(ENABLE_LOGGING)
+        {
+          Serial.println("^Going to sleep");
+        }
+      esp_deep_sleep_start();  //This will put the module into deep sleep
+
+      /**
+       * Any code after this won't be accessed 
+       */
     break;
-    case STATE_READ_DATA:
+    
+    //TODO This state is not being called, for now.  
+    //TODO The data is read when updating the 
+    //TODO display or sending an email 
+    case STATE_READ_DATA:   
       if(ENABLE_LOGGING)
       {
-        Serial.println("^In state read data");
+        Serial.println("^In state **read data**");
       }
       
       app_i2c.get_sensor_data(pref);    //This will get the data from both sensors.  Values are stored into class variables
@@ -48,10 +104,11 @@ void APP::state_handler( State current_state, Preferences & pref )
     
       this -> state = STATE_UPDATE_DISPLAY;
     break;
+    
     case STATE_UPDATE_DISPLAY:
       if(ENABLE_LOGGING)
       {
-        Serial.println("^In state update display");
+        Serial.println("^In state **update display**");
       }
     
       app_functions.update_display(pref);
@@ -59,15 +116,44 @@ void APP::state_handler( State current_state, Preferences & pref )
     
       this -> state = STATE_SEND_EMAIL;
     break;
+    
     case STATE_SEND_EMAIL:
       if(ENABLE_LOGGING)
       {
-        Serial.println("^In state send email");
+        Serial.println("^In state **send email**");
       }
+
+      if(app_lan.email_enabled && app_nvm.network_valid(pref))
+      {
+        /**
+         * Clear the temporary
+         * character buffer just to be 
+         * safe
+         */
+        memset(app_ssid, NULL, sizeof(app_ssid));
+        
+        /**
+         * Get the SSID of the router 
+         */
+        app_nvm.nvm_read_string(pref, PREF_WIFI_SSID, app_ssid);
+        
+        
+        /**
+        * Clear the temporary
+        * character buffer just to be 
+        * safe
+        */
+       memset(app_wifi_pass, NULL, sizeof(app_wifi_pass));
+       
+       app_lan.WiFiConnect(app_ssid,app_wifi_pass);  
+       app_lan.send_email(pref);
+      }
+      
       this -> state = STATE_SLEEP;
     break;
+    
     default:
-    this -> state = STATE_SLEEP;
+      this -> state = STATE_SLEEP;
     break;
   }
   
@@ -165,9 +251,18 @@ void APP::full_screen_refresh( Preferences & pref )
    * have a total of 28 characters, as this will yield 
    *  28*7 (196) pixels of width
    */
-  memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  get_battery_health();
-  sprintf(app_temp_buffer,"BAT: %0.2f%%",this -> battery_charge_percentage);
+  paint.eink_put_string_twoup(SW_VER_STRING);
+  
+   
+   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
+   get_battery_health();
+  if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == WORD_EEPROM_CAL_INDICATION){
+    sprintf(app_temp_buffer,"BAT: %0.2f%% -- VALID CAL",this -> battery_charge_percentage);
+  }
+  else 
+  {
+    sprintf(app_temp_buffer,"BAT: %0.2f%% -- INVALID CAL",this -> battery_charge_percentage);
+  }
   paint.eink_put_string_bottom(app_temp_buffer);
   
   /** 

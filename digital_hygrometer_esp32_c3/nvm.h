@@ -52,57 +52,20 @@
 #define PREF_TEMP_OFFSET1                "tempoffset_1"
 #define PREF_TEMP_OFFSET2                "tempoffset_2"
 
-#define PREF_CALIBRATION_STATUS_KEY     "cal_stat"
+#define PREF_CAL_KEY     "cal_stat"
 #define PREF_NETWORK_VALID_KEY          "net_valid"     //TODO not sure if we'll need this
-
-
-
-/**
- * General EEPROM parameters
- */
-// #define EEPROM_SIZE_IN_BYTES                        512
-
-//TODO: need to do something much different here.  Need keys not addresses
-/**
- * EEPROM start addresses for 
- * the digital hygrometer
- */
 
 #define NVM_NAMESPACE                               "HYG_NVM"
 
 //TODO can we do away with these?  
 // TODO "keys" for preferences are defined in lan.h
-#define EEPROM_ADDR_RH_ONE_OFFSET                   0x00
-#define EEPROM_ADDR_RH_TWO_OFFSET                   0x04
-#define EEPROM_ADDR_STAT_DWORD                      0x08
-
-#define EEPROM_ADDR_WIFI_SSID                       0x0B        // The routers SSID name 
-#define WIFI_SSID_STR_LEN                           0x10        // Length of router SSID name (16 bytes here)
-
-#define EEPROM_ADDR_WIFI_PASS                       (EEPROM_ADDR_WIFI_SSID + WIFI_SSID_STR_LEN)   
-#define WIFI_PASS_STR_LEN                           0x20    
-
-#define EEPROM_ADDR_SENDER_EMAIL_USER_NAME          (EEPROM_ADDR_WIFI_PASS + WIFI_PASS_STR_LEN)
-#define HYG_SENDER_EMAIL_USER_NAME_STR_LEN          0x30
-
-#define EEPROM_ADDR_SENDER_EMAIL_PASSWORD           (EEPROM_ADDR_SENDER_EMAIL_USER_NAME + HYG_SENDER_EMAIL_USER_NAME_STR_LEN)
-#define HYG_SENDER_EMAIL_PASSWORD_STR_LEN           0x20
-
-#define EEPROM_ADDR_RECIPIENT_EMAIL                 (EEPROM_ADDR_SENDER_EMAIL_PASSWORD + HYG_SENDER_EMAIL_PASSWORD_STR_LEN)
-#define RECIPIENT_EMAIL_STR_LEN                     0x30
-
-#define EEPROM_ADDR_HYG_NAME                        (EEPROM_ADDR_RECIPIENT_EMAIL + RECIPIENT_EMAIL_STR_LEN)
-#define HYG_NAME_STR_LEN                            0x20
-
-#define EEPROM_ADDR_TST_BYTE                        (EEPROM_ADDR_HYG_NAME + HYG_NAME_STR_LEN)
-#define TEST_BYTE_STR_LEN                            0x01
 
 /**
  * Hardcoded configuration status 
  * words
  */
-#define DWORD_EEPROM_INITALIZED                     0x55555555  // 32bit / 4-byte initialization sequence 
-#define DWORD_EEPROM_CAL_INDICATION                 0xAAAAAAAA  // 32bit / 4-byte calibration sequence 
+#define WORD_EEPROM_INITALIZED                     0x5555  // 16bit initialization sequence //TODO not sure if we still need this
+#define WORD_EEPROM_CAL_INDICATION                 0xAAAA  // 16bit calibration sequence 
 
 
 // TODO: do we need to comment functions?
@@ -135,6 +98,9 @@ class NVM {
          * @return nothing
          */
         void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
+        
+        //TODO need to comment
+        void nvm_store_int (Preferences & pref, const char * nvmkey, uint8_t value);
 
         /**
          * @brief NVM store float 
@@ -161,7 +127,7 @@ class NVM {
         
         //TODO need to comment 
         bool network_valid(Preferences & pref);
-
+        
         
         /**
          * @brief NVM read byte
@@ -170,7 +136,10 @@ class NVM {
          * @return The byte the occupies the read address
          */
         uint8_t nvm_read_byte (Preferences & pref, const char * nvmkey);
-
+        
+        //TODO need to comment 
+        uint16_t nvm_read_int (Preferences & pref, const char * nvmkey);
+        
         /**
          * @brief NVM store a string 
          * @param \p address (uint 16 bit)  

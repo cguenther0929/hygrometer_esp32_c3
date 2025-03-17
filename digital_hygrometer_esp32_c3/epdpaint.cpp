@@ -323,15 +323,13 @@ void Paint::DrawFilledCircle(int x, int y, int radius, int colored) {
     } while(x_pos <= 0);
 }
 
-void Paint::eink_put_string_bottom(const char * bottom_of_disp_string)
+void Paint::eink_put_string_bottom(const char * string_to_print)
 {
     SetWidth(200);
     SetHeight(18);
     
-    // LDirInit();  //TODO I don't think we need to call this
-
     Clear(UNCOLORED);   
-    DrawStringAt(0, 0, bottom_of_disp_string, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
+    DrawStringAt(0, 0, string_to_print, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
     
     /**
      * The memory location being targeted 
@@ -340,6 +338,25 @@ void Paint::eink_put_string_bottom(const char * bottom_of_disp_string)
      * dimension shall be closer to 200 (i.e. 182)
      */
     paint_epd.SetFrameMemory(GetImage(), BOT_ROW_X_START, BOT_ROW_Y_START, GetWidth(), GetHeight());  
+
+    paint_epd.DisplayFrame();
+}
+
+void Paint::eink_put_string_twoup(const char * string_to_print)
+{
+    SetWidth(200);
+    SetHeight(18);
+    
+    Clear(UNCOLORED);   
+    DrawStringAt(0, 0, string_to_print, &Font12, COLORED);    // Font12 -- 7 wide by 12 high 
+    
+    /**
+     * The memory location being targeted 
+     * here is near the bottom of the display
+     * which is 200X200.  Therefor, the Y 
+     * dimension shall be closer to 200 (i.e. 182)
+     */
+    paint_epd.SetFrameMemory(GetImage(), TWOUP_ROW_X_START, TWOUP_ROW_Y_START, GetWidth(), GetHeight());  
 
     paint_epd.DisplayFrame();
 }

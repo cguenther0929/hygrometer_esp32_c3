@@ -84,11 +84,11 @@ class I2C {
 
     public:
         
-        float   hum_val1        = 0.0;
-        float   temp_val1       = 0.0;
-        float   hum_val2        = 0.0;
-        float   temp_val2       = 0.0;
-        float   temp_offset     = 0.0;
+        float    hum_val1        = 0.0;
+        float    temp_val1       = 0.0;
+        float    hum_val2        = 0.0;
+        float    temp_val2       = 0.0;
+        float    temp_offset     = 0.0;
 
         /**
          * @brief I2C init function

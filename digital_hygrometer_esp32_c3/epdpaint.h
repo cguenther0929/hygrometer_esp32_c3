@@ -40,6 +40,8 @@
 #define TEMP_Y_START            130
 #define HUM_X_START             120
 #define HUM_Y_START             130
+#define TWOUP_ROW_X_START       12
+#define TWOUP_ROW_Y_START       168     //182 (top of bottom row) - 12 pixels tall text - a little slop
 #define BOT_ROW_X_START         12
 #define BOT_ROW_Y_START         182     //200 total pixels high - 12 pixels tall text - a little slop
 
@@ -75,11 +77,13 @@ public:
     
     //TODO need to comment this function 
     /**
-    * Font 12 is seven pixels wide.  Therefore, we can
-    * have a total of 28 characters, as this will yield 
-    *  28*7 (196) pixels of width
-    */
-    void eink_put_string_bottom(const char * bottom_of_disp_string);
+     * Font 12 is seven pixels wide.  Therefore, we can
+     * have a total of 28 characters, as this will yield 
+     *  28*7 (196) pixels of width
+     */
+    void eink_put_string_bottom(const char * string_to_print);
+    //TODO need to comment this function 
+    void eink_put_string_twoup(const char * string_to_print);
 
 private:
     unsigned char* image;

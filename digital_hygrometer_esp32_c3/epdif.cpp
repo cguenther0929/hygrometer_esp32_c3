@@ -25,8 +25,9 @@
  * THE SOFTWARE.
  */
 
-#include "epdif.h"
 #include <spi.h>
+#include "epdif.h"
+#include "app.h"
 
 EpdIf local_epdif ;
 
@@ -78,7 +79,10 @@ int EpdIf::IfInit(void) {
 
     if(spi_is_initalized == false)
     {
-        Serial.println("Initializing SPI");
+        if(ENABLE_LOGGING)
+        {
+            Serial.println("^Initializing SPI");
+        }
         local_epdif.hyg_spi_start();
         spi_is_initalized = true;
     }
