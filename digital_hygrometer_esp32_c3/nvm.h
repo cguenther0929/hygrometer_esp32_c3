@@ -40,22 +40,24 @@
  * Keys for key-value 
  * NVM storage 
  */
-#define PREF_EMAIL_AUTHOR_KEY           "auth"
-#define PREF_EMAIL_RECIPIENT_KEY        "recipient"
-#define PREF_EMAIL_AUTHOR_PASSWORD_KEY  "auth_pass"
-#define PREF_WIFI_SSID                  "wifi_ssid"
-#define PREF_WIFI_PASSWORD              "wifi_password"
+#define PREF_EMAIL_AUTHOR_KEY               "auth"
+#define PREF_EMAIL_RECIPIENT_KEY            "recipient"
+#define PREF_EMAIL_AUTHOR_PASSWORD_KEY      "auth_pass"
+#define PREF_WIFI_SSID                      "wifi_ssid"
+#define PREF_WIFI_PASSWORD                  "wifi_password"
 
-#define PREF_RH_OFFSET1                 "rhoffset_1"
-#define PREF_RH_OFFSET2                 "rhoffset_2"
+#define PREF_RH_OFFSET1                     "rhoffset_1"
+#define PREF_RH_OFFSET2                     "rhoffset_2"
 
-#define PREF_TEMP_OFFSET1                "tempoffset_1"
-#define PREF_TEMP_OFFSET2                "tempoffset_2"
+#define PREF_TEMP_OFFSET1                   "tempoffset_1"
+#define PREF_TEMP_OFFSET2                   "tempoffset_2"
 
-#define PREF_CAL_KEY     "cal_stat"
-#define PREF_NETWORK_VALID_KEY          "net_valid"     //TODO not sure if we'll need this
+#define PREF_STATE                          "state"
 
-#define NVM_NAMESPACE                               "HYG_NVM"
+#define PREF_CAL_KEY                        "cal_stat"
+// #define PREF_NETWORK_VALID_KEY              "net_valid"     //TODO not sure if we'll need this
+
+#define NVM_NAMESPACE                       "HYG_NVM"
 
 //TODO can we do away with these?  
 // TODO "keys" for preferences are defined in lan.h

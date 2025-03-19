@@ -59,9 +59,6 @@ uint16_t NVM::nvm_read_int (Preferences & pref, const char * nvmkey)
     return (uint8t_data_buffer[1] << 8) | uint8t_data_buffer[0];
 }
 
-
-
-
 void NVM::nvm_store_float (Preferences & pref, const char * nvmkey, float value)
 {
     pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
@@ -79,7 +76,6 @@ float NVM::nvm_get_float (Preferences & pref, const char * nvmkey)
     return(temp_float);
 
 }
-
 
 void NVM::nvm_store_string(Preferences & pref, const char * nvmkey, const char * data_buffer)
 {

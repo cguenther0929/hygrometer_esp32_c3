@@ -1,6 +1,6 @@
 #include "app.h"
 
-extern uint8_t boot_counter;
+extern RTC_DATA_ATTR int rtc_boot_ctr;
 
 /**
   * Due to RAM not enough in Arduino UNO, a frame buffer is not allowed.
@@ -28,12 +28,13 @@ char app_temp_buffer[32];
 
 void APP::init(void) 
 {
-    this -> state = STATE_READ_DATA; //TODO I think we need to change this to sleep and remove calls in other locaitons?
+  this -> state = STATE_SLEEP; 
 }
 
-void APP::state_handler( State current_state, Preferences & pref ) 
+//TODO we should be able to remove current_state since we pass in an instage of app_instance
+void APP::state_handler( uint8_t current_state, Preferences & pref, APP & app_instance ) 
 {
-  switch(current_state) 
+  switch(app_instance.state) 
   {
     case STATE_SLEEP:
       if(ENABLE_LOGGING)
@@ -41,46 +42,33 @@ void APP::state_handler( State current_state, Preferences & pref )
         Serial.println("^In state **sleep**");
       }
       
-      if(boot_counter >= 1){
+      if(app_instance.bool_update_display == true)
+      {
+        app_instance.bool_update_display = false;
         if(ENABLE_LOGGING)
         {
           Serial.println("^Transitioning to state update display");
         }
         this -> state = STATE_UPDATE_DISPLAY; 
-        boot_counter = 0;
+        app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
+        
       }
-      else
+      
+      //                                         Value in uS  
+      //                                           |  
+      esp_sleep_enable_timer_wakeup((uint64_t)(SLEEP_TIME_MICROS));     // This value is a uint64_t
+      if(ENABLE_LOGGING)
       {
-        if(ENABLE_LOGGING)
-        {
-          Serial.println("^Increasing boot count");
-        }
-        boot_counter += 1;
+        Serial.println("^Going to sleep");
       }
       
       /**
        * According to the doc
        * the serial buffer has to be flushed 
-       * before deep sleep.  Also, WIFI
-       * needs to be shutoff
+       * before deep sleep. 
        */
-      WiFi.mode(WIFI_OFF);
       Serial.flush();
       
-      
-      
-      //TODO the sleep routine only seems to work if we call it 
-      //TODO it from the main .ino script...
-      //TODO so maybe we need to set a flag here and 
-      //TODO put the module to sleep in the main loop
-      //                           Value in uS  
-      //                             |  
-      esp_sleep_enable_timer_wakeup(1);     // This value is a uint64_t
-      // esp_sleep_enable_timer_wakeup((uint64_t)(SLEEP_TIME_MICROS));     // This value is a uint64_t
-      if(ENABLE_LOGGING)
-        {
-          Serial.println("^Going to sleep");
-        }
       esp_deep_sleep_start();  //This will put the module into deep sleep
 
       /**
@@ -103,6 +91,7 @@ void APP::state_handler( State current_state, Preferences & pref )
     
     
       this -> state = STATE_UPDATE_DISPLAY;
+      app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
     break;
     
     case STATE_UPDATE_DISPLAY:
@@ -113,8 +102,21 @@ void APP::state_handler( State current_state, Preferences & pref )
     
       app_functions.update_display(pref);
     
-    
-      this -> state = STATE_SEND_EMAIL;
+      if(app_instance.bool_send_email == true) 
+      {
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^Transitioning to state send email");
+        }
+
+        app_instance.bool_send_email = false;
+        this -> state = STATE_SEND_EMAIL;
+        app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
+      }
+      else{
+        this -> state = STATE_SLEEP;
+        app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
+      }
     break;
     
     case STATE_SEND_EMAIL:
@@ -122,7 +124,7 @@ void APP::state_handler( State current_state, Preferences & pref )
       {
         Serial.println("^In state **send email**");
       }
-
+      
       if(app_lan.email_enabled && app_nvm.network_valid(pref))
       {
         /**
@@ -139,21 +141,37 @@ void APP::state_handler( State current_state, Preferences & pref )
         
         
         /**
-        * Clear the temporary
-        * character buffer just to be 
-        * safe
-        */
-       memset(app_wifi_pass, NULL, sizeof(app_wifi_pass));
+         * Clear the temporary
+         * character buffer just to be 
+         * safe
+         */
+        memset(app_wifi_pass, NULL, sizeof(app_wifi_pass));
+        
+        /**
+         * Get the WIFI password of the router 
+         */
+        app_nvm.nvm_read_string(pref, PREF_WIFI_PASSWORD, app_wifi_pass);
+        
+        if(ENABLE_LOGGING)
+        {
+          Serial.print("^SSID: ");
+          Serial.println(app_ssid);
+
+          Serial.print("^WIFI Password: ");
+          Serial.println(app_wifi_pass);
+        }
        
-       app_lan.WiFiConnect(app_ssid,app_wifi_pass);  
-       app_lan.send_email(pref);
+        app_lan.WiFiConnect(app_ssid,app_wifi_pass);  
+        app_lan.send_email(pref);
       }
       
       this -> state = STATE_SLEEP;
+      app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
     break;
     
     default:
       this -> state = STATE_SLEEP;
+      app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
     break;
   }
   
@@ -161,6 +179,10 @@ void APP::state_handler( State current_state, Preferences & pref )
 
 void APP::display_post_message( void )
 {
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("^POST message.");
+  }
   
   paint.SetWidth(200);
   paint.SetHeight(36);
@@ -194,6 +216,10 @@ void APP::display_post_message( void )
 
 void APP::full_screen_refresh( Preferences & pref ) 
 {
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("^Full screen refresh.");
+  }
   app_i2c.get_sensor_data(pref);
 
   epdif.hyg_spi_start();
@@ -286,9 +312,16 @@ void APP::full_screen_refresh( Preferences & pref )
         
 void APP::update_display( Preferences & pref )
 {
-  
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("^Updating the display.");
+  }
+
   app_i2c.get_sensor_data(pref);
 
+  epdif.hyg_spi_start();
+
+  
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
   if(ENABLE_LOGGING)
@@ -296,6 +329,8 @@ void APP::update_display( Preferences & pref )
     Serial.print("^The temperature value is:");
     Serial.println(app_temp_buffer);
   }
+  
+  epd.LDirInit();               //This is needed in here.
   
   paint.SetWidth(64);           // 32 pixels wide x 2 characters = 64 
   paint.SetHeight(36);          // 36 pixels tall
@@ -307,7 +342,6 @@ void APP::update_display( Preferences & pref )
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.hum_val1);
   if(ENABLE_LOGGING)
   {
-
     Serial.print("^The humidity value is:");
     Serial.println(app_temp_buffer);
   }
@@ -322,6 +356,8 @@ void APP::update_display( Preferences & pref )
   epd.DisplayFrame();
   
   epdif.hyg_spi_end();
+
+  epd.Sleep();
 
 }
         

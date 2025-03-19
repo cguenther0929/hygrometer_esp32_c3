@@ -58,14 +58,8 @@ Preferences pref;
  * times the module has 
  * rebooted.  
  */
-
-
-// uint8_t boot_counter = 0; //TODO need to have this stored in pref
-RTC_DATA_ATTR int boot_counter = 0;
-
-// uint8_t local_boot_counter = boot_counter;
-int local_boot_counter = 0;
-uint8_t test_variable = 0;
+RTC_DATA_ATTR int rtc_boot_ctr        = 0;
+RTC_DATA_ATTR int email_send_boot_ctr = 0;
 
 /**
  * Timer parameters
@@ -224,171 +218,98 @@ void IRAM_ATTR button_press()
 /**
  * @brief Arduino Setup routine
  */
-void setup() {
+void setup() 
+{
   
-  memset(& local_boot_counter, boot_counter, sizeof(local_boot_counter));
   
-  // if(local_boot_counter == 0)
-  // {
-    Serial.begin(SERIAL_BAUD_RATE);
-    
-    pinMode(HEALTH_LED,OUTPUT);
-    digitalWrite(HEALTH_LED, HIGH);
-    
-    pinMode(nSENSOR_PWR_EN,OUTPUT);
-    digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
-    
-    /**
-     * @brief Define IO interrupt for push button input 
-     */
-    //           IO Pin number that shall trigger the interrupt                              
-    //                      |         Name of the callback function               
-    //                      |               |     Type of signal edge to detect    
-    //                      |               |         |
-    attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
+  Serial.begin(SERIAL_BAUD_RATE);
+  
+  pinMode(HEALTH_LED,OUTPUT);
+  digitalWrite(HEALTH_LED, HIGH);
+  
+  pinMode(nSENSOR_PWR_EN,OUTPUT);
+  digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
 
-    /**
-     * @brief Function for Defining which IO shall wake the MCU from deep sleep
-     * @details This function will allow an IO pin (RTC1-5) 
-     * to wake the processor from deep sleep mode
-     * It's unclear if allowing the processor to be
-     * awoken from deep sleep in this manner eats more 
-     * power. 
-     * TODO If the mask version is used, the device will almost 
-     * TODO immediately wake up (BAD).  The third option allows for 
-     * TODO proper sleep operation, however, that routine doesn't
-     * TODO wake up the processor like we want.  
-     * TODO I also learned that the ESP32C3 does not support 
-     * TODO RTC wakeup, so we need to be careful when pulling examples
-     * TODO from online
-     * TODO The ESP32 Wiki mentions that GPIO wakeup is for ***light sleep***
-     * TODO If we want to wake the processor from deep sleep, then
-     * TODO we'll have to use a different processor
-     */
-    //                                  A mask value needs to be passed in (empirically found to be one-based)
-    //                                     |                  Parameter for the input signal   
-    //                                     |                     |
-    //                                     |                     |
-    // esp_deep_sleep_enable_gpio_wakeup(1 << (INTERRUPT_PIN + 1), ESP_GPIO_WAKEUP_GPIO_HIGH);  
-    // esp_deep_sleep_enable_gpio_wakeup(1 << 2, ESP_GPIO_WAKEUP_GPIO_HIGH);  
-    // esp_deep_sleep_enable_gpio_wakeup(GPIO_NUM_1, ESP_GPIO_WAKEUP_GPIO_HIGH);
-    
-    
-    
-    /**
-     * Remaining initialization functions
-     */
-    if(ENABLE_LOGGING)
-    {
-      Serial.println("^Calling remaining initialization functions");
-    }
-    
-    main_i2c.init();          
-    console.init();
-    lan.init();
-    nvm_functions.init();
-    app.init();
-    
-    
-    if(ENABLE_LOGGING)
-    {
-      Serial.println("^Boot Count equal to 0");
-    }
-    
-    Serial.println("===================================================");
-    Serial.println("====================== Reset ======================");
-    Serial.println("===================================================");
-    
-    //Initialize timer interrupt
-    //                     The frequency of the timer   
-    //                       |     
-    // Timer1_Cfg = timerBegin(1000000);   
-    
-    //                 Name of timer (from above) 
-    //                     |      Name of callback function       
-    //                     |        |     true (the tutorial did not indicate what this mans)
-    //                     |        |        |     
-    timerAttachInterrupt(Timer1_Cfg,&onTimer);    
-    
-    //       This is the timer struct 
-    //           |        This is the alarm value (so alarm when we count up to this value)       
-    //           |          |    true = to tell the timer to reload 
-    //           |          |      |  Value to reload into the timer when auto reloading
-    //           |          |      |   |
-    timerAlarm(Timer1_Cfg, 50000, true,0);   
-    
-    /**
-     * Print inital POST screen and 
-     * then refresh the display
-     */
-    if(ENABLE_LOGGING)
-    {
-      Serial.println("^Printing splash screen.");
-    }
-    
-    /**
-     * Get the temperature offset from memory
-     */
-    //TODO we want to turn the following back on
-    main_i2c.temp_offset = nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET1); //TODO 1 and 2 uses the same offset
-    if(ENABLE_LOGGING)
-    {
-      Serial.print("^Temp offset: ");
-      Serial.println(main_i2c.temp_offset);
-    }
-    
-    app.display_post_message();
-    app.full_screen_refresh(pref);
-
-    app.state = STATE_SLEEP;
-
-
-
-    //TODO TEST CODE STARTS HERE
-    
-    if(ENABLE_LOGGING)
-    {
-      Serial.println("\t*** DEBUG Sleep test routine");
-    } 
-    
-    Serial.print("^Boot counter: ");
-    Serial.println(boot_counter);
-    
-    boot_counter = boot_counter + 1 ;   //TODO here is where we increment boot count
-    
-    //                           Value in uS  
-    //                             |  
-    esp_sleep_enable_timer_wakeup(5000000);     // This value is a uint64_t
-    
-    /**
-     * According to the doc
-     * the serial buffer has to be flushed 
-     * before deep sleep.  Also, WIFI
-     * needs to be shutoff
-     */
-    // WiFi.mode(WIFI_OFF);
-    Serial.flush();
-    
-    esp_deep_sleep_start();  //This will put the module into deep sle
-
-    // TODO TEST CODE ENDS HERE
-
-
-
-    
-  // }
+  Serial.println("===================================================");
+  Serial.println("====================== Reset ======================");
+  Serial.println("===================================================");
   
   /**
-   * Here is the case if we've booted already
+   * @brief Define IO interrupt for push button input 
    */
-  // else 
-  // {
-  //   if(ENABLE_LOGGING)
-  //   {
-  //     Serial.println("^Awake, but boot count is greater than 0");
-  //   }
-    
-  // }
+  //           IO Pin number that shall trigger the interrupt                              
+  //                      |         Name of the callback function               
+  //                      |               |     Type of signal edge to detect    
+  //                      |               |         |
+  attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
+
+  /**
+   * @brief Function for Defining which IO shall wake the MCU from deep sleep
+   * @details This function will allow an IO pin (RTC1-5) 
+   * to wake the processor from deep sleep mode
+   * It's unclear if allowing the processor to be
+   * awoken from deep sleep in this manner eats more 
+   * power. 
+   * TODO If the mask version is used, the device will almost 
+   * TODO immediately wake up (BAD).  The third option allows for 
+   * TODO proper sleep operation, however, that routine doesn't
+   * TODO wake up the processor like we want.  
+   * TODO I also learned that the ESP32C3 does not support 
+   * TODO RTC wakeup, so we need to be careful when pulling examples
+   * TODO from online
+   * TODO The ESP32 Wiki mentions that GPIO wakeup is for ***light sleep***
+   * TODO If we want to wake the processor from deep sleep, then
+   * TODO we'll have to use a different processor
+   */
+  //                                  A mask value needs to be passed in (empirically found to be one-based)
+  //                                     |                  Parameter for the input signal   
+  //                                     |                     |
+  //                                     |                     |
+  // esp_deep_sleep_enable_gpio_wakeup(1 << (INTERRUPT_PIN + 1), ESP_GPIO_WAKEUP_GPIO_HIGH);  
+  // esp_deep_sleep_enable_gpio_wakeup(1 << 2, ESP_GPIO_WAKEUP_GPIO_HIGH);  
+  // esp_deep_sleep_enable_gpio_wakeup(GPIO_NUM_1, ESP_GPIO_WAKEUP_GPIO_HIGH);
+  
+  
+  
+  /**
+   * Remaining initialization functions
+   */
+  if(ENABLE_LOGGING)
+  {
+    Serial.println("^Calling remaining initialization functions");
+  }
+  
+  main_i2c.init();          
+  console.init();
+  lan.init();
+  nvm_functions.init();
+  app.init();
+  
+  //Initialize timer interrupt
+  //                     The frequency of the timer   
+  //                       |     
+  Timer1_Cfg = timerBegin(1000000);   
+  
+  //                 Name of timer (from above) 
+  //                     |      Name of callback function       
+  //                     |        |     true (the tutorial did not indicate what this mans)
+  //                     |        |        |     
+  timerAttachInterrupt(Timer1_Cfg,&onTimer);    
+  
+  //       This is the timer struct 
+  //           |        This is the alarm value (so alarm when we count up to this value)       
+  //           |          |    true = to tell the timer to reload 
+  //           |          |      |  Value to reload into the timer when auto reloading
+  //           |          |      |   |
+  timerAlarm(Timer1_Cfg, 50000, true,0);   
+  
+  
+  
+  /**
+   * The app state is 
+   * initalized in the init 
+   * function
+   */
 
 }
 
@@ -398,99 +319,142 @@ void setup() {
 void loop() 
 {
 
-  if(local_boot_counter == 0)   //TODO this is in just for testing ....
+  if(rtc_boot_ctr == 0)   
   {
     if (ENABLE_LOGGING)
     {
-      Serial.println("Boot count is 0");
-    }
-  }
-
-  
-  if(Timer50msFlag == true) 
-  {
-    
-    app.state_handler(app.state, pref); 
-    
-    
-    Timer50msFlag = false;
-    rx_char = Serial.read();
-    
-    if(app.heartbeat_enabled)
-    {
-      if(!digitalRead(HEALTH_LED))  //IF ON TURN OFF
-      {
-        digitalWrite(HEALTH_LED,HIGH);
-      }
-    }
+      Serial.println("^Boot count is 0");
       
-    if (rx_char == 'z'){
-      if(ENABLE_LOGGING)
+      main_i2c.temp_offset = nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET1); //TODO 1 and 2 uses the same offset
+      Serial.print("^Temp offset: ");
+      Serial.println(main_i2c.temp_offset);
+      
+      Serial.println("^Printing splash screen.");
+    }
+    
+    app.display_post_message();
+    app.full_screen_refresh(pref);
+
+    rtc_boot_ctr++;
+  }
+  
+  else
+  {
+    rtc_boot_ctr++;
+    email_send_boot_ctr++;
+    app.state = nvm_functions.nvm_read_byte(pref,PREF_STATE);
+    
+    if (ENABLE_LOGGING)
+    {
+      Serial.print("^Boot counter is: ");
+      Serial.println(rtc_boot_ctr);
+      
+      Serial.print("^Email sender boot counter is: ");
+      Serial.println(email_send_boot_ctr);
+    }
+    
+  }
+
+  if(rtc_boot_ctr > SLEEPS_UNTIL_DISP_UPDATE) //Boot counter is one based, so greater than sign here
+  {
+    app.bool_update_display = true;
+    rtc_boot_ctr = 1;           //A boot counter value of 0 should be reserved for power cycle resets
+  }
+  
+  if(email_send_boot_ctr >= SLEEPS_UNTIL_EMAIL)
+  {
+    app.bool_send_email = true;
+    email_send_boot_ctr = 1;           //A boot counter value of 0 should be reserved for power cycle resets
+  }
+  
+  while (true)
+  {
+
+    if(Timer50msFlag == true) 
+    {
+      
+      app.state_handler(app.state, pref, app); 
+      
+      
+      Timer50msFlag = false;
+      rx_char = Serial.read();
+      
+      if(app.heartbeat_enabled)
       {
-        Serial.println("^User wishes to enter the console");
+        if(!digitalRead(HEALTH_LED))  //IF ON TURN OFF
+        {
+          digitalWrite(HEALTH_LED,HIGH);
+        }
       }
-      console.console(pref);    
+      
+      if (rx_char == 'z'){
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^User wishes to enter the console");
+        }
+        console.console(pref);    
+        Timer100msFlag = false;
+        Timer500msFlag = false;
+        Timer1000msFlag = false;
+      }
+      
+      app.button_handler();
+      
+    }
+    
+    if(Timer100msFlag == true) 
+    {
       Timer100msFlag = false;
+      if(app.calibrate_sensors == true)  //TODO need code here
+      {
+        app.calibrate_sensors = false;
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^User wishes to calibrate sensors");
+        }
+        
+      }
+    }
+    
+    if(Timer500msFlag == true) 
+    {
       Timer500msFlag = false;
+      
+    }
+    
+    if(Timer1000msFlag == true) 
+    {
       Timer1000msFlag = false;
-    }
-    
-    app.button_handler();
-
-  }
-  
-  if(Timer100msFlag == true) 
-  {
-    Timer100msFlag = false;
-    if(app.calibrate_sensors == true)  //TODO need code here
-    {
-      app.calibrate_sensors = false;
-      if(ENABLE_LOGGING)
+      
+      if(app.heartbeat_enabled)
       {
-        Serial.println("^User wishes to calibrate sensors");
+        if(digitalRead(HEALTH_LED))   //IF OFF turn LED ON
+        {
+          digitalWrite(HEALTH_LED,LOW);
+        }
       }
-
-    }
-  }
-  
-  if(Timer500msFlag == true) 
-  {
-    Timer500msFlag = false;
-    
-  }
-  
-  if(Timer1000msFlag == true) 
-  {
-    Timer1000msFlag = false;
-    
-    if(app.heartbeat_enabled)
-    {
-      if(digitalRead(HEALTH_LED))   //IF OFF turn LED ON
+      
+      app.seconds_counter++;
+      
+      /* The following is nice for longer delays */
+      if(app.seconds_counter >= 30)  //TODO probably need to remove / rework the following
       {
-        digitalWrite(HEALTH_LED,LOW);
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^Updating the display");
+        }
+        app.seconds_counter = 0;
+        main_i2c.get_sensor_data(pref);
+        app.update_display(pref);
       }
-    }
-    
-    app.seconds_counter++;
-    
-    /* The following is nice for longer delays */
-    if(app.seconds_counter >= 30)  //TODO probably need to remove / rework the following
-    {
-      if(ENABLE_LOGGING)
-      {
-        Serial.println("^Updating the display");
-      }
-      app.seconds_counter = 0;
-      main_i2c.get_sensor_data(pref);
-      app.update_display(pref);
-    }
-
-    if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&
+      
+      if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&
       !app.btn_short_press_flag && !app.btn_long_press_flag)
-    {
+      {
         attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
         app.btn_interrupt_triggered  = false;
-    }
-  }
+      }
+    } /* IF Timer1000msFlag */
+  } /* WHILE (TRUE) */
 
-}
+} /* MAIN ARDUINO LOOP */

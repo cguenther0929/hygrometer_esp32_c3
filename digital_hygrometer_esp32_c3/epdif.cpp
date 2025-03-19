@@ -59,8 +59,12 @@ void EpdIf::SpiTransfer(unsigned char data) {
 
 void EpdIf::hyg_spi_start ( void )
 {
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+    if(!spi_is_initalized)
+    {
+        SPI.begin();
+        SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+        spi_is_initalized = true;
+    }
 }
 
 void EpdIf::hyg_spi_end ( void )
@@ -84,10 +88,7 @@ int EpdIf::IfInit(void) {
             Serial.println("^Initializing SPI");
         }
         local_epdif.hyg_spi_start();
-        spi_is_initalized = true;
     }
-
-
     return 0;
 }
 

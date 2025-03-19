@@ -52,15 +52,16 @@
 
 /**
  * Sleep Time
- * According to at least one 
+ * According to at least one f
  * online source, the maximum sleep time is 
  * 35 minutes.  
  */
-# define SLEEP_TIME_MIN         0.5      //The value that the user shall modify //TODO this is just for testing
-// # define SLEEP_TIME_MIN         = 30      //The value that the user shall modify
-# define SLEEP_TIME_SEC         SLEEP_TIME_MIN * 60.0 
-# define SLEEP_TIME_MICROS      SLEEP_TIME_SEC * 1000000.0 // ESP32 sleep function allows for a 64 bit int  (584,942 years)
-
+# define SLEEP_TIME_MIN             30      //The value that the user shall modify //TODO this is just for testing
+#define  SLEEPS_UNTIL_DISP_UPDATE   2                           //Update display and send email after this
+#define  SLEEPS_UNTIL_EMAIL         10                           //Update display and send email after this
+// # define SLEEP_TIME_MIN             30      //The value that the user shall modify
+# define SLEEP_TIME_SEC             SLEEP_TIME_MIN * 60.0 
+# define SLEEP_TIME_MICROS          SLEEP_TIME_SEC * 1000000.0 // ESP32 sleep function allows for a 64 bit int  (584,942 years)
 /**
  * Set to true to 
  * enable logging
@@ -143,30 +144,22 @@ typedef enum State {
 #define HYG_ESP32_INTERNAL_ATTEN    3.548   // The ESP32-C3 employs 11db of attenuation
 
 
-// typedef struct network_info  //TODO I think we can put these down in the class
-// {
-//   char hyg_name[HYG_NAME_STR_LEN];
-//   char wifi_ssid[WIFI_SSID_STR_LEN];
-//   char wifi_password[WIFI_PASS_STR_LEN];
-//   char recipient_email_address [RECIPIENT_EMAIL_STR_LEN];
-//   char sender_email_address[HYG_SENDER_EMAIL_USER_NAME_STR_LEN ];
-
-//   bool enable_email;                                      //Flag to determine if emails shall be sent
-// };
-
-
-
 class APP
 {
     public:
-        State state                             = STATE_SLEEP; //Initialize the state to sleep 
+        // State state                             = STATE_SLEEP; //Initialize the state to sleep 
+        uint8_t state                           = STATE_SLEEP; //Initialize the state to sleep 
+
+        uint8_t local_boot_counter              = 0x00;
+        uint16_t btn_press_ctr                  = 0x0000;
         
-        uint16_t btn_press_ctr                  = 0x000;
         bool btn_interrupt_triggered            = false;
         bool btn_short_press_flag               = false;
         bool btn_long_press_flag                = false;
         bool calibrate_sensors                  = false;  
         bool valid_calibration                  = false;  
+        bool bool_update_display                = false;
+        bool bool_send_email                    = false;
 
         uint16_t seconds_counter                = 0x0000;
 
@@ -226,7 +219,7 @@ class APP
         void button_handler ( void );
         
         //TODO need to comment
-        void state_handler( State current_state, Preferences & pref );
+        void state_handler( uint8_t current_state, Preferences & pref, APP & app_instance );
 
 
         
