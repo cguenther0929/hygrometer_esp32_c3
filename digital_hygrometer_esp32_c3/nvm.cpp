@@ -14,10 +14,10 @@ void NVM::init(void)
  *                                                         |            Value to write to NVM  
  *                                                         |               |
  */
-void NVM::nvm_store_int (Preferences & pref, const char * nvmkey, uint8_t value)
+void NVM::nvm_store_int (Preferences & pref, const char * nvmkey, uint16_t value)
 {
     pref.begin(NVM_NAMESPACE, false);       // Pass in false to use the algorithm in read/write mode
-    pref.putBytes(nvmkey, &value, 2);       // Store the string value. Define the length to be one
+    pref.putUShort(nvmkey, value);       // Store the unsigned short (uint16_t)
     pref.end();                            
 }
 
@@ -48,15 +48,15 @@ uint8_t NVM::nvm_read_byte (Preferences & pref, const char * nvmkey)
 
 uint16_t NVM::nvm_read_int (Preferences & pref, const char * nvmkey)
 {
-    uint8_t uint8t_data_buffer[4];
+    uint16_t uint16t_data;
 
-    pref.begin(NVM_NAMESPACE, true);            // for readOnly, we pass in true
+    pref.begin(NVM_NAMESPACE, true);        // for readOnly, we pass in true
     
-    pref.getBytes(nvmkey, uint8t_data_buffer, 1);
+    uint16t_data = pref.getUShort(nvmkey, 0);              // 0 is the default value
     
     pref.end();                             // Use to close
 
-    return (uint8t_data_buffer[1] << 8) | uint8t_data_buffer[0];
+    return (uint16t_data);
 }
 
 void NVM::nvm_store_float (Preferences & pref, const char * nvmkey, float value)

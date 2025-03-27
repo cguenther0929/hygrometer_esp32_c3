@@ -192,6 +192,7 @@ void LAN::send_email ( Preferences & pref )
  textMsg += "Temp 1:" + String(lan_i2c.temp_val1) + " F \n";
  textMsg += "Temp 2:" + String(lan_i2c.temp_val2) + " F \n";
  textMsg += "Battery:" + String(lan_app.battery_charge_percentage) + " %\n";
+ textMsg += "Software Version: " + String(SW_VER_STRING) + "\n";
 
  message.text.content = textMsg.c_str();
  message.text.charSet = "us-ascii";

@@ -31,8 +31,7 @@ void APP::init(void)
   this -> state = STATE_SLEEP; 
 }
 
-//TODO we should be able to remove current_state since we pass in an instage of app_instance
-void APP::state_handler( uint8_t current_state, Preferences & pref, APP & app_instance ) 
+void APP::state_handler(Preferences & pref, APP & app_instance ) 
 {
   switch(app_instance.state) 
   {
@@ -99,8 +98,16 @@ void APP::state_handler( uint8_t current_state, Preferences & pref, APP & app_in
       {
         Serial.println("^In state **update display**");
       }
+
+      if(app_functions.calibration_just_occurred) 
+      {
+        app_functions.calibration_just_occurred = false;
+        app_functions.full_screen_refresh(pref);
+      }
+      else{
+        app_functions.update_display(pref);
+      }
     
-      app_functions.update_display(pref);
     
       if(app_instance.bool_send_email == true) 
       {
@@ -183,13 +190,15 @@ void APP::display_post_message( void )
   {
     Serial.println("^POST message.");
   }
+
+  app_functions.display_power_on();
   
   paint.SetWidth(200);
   paint.SetHeight(36);
   
   epd.LDirInit();          
   epd.Display(IMAGE_DATA);   
-
+  
   paint.SetWidth(84);       // 7 pixels wide * 12 characters
   paint.SetHeight(12);   
   paint.Clear(UNCOLORED);
@@ -210,6 +219,8 @@ void APP::display_post_message( void )
   
   epd.DisplayFrame();
   
+  app_functions.display_power_off();
+  
   epdif.hyg_spi_end();
   
 }
@@ -219,10 +230,14 @@ void APP::full_screen_refresh( Preferences & pref )
   if(ENABLE_LOGGING)
   {
     Serial.println("^Full screen refresh.");
+    Serial.print("^Calibration value is: ");
+    Serial.println(app_nvm.nvm_read_int(pref, PREF_CAL_KEY));
   }
   app_i2c.get_sensor_data(pref);
 
   epdif.hyg_spi_start();
+
+  app_functions.display_power_on();
 
   paint.SetWidth(200); 
   paint.SetHeight(36); 
@@ -278,16 +293,25 @@ void APP::full_screen_refresh( Preferences & pref )
    *  28*7 (196) pixels of width
    */
   paint.eink_put_string_twoup(SW_VER_STRING);
+
+  /**
+   * Routein to update the 
+   * string at the bottom of
+   * the display 
+   */
+  memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
+  // get_battery_health();
+
   
-   
-   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-   get_battery_health();
-  if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == WORD_EEPROM_CAL_INDICATION){
-    sprintf(app_temp_buffer,"BAT: %0.2f%% -- VALID CAL",this -> battery_charge_percentage);
+  if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == VALID_CAL_VALUE)
+  {
+    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- VALID CAL",this -> battery_charge_percentage);
+    sprintf(app_temp_buffer,"BAT: %02d%% -- VALID CAL",app_i2c.batt_sen_soc(FILTERED));
   }
   else 
   {
-    sprintf(app_temp_buffer,"BAT: %0.2f%% -- INVALID CAL",this -> battery_charge_percentage);
+    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- INVALID CAL",this -> battery_charge_percentage);
+    sprintf(app_temp_buffer,"BAT: %02d%% -- INVALID CAL",app_i2c.batt_sen_soc(FILTERED));
   }
   paint.eink_put_string_bottom(app_temp_buffer);
   
@@ -308,6 +332,8 @@ void APP::full_screen_refresh( Preferences & pref )
   epdif.hyg_spi_end();
   
   epd.Sleep();
+
+  app_functions.display_power_off();
 }
         
 void APP::update_display( Preferences & pref )
@@ -321,7 +347,8 @@ void APP::update_display( Preferences & pref )
 
   epdif.hyg_spi_start();
 
-  
+  app_functions.display_power_on();
+
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
   if(ENABLE_LOGGING)
@@ -353,11 +380,35 @@ void APP::update_display( Preferences & pref )
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
   epd.SetFrameMemory(paint.GetImage(), HUM_X_START, HUM_Y_START, paint.GetWidth(), paint.GetHeight());
 
+  /**
+   * Routein to update the 
+   * string at the bottom of
+   * the display 
+   */
+  memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
+  // get_battery_health();
+
+  // app_i2c.batt_sen_soc(FILTERED);
+  
+  if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == VALID_CAL_VALUE)
+  {
+    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- VALID CAL",this -> battery_charge_percentage);
+    sprintf(app_temp_buffer,"BAT: %02d%% -- VALID CAL",app_i2c.batt_sen_soc(FILTERED));
+  }
+  else 
+  {
+    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- INVALID CAL",this -> battery_charge_percentage);
+    sprintf(app_temp_buffer,"BAT: %02d%% -- INVALID CAL",app_i2c.batt_sen_soc(FILTERED));
+  }
+  paint.eink_put_string_bottom(app_temp_buffer);
+
   epd.DisplayFrame();
   
   epdif.hyg_spi_end();
 
   epd.Sleep();
+
+  app_functions.display_power_off();
 
 }
         
@@ -401,6 +452,7 @@ bool APP::network_parameters_valid( void )
  * @brief Get Battery Voltage
  */
 //TODO: this may need to move to the I2C routine
+//TODO can this go away now that we use the I2C routine?
 void APP::get_battery_health (void) 
 {
   uint16_t    digital_reading       = 0;
@@ -444,6 +496,17 @@ void APP::sensor_power_on(void)
 void APP::sensor_power_off(void)
 {
     digitalWrite(nSENSOR_PWR_EN , HIGH);   
+}
+
+void APP::display_power_on( void )
+{
+  app_i2c.set_io_expander(1, false);    // Power EN is active low 
+}
+
+void APP::display_power_off( void )
+{
+  app_i2c.set_io_expander(1, true);     // Power EN is active low 
+
 }
 
 void APP::button_handler ( void )

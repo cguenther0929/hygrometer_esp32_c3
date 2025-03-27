@@ -18,6 +18,8 @@
 
 class CONSOLE {
     public:
+
+
         /**
          * @brief Console init function
          * @param \p none 
@@ -31,7 +33,7 @@ class CONSOLE {
          * @param \p none 
          * @return nothing
          */
-        void console (Preferences & pref);
+        void console (Preferences & pref, APP & app_instance);
 
         /**
          * @brief Get number input from user (0-255)

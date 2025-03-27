@@ -25,6 +25,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  * 
+ * Informaiton for using the preferences library can 
+ * be found here:
+ * https://docs.espressif.com/projects/arduino-esp32/en/latest/api/preferences.html
+ * 
  */
 
 #ifndef HYGROMETENVM_H
@@ -66,8 +70,8 @@
  * Hardcoded configuration status 
  * words
  */
-#define WORD_EEPROM_INITALIZED                     0x5555  // 16bit initialization sequence //TODO not sure if we still need this
-#define WORD_EEPROM_CAL_INDICATION                 0xAAAA  // 16bit calibration sequence 
+#define WORD_EEPROM_INITALIZED                  0x5555  // 16bit initialization sequence //TODO not sure if we still need this
+#define VALID_CAL_VALUE                         0xAAAA  // 16bit calibration sequence 
 
 
 // TODO: do we need to comment functions?
@@ -102,7 +106,7 @@ class NVM {
         void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
         
         //TODO need to comment
-        void nvm_store_int (Preferences & pref, const char * nvmkey, uint8_t value);
+        void nvm_store_int (Preferences & pref, const char * nvmkey, uint16_t value);
 
         /**
          * @brief NVM store float 

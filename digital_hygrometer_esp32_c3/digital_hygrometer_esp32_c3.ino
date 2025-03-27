@@ -24,11 +24,7 @@
  * THE SOFTWARE.
  * 
  * TODO the SW version needs to come across in email. 
- * TODO On 3/16/25 there was an attempt to get the button
- * counter to increment and work, but that proved to be unsuccessful
- * therefore, it might be nice to get this piece of the RTC memory working.
- * For now, "boot_count" is written to NVM.
- * 
+ * TODO need to get the calibration routine working
  */
 
 
@@ -79,10 +75,10 @@ char rx_char                          = '\n';
 /**
  * Time structure 
  */
-hw_timer_t *Timer1_Cfg = NULL;     //TODO can we rename this?
+hw_timer_t *Hyg_Tmr = NULL;     //TODO can we rename this?
 
 I2C     main_i2c;
-CONSOLE console;
+CONSOLE app_console;
 LAN     lan;
 NVM     nvm_functions;
 APP     app;
@@ -266,10 +262,7 @@ void setup()
   //                                     |                     |
   //                                     |                     |
   // esp_deep_sleep_enable_gpio_wakeup(1 << (INTERRUPT_PIN + 1), ESP_GPIO_WAKEUP_GPIO_HIGH);  
-  // esp_deep_sleep_enable_gpio_wakeup(1 << 2, ESP_GPIO_WAKEUP_GPIO_HIGH);  
   // esp_deep_sleep_enable_gpio_wakeup(GPIO_NUM_1, ESP_GPIO_WAKEUP_GPIO_HIGH);
-  
-  
   
   /**
    * Remaining initialization functions
@@ -280,7 +273,7 @@ void setup()
   }
   
   main_i2c.init();          
-  console.init();
+  app_console.init();
   lan.init();
   nvm_functions.init();
   app.init();
@@ -288,25 +281,23 @@ void setup()
   //Initialize timer interrupt
   //                     The frequency of the timer   
   //                       |     
-  Timer1_Cfg = timerBegin(1000000);   
+  Hyg_Tmr = timerBegin(1000000);   
   
   //                 Name of timer (from above) 
   //                     |      Name of callback function       
   //                     |        |     true (the tutorial did not indicate what this mans)
   //                     |        |        |     
-  timerAttachInterrupt(Timer1_Cfg,&onTimer);    
+  timerAttachInterrupt(Hyg_Tmr,&onTimer);    
   
   //       This is the timer struct 
   //           |        This is the alarm value (so alarm when we count up to this value)       
   //           |          |    true = to tell the timer to reload 
   //           |          |      |  Value to reload into the timer when auto reloading
   //           |          |      |   |
-  timerAlarm(Timer1_Cfg, 50000, true,0);   
-  
-  
+  timerAlarm(Hyg_Tmr, 50000, true,0);   
   
   /**
-   * The app state is 
+   * The app's state is 
    * initalized in the init 
    * function
    */
@@ -335,6 +326,19 @@ void loop()
     app.display_post_message();
     app.full_screen_refresh(pref);
 
+    
+    if(main_i2c.batt_sen_sealed()){
+      if (ENABLE_LOGGING)
+      {
+        Serial.println("^Battery sensor is sealed");
+      }
+      //If in here, we'll need to figure out 
+      //how to unseal and enter configuration mode
+    }
+    
+    
+    main_i2c.batt_sen_set_capacity(BATTERY_CAPACITY);  //Capacity is in mA
+    
     rtc_boot_ctr++;
   }
   
@@ -366,15 +370,13 @@ void loop()
     app.bool_send_email = true;
     email_send_boot_ctr = 1;           //A boot counter value of 0 should be reserved for power cycle resets
   }
+
   
   while (true)
   {
 
     if(Timer50msFlag == true) 
     {
-      
-      app.state_handler(app.state, pref, app); 
-      
       
       Timer50msFlag = false;
       rx_char = Serial.read();
@@ -392,12 +394,13 @@ void loop()
         {
           Serial.println("^User wishes to enter the console");
         }
-        console.console(pref);    
+        app_console.console(pref, app);    
         Timer100msFlag = false;
         Timer500msFlag = false;
         Timer1000msFlag = false;
       }
       
+      app.state_handler(pref, app); 
       app.button_handler();
       
     }

@@ -129,7 +129,7 @@ void CONSOLE::insert_line_emphasis( void )
     Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~");     //Send the rest of the sequence to clear the screen
 }
 
-void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
+void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this was the original line
 {
 
     String test_read_string = "";
@@ -732,6 +732,8 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
                     Serial.println('\n');
                     nvm_function.nvm_store_float(pref, PREF_RH_OFFSET2, temp_float);
 
+                    nvm_function.nvm_store_int(pref, PREF_CAL_KEY, VALID_CAL_VALUE);
+                    app_instance.calibration_just_occurred = true;
                 }
                 
                 if(ENABLE_LOGGING)
@@ -788,6 +790,7 @@ void CONSOLE::console ( Preferences & pref )  //TODO this was the original line
             /* Exit the application */
             /************************************/
             case 99:
+                app_function.full_screen_refresh(pref);
                 clear_screen();
                 Serial.print("Exiting terminal...");
             break;

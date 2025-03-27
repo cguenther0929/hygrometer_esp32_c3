@@ -3,6 +3,7 @@
 
 #include <Arduino.h>    //This likely defines wire.h
 #include <Preferences.h>
+#include "bq2742.h"
 
 
 // TODO: do we need to comment functions?
@@ -10,26 +11,29 @@
 /**
  * Note, for I2C addresses, 
  * only the base address should be considered
- * as the Wire function will automaticagit statuslly add
- * the R/#W bit
+ * as the Wire function will automatically append
+ * the necessary R/#W bit
+ * 
+ * It needs to be realized that the arduino left shifts
+ * the address and then appends the R/#W bit.  Therefore,
+ * the address shall first be right shifted (thus removing
+ * the R/#W bit) when recordering the address below.  For 
+ * example, the fuel gauge used in this project is addressed
+ * via 0x1010101 + R/#W, but the address that shall be passed
+ * to the arduino function can be defined as 0101_0101 or
+ * 0x55
  */
 #define IOEXPANDER_7B_0_7_ADDRESS           0x68
 #define IOEXPANDER_7B_8_15_ADDRESS          0x58
+
+/**
+ * Fuel gauge
+ */
+#define FUEL_GAUGE_ADDRESS                  0x55
+
 /**
  * Defines for I2C mux
  */
-// #define I2C_MUX_ADDRESS                     0xE0
-//TODO: may want a note here about how arduino left shifts 
-//TODO: the address then tacks on the R/W bit.  The eight bit
-//TODO: address is from the datasheet is 8'b1110 A2 A1 A0 R/W
-//TODO: since [A2:A0] are all tied low, the address is 
-//TODO: 8'b1110000+R/W.  For the arduino address, we'll want to 
-//TODO: shift the address right by one bit (knock off the R/W bit),
-//TODO: as the Arduino 
-//TODO: addressing routine will left shift the address and then
-//TODO: tack on the R/W bit during the Wire.beginTransmission() routine.
-//TODO:  Therefore, the address we'll want to 
-//TODO: define here is 8'b1110000x, then right shifted so: 8'b0111|0000 or 0x70
 #define I2C_MUX_ADDRESS                     0x70
 #define I2C_DISABLE_ALL_MUX_CHANNELS        0x00
 #define I2C_MUX_DISABLE_ALL                 0x00        
@@ -39,7 +43,6 @@
 /**
  * Sensor parameters 
  */
-
 //TODO: need a better comment here
 //TODO: 8'b1000000x -> right shifted -> 0100|0000
 #define SI7020_BASE_ADDRESS             0x40       
@@ -76,11 +79,21 @@
 #define SI7020_HTRE_51D69MA             0x08
 #define SI7020_HTRE_94D20MA             0x0F
 
+// Parameters for the batt_sen_soc() function
+typedef enum {
+	FILTERED,  // State of Charge Filtered (DEFAULT)
+	UNFILTERED // State of Charge Unfiltered
+} soc_measure;
+
 class I2C {
     private:
         uint8_t sensor_number   = 0;
         uint8_t rhoffset_1      = 0;
         uint8_t rhoffset_2      = 0;
+        uint8_t _batt_sen_address;  // Stores the BQ27441-G1A's I2C address
+	    bool _batt_sen_seal_flag; // Global to identify that IC was previously sealed
+	    bool _batt_sen_usr_ctrl; // Global to identify that user has control over 
+	                         // entering/exiting config
 
     public:
         
@@ -90,12 +103,103 @@ class I2C {
         float    temp_val2       = 0.0;
         float    temp_offset     = 0.0;
 
+        //TODO need to comment
+        I2C();  //TODO this is the constructor
+        
         /**
          * @brief I2C init function
          * @param \p none 
          * @return nothing
          */
         void init( void );
+
+        
+        //TODO need to comment
+        bool batt_sen_is_valid( void );
+        
+        //TODO need to comment
+        uint16_t get_batt_sen_id(void );
+        
+        //TODO need to comment
+        uint16_t get_batt_sen_ctrl_word( uint16_t function );
+        
+        //TODO need to comment 
+        uint16_t batt_sen_write_bytes( uint8_t subAddress, uint8_t * src, uint8_t count );
+        
+        //TODO need to comment 
+        uint16_t batt_sen_read_bytes( uint8_t subAddress, uint8_t * dest, uint8_t count );
+        
+        //TODO need to comment 
+        bool batt_sen_set_capacity( uint16_t capacity );
+        
+        //TODO need to comment 
+        bool batt_sen_write_ext_data( uint8_t classID, uint8_t offset, uint8_t * data, uint8_t len );
+        
+        //TODO need to comment 
+        // bool batt_sen_enter_config( bool userControl );
+        bool batt_sen_enter_config( void );
+        
+        //TODO need to comment 
+        bool batt_sen_block_data_class( uint8_t id );
+        
+        //TODO need to comment 
+        bool batt_sen_block_data_control( void );
+        
+        //TODO need to comment 
+        bool batt_sen_sealed(void);
+        
+        //TODO need to comment 
+        uint16_t batt_sen_status(void);
+        
+        //TODO need to comment 
+        uint16_t batt_sen_read_ctrl_word(uint16_t function);
+        
+        //TODO need to comment 
+        bool batt_sen_exe_control_word( uint16_t function );
+        
+        //TODO need to comment 
+        bool batt_sen_exit_config( bool resim = true );
+        
+        //TODO need to comment 
+        bool batt_sen_block_data_offset(uint8_t offset);
+        
+        //TODO need to comment 
+        uint8_t batt_sen_compute_checksum(void);
+        
+        //TODO need to comment 
+        uint8_t batt_sen_get_block_checksum(void);
+        
+        //TODO need to comment 
+        bool batt_sen_write_block_data( uint8_t offset, uint8_t data );
+        
+        //TODO need to comment 
+        bool batt_sen_unseal( void );
+        
+        //TODO need to comment 
+        bool batt_sen_seal( void );
+        
+        //TODO need to comment 
+        bool batt_sen_soft_reset( void );
+        
+        //TODO need to comment 
+        uint16_t batt_sen_get_flags( void );
+        
+        //TODO need to comment 
+        uint16_t batt_sen_read_word( uint16_t subAddress );
+        
+        //TODO need to comment 
+        bool batt_sen_write_block_checksum( uint8_t csum );
+        
+        //TODO need to comment 
+        uint16_t batt_sen_soc(soc_measure type);
+
+
+        /**
+         * @brief Get battery charge percentage 
+         * @param \p none 
+         * @return Battery Capacity in Percent
+         */
+        float new_battery_health( void );
 
         /**
          * @brief Set IO expander output pin to defined level 

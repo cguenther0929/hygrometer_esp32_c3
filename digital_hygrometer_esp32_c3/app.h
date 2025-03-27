@@ -46,7 +46,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.4" 
+#define     SW_VER_STRING       "0.2.7" 
 // ==============================
 // ==============================
 
@@ -56,49 +56,47 @@
  * online source, the maximum sleep time is 
  * 35 minutes.  
  */
-# define SLEEP_TIME_MIN             30      //The value that the user shall modify //TODO this is just for testing
+//TODO these need to be set to reasonable times
+# define SLEEP_TIME_MIN             1                           //The value that the user shall modify //TODO set to reasonable time
 #define  SLEEPS_UNTIL_DISP_UPDATE   2                           //Update display and send email after this
-#define  SLEEPS_UNTIL_EMAIL         10                           //Update display and send email after this
-// # define SLEEP_TIME_MIN             30      //The value that the user shall modify
+#define  SLEEPS_UNTIL_EMAIL         50                          //Update display and send email after this
 # define SLEEP_TIME_SEC             SLEEP_TIME_MIN * 60.0 
 # define SLEEP_TIME_MICROS          SLEEP_TIME_SEC * 1000000.0 // ESP32 sleep function allows for a 64 bit int  (584,942 years)
 /**
  * Set to true to 
  * enable logging
  */
-#define ENABLE_LOGGING                true
+#define ENABLE_LOGGING          true
 
 /**
  * Health LED
  */
-#define HEALTH_LED                10
-
-/**
- * Interrupt / button pin
- * 
- */
-#define INTERRUPT_PIN             LOCAL_BTN_GPIO_PIN    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
-
-/**
- * Analog and battery parameters
- */
-#define MIN_BATT_VOLTAGE          3.0
-
+#define HEALTH_LED              10
 
 
 /**
  * Serial parameters
  */
-#define SERIAL_BAUD_RATE          115200
+#define SERIAL_BAUD_RATE        115200
+
+/**
+ * Capacity of battery
+ */
+#define BATTERY_CAPACITY          1000
 
 /**
  * Button related
  */
-
 #define LOCAL_BTN_GPIO_PIN        1
 #define SHORT_PRESS_50MS_EVENTS   20      // 20 of these in a second
 #define LONG_PRESS_50MS_EVENTS    60      // 20 of these in a second
-#define WAKEUP_GPIO               GPIO_NUM_1   
+// #define WAKEUP_GPIO               GPIO_NUM_1   //TODO remove 
+
+/**
+ * Interrupt / button pin
+ * 
+ */
+#define INTERRUPT_PIN               LOCAL_BTN_GPIO_PIN    //RTC pins are GPIO0-GPIO3; the button ties to IO1, so the mask shall be 1
 
 /**
  * General parameters related 
@@ -147,7 +145,6 @@ typedef enum State {
 class APP
 {
     public:
-        // State state                             = STATE_SLEEP; //Initialize the state to sleep 
         uint8_t state                           = STATE_SLEEP; //Initialize the state to sleep 
 
         uint8_t local_boot_counter              = 0x00;
@@ -160,6 +157,7 @@ class APP
         bool valid_calibration                  = false;  
         bool bool_update_display                = false;
         bool bool_send_email                    = false;
+        bool calibration_just_occurred          = false;
 
         uint16_t seconds_counter                = 0x0000;
 
@@ -211,6 +209,11 @@ class APP
          */
         void get_battery_health ( void ); 
 
+        //TODO need to comment
+        void display_power_on( void );
+
+        //TODO need to comment
+        void display_power_off( void );
         /**
          * @brief Handle button press   
          * @param \p none 
@@ -219,7 +222,7 @@ class APP
         void button_handler ( void );
         
         //TODO need to comment
-        void state_handler( uint8_t current_state, Preferences & pref, APP & app_instance );
+        void state_handler (Preferences & pref, APP & app_instance );
 
 
         

@@ -8,6 +8,362 @@
 APP     i2c_app_functions;
 NVM     i2c_nvm_functions; //TODO I think we can remove this
 
+I2C::I2C() : _batt_sen_address(BQ72441_I2C_ADDRESS), _batt_sen_seal_flag(false), _batt_sen_usr_ctrl(false)
+{
+    /* THIS IS THE CONSTRUCTOR FOR THIS CLASS */
+}
+
+void I2C::init( void ) {
+    //TODO Can we remove any of these lines?  How about move them to the constructor?  
+
+    //TODO: Do we want to modify these lines?
+    //TODO: for example, do we instead want to grab 
+    //TODO: rhoffset values from NVM
+    this -> sensor_number = 0;
+    this -> rhoffset_1 = 0;
+    this -> rhoffset_2 = 0;
+    
+    // The following is required to enable I2C lines
+    Wire.begin(I2C_SDA, I2C_SCL);
+
+}
+
+/**
+ * the following is related to
+ * the Fuel Gauge
+ */
+// Initializes I2C and verifies communication with the BQ27441.
+bool I2C::batt_sen_is_valid(void)
+{
+	uint16_t deviceID = 0;
+	
+	// Wire.begin(); // Initialize I2C master
+	
+	deviceID = get_batt_sen_id(); // Read get_batt_sen_id from BQ27441
+	
+	if (deviceID == BQ27441_DEVICE_ID)
+	{
+		return true; // If device ID is valid, return true
+	}
+	
+	return false; // Otherwise return false
+}
+
+// Read the device type - should be 0x0421
+uint16_t I2C::get_batt_sen_id(void)
+{
+	return get_batt_sen_ctrl_word(BQ27441_CONTROL_DEVICE_TYPE);
+}
+
+uint16_t I2C::get_batt_sen_ctrl_word(uint16_t function)
+{
+	uint8_t subCommandMSB = (function >> 8);
+	uint8_t subCommandLSB = (function & 0x00FF);
+	uint8_t command[2] = {subCommandLSB, subCommandMSB};
+	uint8_t data[2] = {0, 0};
+	
+	batt_sen_write_bytes((uint8_t) 0, command, 2);
+	
+	if (batt_sen_read_bytes((uint8_t) 0, data, 2))
+	{
+		return ((uint16_t)data[1] << 8) | data[0];
+	}
+	
+	return false;
+}
+
+uint16_t I2C::batt_sen_write_bytes(uint8_t subAddress, uint8_t * src, uint8_t count)
+{
+	Wire.beginTransmission(_batt_sen_address);
+	Wire.write(subAddress);
+	for (int i=0; i<count; i++)
+	{
+		Wire.write(src[i]);
+	}	
+	Wire.endTransmission(true);
+	
+	return true;	
+}
+
+uint16_t I2C::batt_sen_read_bytes(uint8_t subAddress, uint8_t * dest, uint8_t count)
+{
+	int16_t timeout = BQ72441_I2C_TIMEOUT;	
+	Wire.beginTransmission(_batt_sen_address);
+	Wire.write(subAddress);
+	Wire.endTransmission(true);
+	
+	Wire.requestFrom(_batt_sen_address, count);
+	
+	for (int i=0; i<count; i++)
+	{
+		dest[i] = Wire.read();
+	}
+	
+	return timeout;
+}
+
+bool I2C::batt_sen_set_capacity(uint16_t capacity)
+{
+	// Write to STATE subclass (82) of BQ27441 extended memory.
+	// Offset 0x0A (10)
+	// Design capacity is a 2-byte piece of data - MSB first
+	// Unit: mAh
+	uint8_t capMSB = capacity >> 8;
+	uint8_t capLSB = capacity & 0x00FF;
+	uint8_t capacityData[2] = {capMSB, capLSB};
+	return batt_sen_write_ext_data(BQ27441_ID_STATE, 10, capacityData, 2);
+}
+
+bool I2C::batt_sen_write_ext_data(uint8_t classID, uint8_t offset, uint8_t * data, uint8_t len)
+{
+	if (len > 32)
+		return false;
+	
+	if (!_batt_sen_usr_ctrl)
+    {
+        batt_sen_enter_config();
+    } 
+	
+	if (!batt_sen_block_data_control()) // // enable block data memory control
+		return false; // Return false if enable fails
+	if (!batt_sen_block_data_class(classID)) // Write class ID using DataBlockClass()
+		return false;
+	
+	batt_sen_block_data_offset(offset / 32); // Write 32-bit block offset (usually 0)
+	batt_sen_compute_checksum(); // Compute checksum going in
+	uint8_t oldCsum = batt_sen_get_block_checksum();
+
+	// Write data bytes:
+	for (int i = 0; i < len; i++)
+	{
+		// Write to offset, mod 32 if offset is greater than 32
+		// The blockDataOffset above sets the 32-bit block
+		batt_sen_write_block_data((offset % 32) + i, data[i]);
+	}
+	
+	// Write new checksum using BlockDataChecksum (0x60)
+	uint8_t newCsum = batt_sen_compute_checksum(); // Compute the new checksum
+	batt_sen_write_block_checksum(newCsum);
+
+	if (!_batt_sen_usr_ctrl) batt_sen_exit_config(false);
+	
+	return true;
+}
+
+//TODO I don't think we should have to pass anything 
+//TODO in here.  I think we just take contorl and be done
+//TODO with it
+// bool I2C::batt_sen_enter_config(bool userControl)
+bool I2C::batt_sen_enter_config( void )
+{
+	// if (userControl) _batt_sen_usr_ctrl = true;
+	_batt_sen_usr_ctrl = true;
+	
+	if (batt_sen_sealed())
+	{
+		_batt_sen_seal_flag = true;
+		batt_sen_unseal(); // Must be unsealed before making changes
+	}
+	
+	if (batt_sen_exe_control_word(BQ27441_CONTROL_SET_CFGUPDATE))
+	{
+		int16_t timeout = BQ72441_I2C_TIMEOUT;
+		while ((timeout--) && (!(batt_sen_get_flags() & BQ27441_FLAG_CFGUPMODE)))
+			delay(1);
+		
+		if (timeout > 0)
+			return true;
+	}
+	
+	return false;
+}
+
+// Issue a DataClass() command to set the data class to be accessed
+bool I2C::batt_sen_block_data_class(uint8_t id)
+{
+	return batt_sen_write_bytes(BQ27441_EXTENDED_DATACLASS, &id, 1);
+}
+
+bool I2C::batt_sen_block_data_control(void)
+{
+	uint8_t enableByte = 0x00;
+	return batt_sen_write_bytes(BQ27441_EXTENDED_CONTROL, &enableByte, 1);
+}
+
+bool I2C::batt_sen_sealed(void)
+{
+	uint16_t stat = batt_sen_status();
+	return stat & BQ27441_STATUS_SS;
+}
+
+// Read the CONTROL_STATUS subcommand of control()
+uint16_t I2C::batt_sen_status(void)
+{
+	return batt_sen_read_ctrl_word(BQ27441_CONTROL_STATUS);
+}
+
+uint16_t I2C::batt_sen_read_ctrl_word(uint16_t function)
+{
+	uint8_t subCommandMSB = (function >> 8);
+	uint8_t subCommandLSB = (function & 0x00FF);
+	uint8_t command[2] = {subCommandLSB, subCommandMSB};
+	uint8_t data[2] = {0, 0};
+	
+	batt_sen_write_bytes((uint8_t) 0, command, 2);
+	
+	if (batt_sen_read_bytes((uint8_t) 0, data, 2))
+	{
+		return ((uint16_t)data[1] << 8) | data[0];
+	}
+	
+	return false;
+}
+
+bool I2C::batt_sen_exit_config(bool resim)
+{
+	// There are two methods for exiting config mode:
+	//    1. Execute the EXIT_CFGUPDATE command
+	//    2. Execute the SOFT_RESET command
+	// EXIT_CFGUPDATE exits config mode _without_ an OCV (open-circuit voltage)
+	// measurement, and without resimulating to update unfiltered-SoC and SoC.
+	// If a new OCV measurement or resimulation is desired, SOFT_RESET or
+	// EXIT_RESIM should be used to exit config mode.
+	if (resim)
+	{
+		if (batt_sen_soft_reset())
+		{
+			int16_t timeout = BQ72441_I2C_TIMEOUT;
+			while ((timeout--) && ((batt_sen_get_flags() & BQ27441_FLAG_CFGUPMODE)))
+				delay(1);
+			if (timeout > 0)
+			{
+				if (_batt_sen_seal_flag) batt_sen_seal(); // Seal back up if we IC was sealed coming in
+				return true;
+			}
+		}
+		return false;
+	}
+	else
+	{
+		return batt_sen_exe_control_word(BQ27441_CONTROL_EXIT_CFGUPDATE);
+	}	
+}
+
+bool I2C::batt_sen_block_data_offset(uint8_t offset)
+{
+	return batt_sen_write_bytes(BQ27441_EXTENDED_DATABLOCK, &offset, 1);
+}
+
+// Read all 32 bytes of the loaded extended data and compute a 
+// checksum based on the values.
+uint8_t I2C::batt_sen_compute_checksum(void)
+{
+	uint8_t data[32];
+	batt_sen_read_bytes(BQ27441_EXTENDED_BLOCKDATA, data, 32);
+
+	uint8_t csum = 0;
+	for (int i=0; i<32; i++)
+	{
+		csum += data[i];
+	}
+	csum = 255 - csum;
+	
+	return csum;
+}
+
+uint8_t I2C::batt_sen_get_block_checksum(void)
+{
+	uint8_t csum;
+	batt_sen_read_bytes(BQ27441_EXTENDED_CHECKSUM, &csum, 1);
+	return csum;
+}
+
+// Use BlockData() to write a byte to an offset of the loaded data
+bool I2C::batt_sen_write_block_data(uint8_t offset, uint8_t data)
+{
+	uint8_t address = offset + BQ27441_EXTENDED_BLOCKDATA;
+	return batt_sen_write_bytes(address, &data, 1);
+}
+
+// UNseal the LIPO-G1A
+bool I2C::batt_sen_unseal(void)
+{
+	// To unseal the BQ27441, write the key to the control
+	// command. Then immediately write the same key to control again.
+	if (batt_sen_read_ctrl_word(BQ27441_UNSEAL_KEY))
+	{
+		return batt_sen_read_ctrl_word(BQ27441_UNSEAL_KEY);
+	}
+	return false;
+}
+
+// Execute a subcommand() from the BQ27441-G1A's control()
+bool I2C::batt_sen_exe_control_word(uint16_t function)
+{
+	uint8_t subCommandMSB = (function >> 8);
+	uint8_t subCommandLSB = (function & 0x00FF);
+	uint8_t command[2] = {subCommandLSB, subCommandMSB};
+	uint8_t data[2] = {0, 0};
+	
+	if (batt_sen_write_bytes((uint8_t) 0, command, 2))
+		return true;
+	
+	return false;
+}
+
+// Issue a soft-reset to the BQ27441-G1A
+bool I2C::batt_sen_soft_reset(void)
+{
+	return batt_sen_exe_control_word(BQ27441_CONTROL_SOFT_RESET);
+}
+
+// Read the flags() command
+uint16_t I2C::batt_sen_get_flags(void)
+{
+	return batt_sen_read_word(BQ27441_COMMAND_FLAGS);
+}
+
+// Read a 16-bit command word from the BQ27441-G1A
+uint16_t I2C::batt_sen_read_word(uint16_t subAddress)
+{
+	uint8_t data[2];
+	batt_sen_read_bytes(subAddress, data, 2);
+	return ((uint16_t) data[1] << 8) | data[0];
+}
+
+// Seal the BQ2742
+bool I2C::batt_sen_seal(void)
+{
+	return batt_sen_read_ctrl_word(BQ27441_CONTROL_SEALED);
+}
+
+// Use the BlockDataCheckSum() command to write a checksum value
+bool I2C::batt_sen_write_block_checksum(uint8_t csum)
+{
+	return batt_sen_write_bytes(BQ27441_EXTENDED_CHECKSUM, &csum, 1);	
+}
+
+uint16_t I2C::batt_sen_soc(soc_measure type)
+{
+	uint16_t socRet = 0;
+	switch (type)
+	{
+	case FILTERED:
+		socRet = batt_sen_read_word(BQ27441_COMMAND_SOC);
+		break;
+	case UNFILTERED:
+		socRet = batt_sen_read_word(BQ27441_COMMAND_SOC_UNFL);
+		break;
+	}
+	
+	return socRet;
+}
+
+/*******************************************************************
+ * The following functions are for 
+ * the GPIO expander
+ ****************************************************************/
+
 void I2C::print8b_bin(uint8_t aByte)
  {
     for (int8_t aBit = 7; aBit >= 0; aBit--)
@@ -18,23 +374,13 @@ void I2C::print8b_bin(uint8_t aByte)
     Serial.print('\n');
 }
 
-
-void I2C::init( void ) {
-    //TODO: Do we want to modify these lines?
-    //TODO: for example, do we instead want to grab 
-    //TODO: rhoffset values from NVM
-    this -> sensor_number = 0;
-    this -> rhoffset_1 = 0;
-    this -> rhoffset_2 = 0;
-
-    // The following is required to enable I2C lines
-    Wire.begin(I2C_SDA, I2C_SCL);
-
+float I2C::new_battery_health( void ){
 
 }
-    void I2C::set_io_expander(uint8_t io_num, bool level) 
+
+void I2C::set_io_expander(uint8_t io_num, bool level) 
 {
-    int temp_address    = 0x00;
+    int temp_address        = 0x00;
     uint8_t current_value   = 0x00;
     uint8_t shift_value     = 0x00;
     uint8_t value_mask      = 0x00;
@@ -357,7 +703,7 @@ void I2C::get_sensor_data( Preferences & pref )
      * Power the sensors on
      */
     i2c_app_functions.sensor_power_on();
-    delay(50);
+    delay(300);
 
     for(i=1;i<=2;i++)
     {
@@ -442,18 +788,10 @@ void I2C::get_sensor_data( Preferences & pref )
             
             this -> temp_val1 =  (float)(temp_uint16t/207.1983 - 52.33);  //For Deg F
             this -> temp_val1 -= (float)(this -> temp_offset); 
-            
-            // if(ENABLE_LOGGING)
-            // {
-                //   Serial.print("^Temp offset: ");
-                //   Serial.println(this -> temp_offset);
-                // }
-                
-                // this -> temp_val1 -= (float)(27);  
-                this -> temp_val1 =  (char)(this -> temp_val1);  
-            }
-            else 
-            {
+            this -> temp_val1 =  (char)(this -> temp_val1);  
+        }
+        else 
+        {
             
             this -> temp_val2 =  (float)(temp_uint16t/207.1983 - 52.33);  // For deg F
             this -> temp_val2 -=  (float)(this -> temp_offset);  

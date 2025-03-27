@@ -34,9 +34,6 @@
 class LAN {
     public:
         bool email_enabled          = true;
-        //TODO remove the following?  
-        // I2C sensor_data;            // Instantiate this class here so we can access humidity and temp data.  
-        // APP battery_data;           // Instantiate this class here so we can get to the battery data.  
 
         /**
          * @brief Wifi init function
