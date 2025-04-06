@@ -289,6 +289,9 @@ class I2C {
 
         //TODO need to comment
         void print8b_bin(uint8_t aByte);
+        
+        //TODO need to comment
+        void print16b_bin(uint16_t aByte);
 
 };
 

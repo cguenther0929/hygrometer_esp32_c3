@@ -8,6 +8,7 @@
 #include "app.h"
 #include "nvm.h"
 #include "epdif.h"
+#include "bq2742.h"
 
 
 

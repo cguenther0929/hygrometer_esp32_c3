@@ -339,7 +339,7 @@ void Paint::eink_put_string_bottom(const char * string_to_print)
      */
     paint_epd.SetFrameMemory(GetImage(), BOT_ROW_X_START, BOT_ROW_Y_START, GetWidth(), GetHeight());  
 
-    paint_epd.DisplayFrame();
+    /* Outside of this function, DisplayFrame() will have to be called */
 }
 
 void Paint::eink_put_string_twoup(const char * string_to_print)
@@ -357,8 +357,8 @@ void Paint::eink_put_string_twoup(const char * string_to_print)
      * dimension shall be closer to 200 (i.e. 182)
      */
     paint_epd.SetFrameMemory(GetImage(), TWOUP_ROW_X_START, TWOUP_ROW_Y_START, GetWidth(), GetHeight());  
-
-    paint_epd.DisplayFrame();
+    
+    /* Outside of this function, DisplayFrame() will have to be called */
 }
 
 /* END OF FILE */

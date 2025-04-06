@@ -374,6 +374,16 @@ void I2C::print8b_bin(uint8_t aByte)
     Serial.print('\n');
 }
 
+void I2C::print16b_bin(uint16_t aByte)
+ {
+    for (int16_t aBit = 15; aBit >= 0; aBit--)
+    {
+        Serial.print(bitRead(aByte, aBit) ? '1' : '0');
+    }
+    
+    Serial.print('\n');
+}
+
 float I2C::new_battery_health( void ){
 
 }
@@ -795,7 +805,6 @@ void I2C::get_sensor_data( Preferences & pref )
             
             this -> temp_val2 =  (float)(temp_uint16t/207.1983 - 52.33);  // For deg F
             this -> temp_val2 -=  (float)(this -> temp_offset);  
-            // this -> temp_val2 -=  (float)(27);  
             this -> temp_val2 =  (char)(this -> temp_val2); 
         }
     }

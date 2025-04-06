@@ -69,3 +69,7 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.2.5 -- The deep sleep routine is working pretty well.  Need to better utilize the boot counter.  
 
 * v0.2.6 -- The deep sleeping routine was improved.  The display is updated and emails are properly sent after allowing for an appropriate amount of sleeps.  Still need to get the calibration routine up and going, but this is very close to a first release.  
+
+* v0.2.7 -- Most to all of the battery fuel gauge routines have been implemented.  Display power is now toggled on/off.  This version has not been fully tested.  In fact, this version was released before the B03 HW was even built up.  
+
+* v0.2.8 -- The health LED is now pulsed in the startup routine.  There is now a delay after powering on the display.  When removing power from the display, it seemed the entire display wanted to be refreshed, therefore, a full refresh is issued instead of just updating a couple lines during the **update the display** routine.  Fixed a console bug that was related to viewing the charging bit.  There are now provisions to see the flags of the fuel gauge. Fixed the bug where we could get stuck in an infinite email sending loop if the email fails to send.  

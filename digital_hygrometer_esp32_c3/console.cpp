@@ -17,6 +17,7 @@ char        console_wifi_pass[PREF_BUFF_ELEMENTS]           = {NULL};
 uint8_t     user_option                                 = 0;
 uint8_t     temp_uint8t                                 = 0;    
 uint8_t     save_0x55                                   = 0x55;
+uint16_t    fuel_gauge_flags                            = 0x0000;
 
 float       temp_float                                  = 0;    
 float       temporary_voltage_value                     = 0.0;
@@ -150,7 +151,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
         Serial.println("3)  To send test email.");
         Serial.println("4)  View RH calibration values.");
         Serial.println("5)  View network parameters.");
-        Serial.println("6)  Vew battery voltage.");
+        Serial.println("6)  Vew battery state of charge.");
         Serial.println("7)  View sensor readings.");
         Serial.println("8)  Perform NVM test.");
         Serial.println("9)  Read the state of the push button.");
@@ -160,6 +161,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
         Serial.println("15) Enable/disable email sending.");
         Serial.println("13) Overwrite relative humidity offsets.");
         Serial.println("14) Enter temperature offsets.");
+        Serial.println("16) View BQ27427 flags.");
 
         Serial.println("99) To exit the console.");
 
@@ -364,9 +366,8 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_feeds(2);
                 insert_line_emphasis();
 
-                app_function.get_battery_health();
-                Serial.print("Battery charge percentage: ");
-                Serial.println(app_function.battery_charge_percentage);
+                Serial.print("Battery state of charge: ");
+                Serial.println(i2c_function.batt_sen_soc(FILTERED));
 
                 insert_line_emphasis();
                 insert_line_feeds(2);
@@ -491,21 +492,16 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
-                
-                pinMode(BUSY_PIN,INPUT);
 
-
-                Serial.print("The current state of the busy pin is: ");  
-                
-                if(digitalRead(BUSY_PIN)) 
+                if(i2c_function.charging_is_active())
                 {
-                    Serial.println("HIGH.");  
+                    Serial.println("Charging active");  
                 }
                 else
                 {
-                    Serial.println("LOW.");  
+                    Serial.println("Charging inactive");  
                 }
-
+                
                 insert_line_emphasis();
                 insert_line_feeds(2);
                 
@@ -750,10 +746,10 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_feeds(2);
                 break;
                 
-                /************************************/
-                /* Enter Temperature Offsets */
-                /************************************/
-                case 14:
+            /************************************/
+            /* Enter Temperature Offsets */
+            /************************************/
+            case 14:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -782,6 +778,48 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                     Serial.println(nvm_function.nvm_get_float(pref,PREF_TEMP_OFFSET2));
                 }
                 
+                insert_line_emphasis();
+                insert_line_feeds(2);
+            break;
+
+            
+            /************************************/
+            /* Read the flags of the fuel gauge */
+            /************************************/
+            case 16:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+
+                /**
+                 * The battery detect flag is bit #3
+                 */
+                fuel_gauge_flags = i2c_function.batt_sen_get_flags();
+                Serial.print("Fuel gauge flags: ");
+                i2c_function.print16b_bin(fuel_gauge_flags);
+                Serial.println();
+
+                /**
+                 * Print the battery detect bit
+                 */
+                Serial.print("The battery detect flag is: ");
+                Serial.println((fuel_gauge_flags >> 3) & 0x01);
+                
+                /**
+                 * Print SOCF flag
+                 * this is defined as the second or final capacity threshold
+                 */
+                Serial.print("The final SOC [SOCF] bit is: ");
+                Serial.println((fuel_gauge_flags >> 1) & 0x01);
+                
+                /**
+                 * Print SOC1 flag
+                 * this is defined as the first capacity threshold
+                 */
+                Serial.print("The first [SOC1] bit is: ");
+                Serial.println((fuel_gauge_flags >> 2) & 0x01);
+
+
                 insert_line_emphasis();
                 insert_line_feeds(2);
             break;

@@ -216,8 +216,6 @@ void IRAM_ATTR button_press()
  */
 void setup() 
 {
-  
-  
   Serial.begin(SERIAL_BAUD_RATE);
   
   pinMode(HEALTH_LED,OUTPUT);
@@ -302,6 +300,20 @@ void setup()
    * function
    */
 
+  //TODO the following is in just for testing
+  // digitalWrite(HEALTH_LED , LOW);   
+  // delay(250);
+  // digitalWrite(HEALTH_LED , HIGH);   
+  // delay(250);
+  // digitalWrite(HEALTH_LED , LOW);   
+  // delay(250);
+  // digitalWrite(HEALTH_LED , HIGH);   
+  // delay(250);
+  // digitalWrite(HEALTH_LED , LOW);   
+  // delay(250);
+  // digitalWrite(HEALTH_LED , HIGH);   
+  //TODO end of test code 
+
 }
 
 /**
@@ -325,7 +337,7 @@ void loop()
     
     app.display_post_message();
     app.full_screen_refresh(pref);
-
+    app.heartbeat_post();
     
     if(main_i2c.batt_sen_sealed()){
       if (ENABLE_LOGGING)
@@ -335,10 +347,19 @@ void loop()
       //If in here, we'll need to figure out 
       //how to unseal and enter configuration mode
     }
-    
+    else
+    {
+      if (ENABLE_LOGGING)
+      {
+        Serial.println("^Battery sensor is not sealed");
+      }
+
+    }
     
     main_i2c.batt_sen_set_capacity(BATTERY_CAPACITY);  //Capacity is in mA
-    
+
+    //TODO I think the BAT_DET flag needs to be set to tell the gauge that a battery is present
+    //TODO there is two steps to this.  The second step would be issuing the BAT_INSERT command
     rtc_boot_ctr++;
   }
   
@@ -346,6 +367,7 @@ void loop()
   {
     rtc_boot_ctr++;
     email_send_boot_ctr++;
+    /* Determine what state we need to be in */
     app.state = nvm_functions.nvm_read_byte(pref,PREF_STATE);
     
     if (ENABLE_LOGGING)
@@ -439,23 +461,26 @@ void loop()
       
       app.seconds_counter++;
       
-      /* The following is nice for longer delays */
-      if(app.seconds_counter >= 30)  //TODO probably need to remove / rework the following
-      {
-        if(ENABLE_LOGGING)
-        {
-          Serial.println("^Updating the display");
-        }
-        app.seconds_counter = 0;
-        main_i2c.get_sensor_data(pref);
-        app.update_display(pref);
-      }
       
       if(app.btn_interrupt_triggered && !digitalRead(LOCAL_BTN_GPIO_PIN) &&
       !app.btn_short_press_flag && !app.btn_long_press_flag)
       {
         attachInterrupt(LOCAL_BTN_GPIO_PIN, button_press, RISING); 
         app.btn_interrupt_triggered  = false;
+      }
+
+      /* The following is nice for longer delays */
+      if(app.seconds_counter >= 30)  //TODO probably need to remove / rework the following
+      {
+        if(ENABLE_LOGGING)
+        {
+          Serial.println("^Screen refresh");
+        }
+        // app.seconds_counter = 0;
+        // main_i2c.get_sensor_data(pref);
+        // app.full_screen_refresh( pref ); 
+
+
       }
     } /* IF Timer1000msFlag */
   } /* WHILE (TRUE) */

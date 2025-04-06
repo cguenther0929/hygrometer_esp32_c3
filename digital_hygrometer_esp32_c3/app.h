@@ -46,7 +46,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.7" 
+#define     SW_VER_STRING       "0.2.8" 
 // ==============================
 // ==============================
 
@@ -57,9 +57,9 @@
  * 35 minutes.  
  */
 //TODO these need to be set to reasonable times
-# define SLEEP_TIME_MIN             1                           //The value that the user shall modify //TODO set to reasonable time
+# define SLEEP_TIME_MIN             1                          //The value that the user shall modify //TODO set to reasonable time
 #define  SLEEPS_UNTIL_DISP_UPDATE   2                           //Update display and send email after this
-#define  SLEEPS_UNTIL_EMAIL         50                          //Update display and send email after this
+#define  SLEEPS_UNTIL_EMAIL         60                          //Update display and send email after this
 # define SLEEP_TIME_SEC             SLEEP_TIME_MIN * 60.0 
 # define SLEEP_TIME_MICROS          SLEEP_TIME_SEC * 1000000.0 // ESP32 sleep function allows for a 64 bit int  (584,942 years)
 /**
@@ -223,6 +223,9 @@ class APP
         
         //TODO need to comment
         void state_handler (Preferences & pref, APP & app_instance );
+        
+        //TODO need to comment
+        void heartbeat_post( void );
 
 
         

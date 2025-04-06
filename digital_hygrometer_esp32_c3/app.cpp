@@ -50,7 +50,6 @@ void APP::state_handler(Preferences & pref, APP & app_instance )
         }
         this -> state = STATE_UPDATE_DISPLAY; 
         app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
-        
       }
       
       //                                         Value in uS  
@@ -102,12 +101,9 @@ void APP::state_handler(Preferences & pref, APP & app_instance )
       if(app_functions.calibration_just_occurred) 
       {
         app_functions.calibration_just_occurred = false;
-        app_functions.full_screen_refresh(pref);
       }
-      else{
-        app_functions.update_display(pref);
-      }
-    
+      
+      app_functions.full_screen_refresh(pref);
     
       if(app_instance.bool_send_email == true) 
       {
@@ -127,7 +123,10 @@ void APP::state_handler(Preferences & pref, APP & app_instance )
     break;
     
     case STATE_SEND_EMAIL:
-      if(ENABLE_LOGGING)
+    this -> state = STATE_SLEEP;
+    app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);  
+    
+    if(ENABLE_LOGGING)
       {
         Serial.println("^In state **send email**");
       }
@@ -171,9 +170,6 @@ void APP::state_handler(Preferences & pref, APP & app_instance )
         app_lan.WiFiConnect(app_ssid,app_wifi_pass);  
         app_lan.send_email(pref);
       }
-      
-      this -> state = STATE_SLEEP;
-      app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
     break;
     
     default:
@@ -192,6 +188,7 @@ void APP::display_post_message( void )
   }
 
   app_functions.display_power_on();
+  delay(250);
   
   paint.SetWidth(200);
   paint.SetHeight(36);
@@ -238,6 +235,7 @@ void APP::full_screen_refresh( Preferences & pref )
   epdif.hyg_spi_start();
 
   app_functions.display_power_on();
+  delay(250);
 
   paint.SetWidth(200); 
   paint.SetHeight(36); 
@@ -294,26 +292,6 @@ void APP::full_screen_refresh( Preferences & pref )
    */
   paint.eink_put_string_twoup(SW_VER_STRING);
 
-  /**
-   * Routein to update the 
-   * string at the bottom of
-   * the display 
-   */
-  memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  // get_battery_health();
-
-  
-  if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == VALID_CAL_VALUE)
-  {
-    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- VALID CAL",this -> battery_charge_percentage);
-    sprintf(app_temp_buffer,"BAT: %02d%% -- VALID CAL",app_i2c.batt_sen_soc(FILTERED));
-  }
-  else 
-  {
-    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- INVALID CAL",this -> battery_charge_percentage);
-    sprintf(app_temp_buffer,"BAT: %02d%% -- INVALID CAL",app_i2c.batt_sen_soc(FILTERED));
-  }
-  paint.eink_put_string_bottom(app_temp_buffer);
   
   /** 
    * Print the divider line 
@@ -327,6 +305,24 @@ void APP::full_screen_refresh( Preferences & pref )
   paint.DrawLine(3, 0, 4, 132, COLORED);
   epd.SetFrameMemory(paint.GetImage(), 100, 100, paint.GetWidth(), paint.GetHeight());
   
+  epd.DisplayFrame();
+  
+  /**
+   * Routein to update the 
+   * string at the bottom of
+   * the display 
+   */
+  memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
+  
+  if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == VALID_CAL_VALUE)
+  {
+    sprintf(app_temp_buffer,"BAT: %02d%% -- VALID CAL",app_i2c.batt_sen_soc(FILTERED));
+  }
+  else 
+  {
+    sprintf(app_temp_buffer,"BAT: %02d%% -- INVALID CAL",app_i2c.batt_sen_soc(FILTERED));
+  }
+  paint.eink_put_string_bottom(app_temp_buffer);
   epd.DisplayFrame();
   
   epdif.hyg_spi_end();
@@ -348,6 +344,7 @@ void APP::update_display( Preferences & pref )
   epdif.hyg_spi_start();
 
   app_functions.display_power_on();
+  delay(250);
 
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
   sprintf(app_temp_buffer,"%02d",(int)app_i2c.temp_val1);
@@ -453,6 +450,9 @@ bool APP::network_parameters_valid( void )
  */
 //TODO: this may need to move to the I2C routine
 //TODO can this go away now that we use the I2C routine?
+//TODO this fuction will be deprecated by the function that will 
+//TODO report the state of charge.  First, though, we need to make 
+//TODO sure that it is safe to remove this function
 void APP::get_battery_health (void) 
 {
   uint16_t    digital_reading       = 0;
@@ -593,6 +593,21 @@ void APP::button_handler ( void )
       Serial.println("^Button long press has been triggered -- calibrate sensors.");
     }
   }
+}
+
+void APP::heartbeat_post( void ) 
+{
+  digitalWrite(HEALTH_LED , LOW);   
+  delay(250);
+  digitalWrite(HEALTH_LED , HIGH);   
+  delay(250);
+  digitalWrite(HEALTH_LED , LOW);   
+  delay(250);
+  digitalWrite(HEALTH_LED , HIGH);   
+  delay(250);
+  digitalWrite(HEALTH_LED , LOW);   
+  delay(250);
+  digitalWrite(HEALTH_LED , HIGH);   
 }
 
 

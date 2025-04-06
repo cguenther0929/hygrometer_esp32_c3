@@ -105,7 +105,7 @@ void LAN::send_email ( Preferences & pref )
 
 
   lan_i2c.get_sensor_data(pref);  //TODO since the variables are now defined as static, I don't think we need this.  
-  lan_app.get_battery_health();
+  lan_app.get_battery_health(); //TODO we want to get the state of charge from the battery fuel gauge here
 
   SMTPSession smtp; 
 
