@@ -222,7 +222,10 @@ void setup()
   digitalWrite(HEALTH_LED, HIGH);
   
   pinMode(nSENSOR_PWR_EN,OUTPUT);
-  digitalWrite(nSENSOR_PWR_EN,HIGH);   // Default is to keep sensor power off 
+  digitalWrite(nSENSOR_PWR_EN,HIGH);    // Default is to keep sensor power off 
+  
+  pinMode(nGPIO_EN_PWR,OUTPUT);
+  digitalWrite(nGPIO_EN_PWR,LOW);      // Default is to keep GPIO power ON 
 
   Serial.println("===================================================");
   Serial.println("====================== Reset ======================");
@@ -313,6 +316,9 @@ void setup()
   // delay(250);
   // digitalWrite(HEALTH_LED , HIGH);   
   //TODO end of test code 
+
+  // main_i2c.io_set_o_port_to_inputs(); //TODO we need to remove this function from other locations
+  app.gpio_expander_on(); //TODO we may decide that we need to keep this on
 
 }
 

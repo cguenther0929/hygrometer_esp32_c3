@@ -31,13 +31,12 @@ void I2C::init( void ) {
 /**
  * the following is related to
  * the Fuel Gauge
+ * This function is to determine if the 
+ * battery IC is valid
  */
-// Initializes I2C and verifies communication with the BQ27441.
 bool I2C::batt_sen_is_valid(void)
 {
 	uint16_t deviceID = 0;
-	
-	// Wire.begin(); // Initialize I2C master
 	
 	deviceID = get_batt_sen_id(); // Read get_batt_sen_id from BQ27441
 	
@@ -150,10 +149,6 @@ bool I2C::batt_sen_write_ext_data(uint8_t classID, uint8_t offset, uint8_t * dat
 	return true;
 }
 
-//TODO I don't think we should have to pass anything 
-//TODO in here.  I think we just take contorl and be done
-//TODO with it
-// bool I2C::batt_sen_enter_config(bool userControl)
 bool I2C::batt_sen_enter_config( void )
 {
 	// if (userControl) _batt_sen_usr_ctrl = true;
@@ -384,9 +379,30 @@ void I2C::print16b_bin(uint16_t aByte)
     Serial.print('\n');
 }
 
-float I2C::new_battery_health( void ){
+//TODO need to remove
+// float I2C::new_battery_health( void ){
 
-}
+// }
+
+// void I2C::io_set_o_port_to_inputs( void )
+// {
+
+//     /**
+//      * Start the transaction with the 
+//      * IO expander -- the "O" ports are
+//      * defined as [8:15]
+//      */
+//     Wire.beginTransmission(IOEXPANDER_7B_8_15_ADDRESS); 
+    
+//     /**
+//      * Set all outputs to high
+//      * in order to set these IO to 
+//      * inputs. 
+//     */
+//    Wire.write(0xFF);        
+//    Wire.endTransmission();
+
+// }
 
 void I2C::set_io_expander(uint8_t io_num, bool level) 
 {
@@ -454,9 +470,18 @@ void I2C::set_io_expander(uint8_t io_num, bool level)
     current_value = Wire.read();  
 
     #if defined(ENABLE_LOGGING)
-        Serial.print("^GPIO Read --> ");
-        print8b_bin(current_value);
-        Serial.println(" ");
+        if(temp_address = IOEXPANDER_7B_0_7_ADDRESS )
+        {
+            Serial.print("^[7:0] GPIO Read --> ");
+            print8b_bin(current_value);
+            Serial.println(" ");
+        }
+        else
+        {
+            Serial.print("^[15:8] GPIO Read --> ");
+            print8b_bin(current_value);
+            Serial.println(" ");
+        }
     #endif
 
     /**

@@ -23,8 +23,8 @@
  * to the arduino function can be defined as 0101_0101 or
  * 0x55
  */
-#define IOEXPANDER_7B_0_7_ADDRESS           0x68
-#define IOEXPANDER_7B_8_15_ADDRESS          0x58
+#define IOEXPANDER_7B_0_7_ADDRESS           0x6D
+#define IOEXPANDER_7B_8_15_ADDRESS          0x5D
 
 /**
  * Fuel gauge
@@ -199,7 +199,8 @@ class I2C {
          * @param \p none 
          * @return Battery Capacity in Percent
          */
-        float new_battery_health( void );
+        //TODO need to remove
+        // float new_battery_health( void );
 
         /**
          * @brief Set IO expander output pin to defined level 
@@ -211,6 +212,8 @@ class I2C {
          */
         void set_io_expander (uint8_t io_num, bool level);
         
+        //tODO need to remove
+        // void io_set_o_port_to_inputs( void );
 
         /**
          * @brief Toggle IO expander

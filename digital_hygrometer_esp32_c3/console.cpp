@@ -26,7 +26,7 @@ float       temporary_voltage_value                     = 0.0;
  * Set to true to 
  * enable logging
  */
-#define ENABLE_LOGGING                true
+#define ENABLE_LOGGING                false     //TODO why are there two?  Can we rename this to CONSOLE_LOGGING
 
 void CONSOLE::init(void) //TODO REMOVE?
 {
@@ -144,8 +144,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
     
     while(user_option != 99)
     {
-
-
+        //TODO do we like the order of this?
         Serial.println("1)  Print SW version.");
         Serial.println("2)  Print HW version.");
         Serial.println("3)  To send test email.");
@@ -162,6 +161,10 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
         Serial.println("13) Overwrite relative humidity offsets.");
         Serial.println("14) Enter temperature offsets.");
         Serial.println("16) View BQ27427 flags.");
+        Serial.println("17) Turn display power ON.");
+        Serial.println("18) Turn display power OFF.");
+        Serial.println("19) Turn IO Expander ON.");
+        Serial.println("20) Turn IO Expander OFF.");
 
         Serial.println("99) To exit the console.");
 
@@ -201,8 +204,11 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_feeds(2);
                 insert_line_emphasis();
 
+                app_function.gpio_expander_on();
+                delay(10);
                 Serial.print("HW revision: ");
                 Serial.println(i2c_function.get_hw_revision()); 
+                app_function.gpio_expander_off();
 
 
                 insert_line_emphasis();
@@ -492,6 +498,9 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
+                
+                app_function.gpio_expander_on();
+                delay(10);
 
                 if(i2c_function.charging_is_active())
                 {
@@ -501,6 +510,8 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 {
                     Serial.println("Charging inactive");  
                 }
+
+                app_function.gpio_expander_off();
                 
                 insert_line_emphasis();
                 insert_line_feeds(2);
@@ -824,6 +835,66 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_feeds(2);
             break;
             
+            /************************************/
+            /* Turn display power ON
+            /************************************/
+            case 17:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+
+                app_function.gpio_expander_on();
+                delay(10);
+                i2c_function.set_io_expander(1, false);    // Power EN is active low 
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                break;
+                
+                /************************************/
+                /* Turn display power OFF
+                /************************************/
+                case 18:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                i2c_function.set_io_expander(1, true);    // Power EN is active low 
+                app_function.gpio_expander_off();
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                break;
+                
+            /************************************/
+            /* Turn GPIO Expander ON
+            /************************************/
+            case 19:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+    
+                app_function.gpio_expander_on();
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+            break;
+            
+            /************************************/
+            /* Turn GPIO Expander OFF
+            /************************************/
+            case 20:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+    
+                app_function.gpio_expander_off();
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+            break;
+
+
             /************************************/
             /* Exit the application */
             /************************************/

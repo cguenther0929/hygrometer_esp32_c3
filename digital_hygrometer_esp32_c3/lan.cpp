@@ -21,8 +21,9 @@ APP   lan_app;
 
 void LAN::init(void) 
 {
-    //TODO: Let's just put a print here with inclusion guards
-    __asm__("nop\n\t");  //TODO: we need to do something different here
+  if(WIFI_LOGGING) {
+    Serial.println("^LAN initalized");
+  }
 
 }
 
@@ -84,28 +85,15 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
 /**
  * @brief Send the email
  * 
- * TODO: need to delete the following note:
- * This seems like a great tutorial 
- * https://randomnerdtutorials.com/esp32-send-email-smtp-server-arduino-ide/#send-email
- * 
- * The code here compiled on 11/9/24
- * C:\Users\Neal Quackenbush\Dropbox\My Design Projects\Projects\Digital Hygrometer\DESIGN\
- * SW\Email Sender ESP32 NOV 2024\email_sender_esp32_nov_2024
- * 
  * An app password was has been added to the 
- * clinton.debug@gmail.com account
- * thus allowing Gmail to be used.
- * 
- * The app password given was:  gvik uoit bdja grxu
- * 
+ * email account thus allowing Gmail to be used.
  * 
  */
 void LAN::send_email ( Preferences & pref )
 {
 
 
-  lan_i2c.get_sensor_data(pref);  //TODO since the variables are now defined as static, I don't think we need this.  
-  lan_app.get_battery_health(); //TODO we want to get the state of charge from the battery fuel gauge here
+  lan_i2c.get_sensor_data(pref);  
 
   SMTPSession smtp; 
 
@@ -137,7 +125,6 @@ void LAN::send_email ( Preferences & pref )
    */
   memset(lan_buffer, NULL, sizeof(lan_buffer));
   
-  // config.login.email        = AUTHOR_EMAIL;
   lan_nvm.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, lan_buffer);
   config.login.email        = lan_buffer;
   
@@ -146,7 +133,6 @@ void LAN::send_email ( Preferences & pref )
    * Clear the temporary buffer
    */
   memset(lan_buffer, NULL, sizeof(lan_buffer));
-  // config.login.password     = AUTHOR_PASSWORD;
   lan_nvm.nvm_read_string(pref, PREF_EMAIL_AUTHOR_PASSWORD_KEY, lan_buffer);
   config.login.password     = lan_buffer;
   config.login.user_domain  = "";
@@ -173,9 +159,9 @@ void LAN::send_email ( Preferences & pref )
  lan_nvm.nvm_read_string(pref, PREF_EMAIL_AUTHOR_KEY, lan_buffer);
  
  /* Set the message headers */
- message.sender.name = F("Hygrometer Test");
+ message.sender.name = F("~~Hygrometer~~");
  message.sender.email = lan_buffer;
- message.subject = F("ESP Test Email");
+ message.subject = F("Hygrometer Update");
  
  /**
   * Clear the temporary buffer
@@ -191,7 +177,7 @@ void LAN::send_email ( Preferences & pref )
  textMsg += "Humidity 2:" + String(lan_i2c.hum_val2) + " %\n";
  textMsg += "Temp 1:" + String(lan_i2c.temp_val1) + " F \n";
  textMsg += "Temp 2:" + String(lan_i2c.temp_val2) + " F \n";
- textMsg += "Battery:" + String(lan_app.battery_charge_percentage) + " %\n";
+ textMsg += "Battery:" + String(lan_i2c.batt_sen_soc(FILTERED)) + " %\n";
  textMsg += "Software Version: " + String(SW_VER_STRING) + "\n";
 
  message.text.content = textMsg.c_str();

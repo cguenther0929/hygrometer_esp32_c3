@@ -85,8 +85,6 @@ void APP::state_handler(Preferences & pref, APP & app_instance )
       
       app_i2c.get_sensor_data(pref);    //This will get the data from both sensors.  Values are stored into class variables
       
-      app_functions.get_battery_health(); // Will store into class variable.
-    
     
       this -> state = STATE_UPDATE_DISPLAY;
       app_nvm.nvm_store_byte(pref, PREF_STATE, app_instance.state);
@@ -308,7 +306,7 @@ void APP::full_screen_refresh( Preferences & pref )
   epd.DisplayFrame();
   
   /**
-   * Routein to update the 
+   * Routine to update the 
    * string at the bottom of
    * the display 
    */
@@ -329,7 +327,7 @@ void APP::full_screen_refresh( Preferences & pref )
   
   epd.Sleep();
 
-  app_functions.display_power_off();
+  app_functions.display_power_off(); 
 }
         
 void APP::update_display( Preferences & pref )
@@ -383,13 +381,9 @@ void APP::update_display( Preferences & pref )
    * the display 
    */
   memset(app_temp_buffer, NULL, sizeof(app_temp_buffer));
-  // get_battery_health();
 
-  // app_i2c.batt_sen_soc(FILTERED);
-  
   if(app_nvm.nvm_read_int(pref, PREF_CAL_KEY) == VALID_CAL_VALUE)
   {
-    // sprintf(app_temp_buffer,"BAT: %0.2f%% -- VALID CAL",this -> battery_charge_percentage);
     sprintf(app_temp_buffer,"BAT: %02d%% -- VALID CAL",app_i2c.batt_sen_soc(FILTERED));
   }
   else 
@@ -408,86 +402,7 @@ void APP::update_display( Preferences & pref )
   app_functions.display_power_off();
 
 }
-        
-bool APP::network_parameters_valid( void )
-        {
-          
-          // network_info network_info;
-          
-          
-          /**
-           * If the first characters 
-     * of the various network parameters are 
-     * non-null, the routine will assume the parameters are 
-     * valid
-     */
-    // if (network_info.hyg_name[0] = NULL)
-    // {
-    //     return false;
-    // }
-    // if (network_info.wifi_ssid[0] = NULL)
-    // {
-    //     return false;
-    // }
-    // if (network_info.wifi_password[0] = NULL)
-    // {
-    //     return false;
-    // }
-    // if (network_info.recipient_email_address[0] = NULL)
-    // {
-    //     return false;
-    // }
-    // if (network_info.sender_email_address[0] = NULL)
-    // {
-    //     return false;
-    // }
-    return true;
-
-}
-
-/**
- * @brief Get Battery Voltage
- */
-//TODO: this may need to move to the I2C routine
-//TODO can this go away now that we use the I2C routine?
-//TODO this fuction will be deprecated by the function that will 
-//TODO report the state of charge.  First, though, we need to make 
-//TODO sure that it is safe to remove this function
-void APP::get_battery_health (void) 
-{
-  uint16_t    digital_reading       = 0;
-  float       voltage_reading       = 0.0;
-  float       temp_reading          = 0.0;
-  float       temp_sensor_xfer      = 0.0;
-
-  /**
-   * The ESP32-C3's A/D is 12 bit.
-   * 
-   * Other useful functions:
-   * analogSetAttenuation(attenuation): sets the input
-   * attenuation for all ADC pins. Default is ADC_11db.
-   * Accepted values:
-   * ADC_0db: sets no attenuation. ADC can measure up to
-   * approximately 800 mV (1V input = ADC reading of 1088).
-   * ADC_2_5db: The input voltage of ADC will be attenuated, 
-   * ADC_6db: The input voltage of ADC will be attenuated, 
-   * ADC_11db: The input voltage of ADC will be attenuated, 
-   */
-
-  analogSetAttenuation(ADC_11db);
-
-  digital_reading = analogRead(ANALOG_BATT_PIN);
-
-  voltage_reading = (float)(digital_reading * HYG_ADC_REFERENCE);        // Internal reference of the ADC is ~1.1V
-  voltage_reading = (float)(voltage_reading / HYG_ADC_BIT_VALUE);      // The ESP32-C3 ADC is 12bit
-  voltage_reading = (float)(voltage_reading * HYG_ESP32_INTERNAL_ATTEN);        //  ESP32-C3 internal attenuation (Empirically derived)
-  voltage_reading = (float)(voltage_reading * HYG_PCB_ATTEN);       // To account for the attenuator on the PCB
-  
-  // this -> battery_charge_percentage = voltage_reading;
-  this -> battery_charge_percentage = 75.33;  //TODO hardcoded number, for now
-
-}
-
+ 
 void APP::sensor_power_on(void)
 {
     digitalWrite(nSENSOR_PWR_EN , LOW);   
@@ -500,13 +415,25 @@ void APP::sensor_power_off(void)
 
 void APP::display_power_on( void )
 {
+  gpio_expander_on();   
+  delay(10);
   app_i2c.set_io_expander(1, false);    // Power EN is active low 
 }
 
 void APP::display_power_off( void )
 {
   app_i2c.set_io_expander(1, true);     // Power EN is active low 
+  gpio_expander_off();                //If the display power is off, the GPIO expander can be off
+}
 
+void APP::gpio_expander_on( void )
+{
+  digitalWrite(nGPIO_EN_PWR,LOW);      
+}
+
+void APP::gpio_expander_off( void )
+{
+  digitalWrite(nGPIO_EN_PWR,HIGH);      
 }
 
 void APP::button_handler ( void )

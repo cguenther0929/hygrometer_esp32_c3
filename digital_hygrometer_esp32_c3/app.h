@@ -46,7 +46,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.8" 
+#define     SW_VER_STRING       "0.2.9" 
 // ==============================
 // ==============================
 
@@ -57,22 +57,27 @@
  * 35 minutes.  
  */
 //TODO these need to be set to reasonable times
-# define SLEEP_TIME_MIN             1                          //The value that the user shall modify //TODO set to reasonable time
-#define  SLEEPS_UNTIL_DISP_UPDATE   2                           //Update display and send email after this
-#define  SLEEPS_UNTIL_EMAIL         60                          //Update display and send email after this
-# define SLEEP_TIME_SEC             SLEEP_TIME_MIN * 60.0 
-# define SLEEP_TIME_MICROS          SLEEP_TIME_SEC * 1000000.0 // ESP32 sleep function allows for a 64 bit int  (584,942 years)
+# define SLEEP_TIME_MIN               30                          //The value that the user shall modify (max is 35 min?). 
+# define  SLEEPS_UNTIL_DISP_UPDATE    2                           // update the display after this many sleeps 
+# define  SLEEPS_UNTIL_EMAIL          12                          // Send an email after this many sleeps 
+# define SLEEP_TIME_SEC               SLEEP_TIME_MIN * 60.0 
+# define SLEEP_TIME_MICROS            SLEEP_TIME_SEC * 1000000.0  // ESP32 sleep function allows for a 64 bit int  (584,942 years)
+
 /**
  * Set to true to 
  * enable logging
  */
-#define ENABLE_LOGGING          true
+#define ENABLE_LOGGING          false
 
 /**
  * Health LED
  */
 #define HEALTH_LED              10
 
+/**
+ * GPIO Power Enable Pin
+ */
+#define nGPIO_EN_PWR            0
 
 /**
  * Serial parameters
@@ -194,26 +199,19 @@ class APP
          * @return nothing
          */
         void update_display( Preferences & pref );
-        
-        /**
-         * @brief Determins if network parameters are valid 
-         * @param \p none 
-         * @return bool
-         */
-        bool network_parameters_valid( void );
-
-        /**
-         * @brief Get battery voltage  
-         * @param \p none 
-         * @return float value of battery voltage
-         */
-        void get_battery_health ( void ); 
 
         //TODO need to comment
         void display_power_on( void );
 
         //TODO need to comment
         void display_power_off( void );
+        
+        //TODO need to comment
+        void gpio_expander_on( void );
+        
+        //TODO need to comment
+        void gpio_expander_off( void );
+
         /**
          * @brief Handle button press   
          * @param \p none 
