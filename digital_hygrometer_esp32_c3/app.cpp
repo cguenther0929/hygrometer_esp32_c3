@@ -74,9 +74,9 @@ void APP::state_handler(Preferences & pref, APP & app_instance )
        */
     break;
     
-    //TODO This state is not being called, for now.  
-    //TODO The data is read when updating the 
-    //TODO display or sending an email 
+    // This state is not being called, for now.  
+    // The data is read when updating the 
+    // display or sending an email 
     case STATE_READ_DATA:   
       if(ENABLE_LOGGING)
       {

@@ -6,7 +6,6 @@ char        nvm_buffer[PREF_BUFF_ELEMENTS]             = {NULL};
 
 void NVM::init(void) 
 {
-    __asm__("nop\n\t"); //TODO I think we can just remove this line and leave this function empty
 }
 
 /**
@@ -189,11 +188,6 @@ bool NVM::network_valid(Preferences & pref) {
     }
  
     return true;
-}
-
-void NVM::load_network_parameters (void) {  //TODO can we remove this?
-
-}
-    
+}   
 
 

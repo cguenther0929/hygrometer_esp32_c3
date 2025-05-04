@@ -23,8 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  * 
- * TODO the SW version needs to come across in email. 
- * TODO need to get the calibration routine working
  */
 
 
@@ -75,7 +73,7 @@ char rx_char                          = '\n';
 /**
  * Time structure 
  */
-hw_timer_t *Hyg_Tmr = NULL;     //TODO can we rename this?
+hw_timer_t *Hyg_Tmr = NULL;     
 
 I2C     main_i2c;
 CONSOLE app_console;
@@ -227,10 +225,6 @@ void setup()
   pinMode(nGPIO_EN_PWR,OUTPUT);
   digitalWrite(nGPIO_EN_PWR,LOW);      // Default is to keep GPIO power ON 
 
-  Serial.println("===================================================");
-  Serial.println("====================== Reset ======================");
-  Serial.println("===================================================");
-  
   /**
    * @brief Define IO interrupt for push button input 
    */
@@ -247,16 +241,17 @@ void setup()
    * It's unclear if allowing the processor to be
    * awoken from deep sleep in this manner eats more 
    * power. 
-   * TODO If the mask version is used, the device will almost 
-   * TODO immediately wake up (BAD).  The third option allows for 
-   * TODO proper sleep operation, however, that routine doesn't
-   * TODO wake up the processor like we want.  
-   * TODO I also learned that the ESP32C3 does not support 
-   * TODO RTC wakeup, so we need to be careful when pulling examples
-   * TODO from online
-   * TODO The ESP32 Wiki mentions that GPIO wakeup is for ***light sleep***
-   * TODO If we want to wake the processor from deep sleep, then
-   * TODO we'll have to use a different processor
+   * 
+   * If the "mask" version is used, the device will almost 
+   * immediately wake up (BAD).  The third option allows for 
+   * proper sleep operation, however, that routine doesn't
+   * wake up the processor like we want.  
+   * I also learned that the ESP32C3 does not support 
+   * RTC wakeup, so we need to be careful when pulling examples
+   * from online
+   * The ESP32 Wiki mentions that GPIO wakeup is for ***light sleep***
+   * If we want to wake the processor from deep sleep, then
+   * we'll have to use a different processor
    */
   //                                  A mask value needs to be passed in (empirically found to be one-based)
   //                                     |                  Parameter for the input signal   
@@ -303,22 +298,7 @@ void setup()
    * function
    */
 
-  //TODO the following is in just for testing
-  // digitalWrite(HEALTH_LED , LOW);   
-  // delay(250);
-  // digitalWrite(HEALTH_LED , HIGH);   
-  // delay(250);
-  // digitalWrite(HEALTH_LED , LOW);   
-  // delay(250);
-  // digitalWrite(HEALTH_LED , HIGH);   
-  // delay(250);
-  // digitalWrite(HEALTH_LED , LOW);   
-  // delay(250);
-  // digitalWrite(HEALTH_LED , HIGH);   
-  //TODO end of test code 
-
-  // main_i2c.io_set_o_port_to_inputs(); //TODO we need to remove this function from other locations
-  app.gpio_expander_on(); //TODO we may decide that we need to keep this on
+  app.gpio_expander_on(); 
 
 }
 
@@ -330,13 +310,19 @@ void loop()
 
   if(rtc_boot_ctr == 0)   
   {
+    Serial.println("====================== Reset ======================");
+    
     if (ENABLE_LOGGING)
     {
       Serial.println("^Boot count is 0");
       
-      main_i2c.temp_offset = nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET1); //TODO 1 and 2 uses the same offset
+      main_i2c.temp_offset = nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET); 
       Serial.print("^Temp offset: ");
       Serial.println(main_i2c.temp_offset);
+      
+      main_i2c.rh_offset = nvm_functions.nvm_get_float(pref,PREF_RH_OFFSET);   
+      Serial.print("^RH offset: ");
+      Serial.println(main_i2c.rh_offset);
       
       Serial.println("^Printing splash screen.");
     }
@@ -364,8 +350,6 @@ void loop()
     
     main_i2c.batt_sen_set_capacity(BATTERY_CAPACITY);  //Capacity is in mA
 
-    //TODO I think the BAT_DET flag needs to be set to tell the gauge that a battery is present
-    //TODO there is two steps to this.  The second step would be issuing the BAT_INSERT command
     rtc_boot_ctr++;
   }
   
@@ -436,7 +420,7 @@ void loop()
     if(Timer100msFlag == true) 
     {
       Timer100msFlag = false;
-      if(app.calibrate_sensors == true)  //TODO need code here
+      if(app.calibrate_sensors == true)  
       {
         app.calibrate_sensors = false;
         if(ENABLE_LOGGING)
@@ -476,16 +460,9 @@ void loop()
       }
 
       /* The following is nice for longer delays */
-      if(app.seconds_counter >= 30)  //TODO probably need to remove / rework the following
+      if(app.seconds_counter >= 30)  
       {
-        if(ENABLE_LOGGING)
-        {
-          Serial.println("^Screen refresh");
-        }
-        // app.seconds_counter = 0;
-        // main_i2c.get_sensor_data(pref);
-        // app.full_screen_refresh( pref ); 
-
+        app.seconds_counter = 0;
 
       }
     } /* IF Timer1000msFlag */

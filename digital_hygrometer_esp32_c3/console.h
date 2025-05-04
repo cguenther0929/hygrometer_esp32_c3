@@ -15,8 +15,6 @@
 #define SERIAL_STRING_TIMEOUT_MSX10          300
 
 
-// TODO: do we need to comment functions?
-
 class CONSOLE {
     public:
 
@@ -39,14 +37,22 @@ class CONSOLE {
         /**
          * @brief Get number input from user (0-255)
          * @param \p none 
-         * @return users input
+         * @return the int value that the user entered
          */
         uint8_t get_user_uint8t_value ( void );
-
-       //TODO need to comment 
+        
+        /**
+         * @brief Get float input from user
+         * @param \p none 
+         * @return the float value that the user entered
+         */
         float get_user_float_value( void );
-
-       //TODO need to comment 
+        
+        /**
+         * @brief Get character input from user
+         * @param \p none 
+         * @return the character buffer as defined by the user
+         */
        void get_char_buffer_from_user(char * temp_buffer);
 
         /**

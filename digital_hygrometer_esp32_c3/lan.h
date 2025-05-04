@@ -8,8 +8,6 @@
 #include "i2c.h"
 #include "app.h"
 
-// TODO: do we need to comment functions?
-
 /**
  * WiFi and Email 
  * Related 

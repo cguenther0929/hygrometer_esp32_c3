@@ -26,13 +26,12 @@ float       temporary_voltage_value                     = 0.0;
  * Set to true to 
  * enable logging
  */
-#define ENABLE_LOGGING                false     //TODO why are there two?  Can we rename this to CONSOLE_LOGGING
+#define CONSOLE_LOGGING                false    
 
-void CONSOLE::init(void) //TODO REMOVE?
+void CONSOLE::init(void) 
 {
 
 }
-
 
  void CONSOLE::flush_serial_input_buffer( void )
  {
@@ -88,10 +87,8 @@ void CONSOLE::get_char_buffer_from_user(char * char_buffer)
     while (Serial.available() <= 0);    // Pause until we start receiving data
     received_char = Serial.read();
     
-    while (received_char != 0x0D && index < 255) //TODO need to allow the enter key to terminate this
+    while (received_char != 0x0D && index < 255)
     {
-        // Serial.print("***DEBUG char received: ");
-        // Serial.println(received_char);
         char_buffer[index] = received_char;
         delay(10);
         index++;
@@ -99,9 +96,6 @@ void CONSOLE::get_char_buffer_from_user(char * char_buffer)
         received_char = Serial.read();
     }
 
-    // Serial.print("***DEBUG entered: ");
-    // Serial.println(char_buffer);
-    
 }
 
 void CONSOLE:: insert_line_feeds( uint8_t spaces ) 
@@ -130,21 +124,15 @@ void CONSOLE::insert_line_emphasis( void )
     Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~");     //Send the rest of the sequence to clear the screen
 }
 
-void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this was the original line
+void CONSOLE::console ( Preferences & pref, APP & app_instance )  
 {
 
     String test_read_string = "";
-
-    const char buff_string_to_store[5] = {'T','E','S','T',NULL};  //TODO this is in just for testing
-
-    char buffer_for_readback[32] = {NULL};  //TODO this is in just for testing
-    uint8_t temp_value = 0x00;  //TODO this is for testing only
 
     clear_screen(); //Don't want to run insid the while  
     
     while(user_option != 99)
     {
-        //TODO do we like the order of this?
         Serial.println("1)  Print SW version.");
         Serial.println("2)  Print HW version.");
         Serial.println("3)  To send test email.");
@@ -157,9 +145,9 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
         Serial.println("10) Read the busy input as sourced by the display.");
         Serial.println("11) Look at charge enable bit.");
         Serial.println("12) Enther network parameters.");
-        Serial.println("15) Enable/disable email sending.");
         Serial.println("13) Overwrite relative humidity offsets.");
         Serial.println("14) Enter temperature offsets.");
+        Serial.println("15) Enable/disable email sending.");
         Serial.println("16) View BQ27427 flags.");
         Serial.println("17) Turn display power ON.");
         Serial.println("18) Turn display power OFF.");
@@ -174,7 +162,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
 
         user_option = get_user_uint8t_value();  
 
-        if(ENABLE_LOGGING)      // TODO:  I think we want to make this a variable up in main .ino so we can use extern here...
+        if(CONSOLE_LOGGING)      
         {
             Serial.print("^User entered option: ");
             Serial.println(user_option);
@@ -271,11 +259,8 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_feeds(2);
                 insert_line_emphasis();
 
-                Serial.print("Value stored for RH offset **1**: ");
-                Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET1));
-                
-                Serial.print("Value stored for RH offset **2**: ");
-                Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET2));
+                Serial.print("Value stored for RH offset: ");
+                Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET));
                 
                 insert_line_emphasis();
                 insert_line_feeds(2);
@@ -545,7 +530,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 get_char_buffer_from_user(console_buffer);
                 Serial.println();
                 
-                if(ENABLE_LOGGING)
+                if(CONSOLE_LOGGING)
                 {
                     Serial.print("^User entered: ");
                     Serial.println(console_buffer);
@@ -569,7 +554,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 get_char_buffer_from_user(console_buffer);
                 Serial.println();
                 
-                if(ENABLE_LOGGING)
+                if(CONSOLE_LOGGING)
                 {
                     Serial.print("^User entered: ");
                     Serial.println(console_buffer);
@@ -594,7 +579,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 get_char_buffer_from_user(console_buffer);
                 Serial.println();
 
-                if(ENABLE_LOGGING)
+                if(CONSOLE_LOGGING)
                 {
                     Serial.print("^User entered: ");
                     Serial.println(console_buffer);
@@ -618,7 +603,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 get_char_buffer_from_user(console_buffer);
                 Serial.println();
 
-                if(ENABLE_LOGGING)
+                if(CONSOLE_LOGGING)
                 {
                     Serial.print("^User entered: ");
                     Serial.println(console_buffer);
@@ -641,7 +626,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 get_char_buffer_from_user(console_buffer);
                 Serial.println();
 
-                if(ENABLE_LOGGING)
+                if(CONSOLE_LOGGING)
                 {
                     Serial.print("^User entered: ");
                     Serial.println(console_buffer);
@@ -656,6 +641,81 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_feeds(2);
                 
             }
+            break;
+
+            /************************************/
+            /* Overwrite RH Offset Values */
+            /************************************/
+            case 13:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+
+                Serial.println("User wishes to overwrite relative humidity offset values.");
+                Serial.println("Relative humidity offset values are positive numbers.");
+                Serial.print("Are you absolutely sure you want to do this (y/n): ");
+                get_char_buffer_from_user(console_buffer);
+                Serial.println('\n');
+                
+                
+                if(console_buffer[0] == 'y' || console_buffer[0] =='Y')
+                {
+                    Serial.println("User is proceeding with overwriting relative humidity offset values.");
+                    Serial.print("Enter the value for how low (value is percent) RH is: ");
+                    temp_float = get_user_float_value();
+                    Serial.println();
+                    nvm_function.nvm_store_float(pref, PREF_RH_OFFSET, temp_float);
+                    
+                    nvm_function.nvm_store_int(pref, PREF_CAL_KEY, VALID_CAL_VALUE);
+                    app_instance.calibration_just_occurred = true;
+                }
+                
+                if(CONSOLE_LOGGING)
+                {
+                    Serial.print("^Value entered for RH offset: ");
+                    Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET));
+                }
+
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                break;
+                
+            /************************************/
+            /* Enter Temperature Offsets */
+            /************************************/
+            case 14:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+                
+                /**
+                 * Clear the temporary buffer
+                 */
+                memset(console_buffer, NULL, sizeof(console_buffer));
+
+                Serial.println("User wishes to enter temperature offsets.");
+                
+                Serial.print("Enter the offset value for temperature (two will be set to the same): ");
+                temp_float = get_user_float_value();
+                Serial.println();
+                nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET, temp_float);
+                
+                i2c_function.temp_offset = temp_float;
+                
+                if(CONSOLE_LOGGING)
+                {
+                    Serial.print("^Value entered for temp offset: ");
+                    Serial.println(nvm_function.nvm_get_float(pref,PREF_TEMP_OFFSET));
+                }
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
             break;
 
             /************************************/
@@ -705,94 +765,6 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )  //TODO this wa
                 insert_line_emphasis();
                 insert_line_feeds(2);
                 break;
-
-            /************************************/
-            /* Overwrite RH Offset Values */
-            /************************************/
-            case 13:
-                clear_screen();
-                insert_line_feeds(2);
-                insert_line_emphasis();
-                
-                /**
-                 * Clear the temporary buffer
-                 */
-                memset(console_buffer, NULL, sizeof(console_buffer));
-
-                Serial.println("User wishes to overwrite relative humidity offset values.");
-                Serial.println("Relative humidity offset values are positive numbers.");
-                Serial.print("Are you absolutely sure you want to do this (y/n): ");
-                get_char_buffer_from_user(console_buffer);
-                Serial.println('\n');
-                
-                
-                if(console_buffer[0] == 'y' || console_buffer[0] =='Y')
-                {
-                    Serial.println("User is proceeding with overwriting relative humidity offset values.");
-                    Serial.print("Enter the value for how low (value is percent) RH **1** is: ");
-                    temp_float = get_user_float_value();
-                    Serial.println();
-                    nvm_function.nvm_store_float(pref, PREF_RH_OFFSET1, temp_float);
-
-                    Serial.print("Enter the value for how low (value is percent) RH **2** is: ");
-                    temp_float = get_user_float_value();
-                    Serial.println('\n');
-                    nvm_function.nvm_store_float(pref, PREF_RH_OFFSET2, temp_float);
-
-                    nvm_function.nvm_store_int(pref, PREF_CAL_KEY, VALID_CAL_VALUE);
-                    app_instance.calibration_just_occurred = true;
-                }
-                
-                if(ENABLE_LOGGING)
-                {
-                    Serial.print("^Value entered for RH **1**: ");
-                    Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET1));
-                    
-                    Serial.print("^Value entered for RH **2**: ");
-                    Serial.println(nvm_function.nvm_get_float(pref,PREF_RH_OFFSET2));
-                }
-
-                
-                insert_line_emphasis();
-                insert_line_feeds(2);
-                break;
-                
-            /************************************/
-            /* Enter Temperature Offsets */
-            /************************************/
-            case 14:
-                clear_screen();
-                insert_line_feeds(2);
-                insert_line_emphasis();
-                
-                /**
-                 * Clear the temporary buffer
-                 */
-                memset(console_buffer, NULL, sizeof(console_buffer));
-
-                Serial.println("User wishes to enter temperature offsets.");
-                
-                Serial.print("Enter the offset value for temperature (two will be set to the same): ");
-                temp_float = get_user_float_value();
-                Serial.println();
-                nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET1, temp_float);
-                nvm_function.nvm_store_float(pref, PREF_TEMP_OFFSET2, temp_float);
-                
-                i2c_function.temp_offset = temp_float;
-                
-                if(ENABLE_LOGGING)
-                {
-                    Serial.print("^Value entered for temp offset **1**: ");
-                    Serial.println(nvm_function.nvm_get_float(pref,PREF_TEMP_OFFSET1));
-                    
-                    Serial.print("^Value entered for temp offset **2**: ");
-                    Serial.println(nvm_function.nvm_get_float(pref,PREF_TEMP_OFFSET2));
-                }
-                
-                insert_line_emphasis();
-                insert_line_feeds(2);
-            break;
-
             
             /************************************/
             /* Read the flags of the fuel gauge */

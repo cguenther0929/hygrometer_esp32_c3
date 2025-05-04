@@ -6,8 +6,6 @@
 #include "bq2742.h"
 
 
-// TODO: do we need to comment functions?
-
 /**
  * Note, for I2C addresses, 
  * only the base address should be considered
@@ -43,9 +41,7 @@
 /**
  * Sensor parameters 
  */
-//TODO: need a better comment here
-//TODO: 8'b1000000x -> right shifted -> 0100|0000
-#define SI7020_BASE_ADDRESS             0x40       
+#define SI7020_BASE_ADDRESS             0x40       // This is right-shifted before divulging the address
 
 #define SI7020_MEAS_HUM_HOLD_MASTER     0xE5        // Allows clock stretching
 #define SI7020_MEAS_HUM_NO_HOLD         0xF5
@@ -88,8 +84,6 @@ typedef enum {
 class I2C {
     private:
         uint8_t sensor_number   = 0;
-        uint8_t rhoffset_1      = 0;
-        uint8_t rhoffset_2      = 0;
         uint8_t _batt_sen_address;  // Stores the BQ27441-G1A's I2C address
 	    bool _batt_sen_seal_flag; // Global to identify that IC was previously sealed
 	    bool _batt_sen_usr_ctrl; // Global to identify that user has control over 
@@ -97,14 +91,19 @@ class I2C {
 
     public:
         
-        float    hum_val1        = 0.0;
-        float    temp_val1       = 0.0;
-        float    hum_val2        = 0.0;
-        float    temp_val2       = 0.0;
-        float    temp_offset     = 0.0;
+        float    hum_val1           = 0.0;
+        float    temp_val1          = 0.0;
+        float    hum_val2           = 0.0;
+        float    temp_val2          = 0.0;
+        float    temp_offset        = 0.0;
+        float    rh_offset          = 0.0;
 
-        //TODO need to comment
-        I2C();  //TODO this is the constructor
+        /**
+         * @brief I2C constructor function
+         * @param \p none 
+         * @return nothing
+         */
+        I2C();  
         
         /**
          * @brief I2C init function
@@ -112,96 +111,189 @@ class I2C {
          * @return nothing
          */
         void init( void );
-
         
-        //TODO need to comment
+        /**
+         * @brief Determine if the battery sensor is valid
+         * @param \p none 
+         * @return True or False
+         */
         bool batt_sen_is_valid( void );
         
-        //TODO need to comment
+        /**
+         * @brief Get the ID of the battery sensor
+         * @param \p none 
+         * @return Battery sensor's UINT16 ID 
+         */
         uint16_t get_batt_sen_id(void );
         
-        //TODO need to comment
+        /**
+         * @brief Get the control word of the battery sensor
+         * @param \p none 
+         * @return Battery sensor's UINT16 control word
+         */
         uint16_t get_batt_sen_ctrl_word( uint16_t function );
         
-        //TODO need to comment 
-        uint16_t batt_sen_write_bytes( uint8_t subAddress, uint8_t * src, uint8_t count );
+        /**
+         * @brief Wrapper function for sending bytes to the battery sensor
+         * @param \p Address \p Data Array \p Number of bytes to send  
+         * @return True if successful
+         */
+        bool batt_sen_write_bytes( uint8_t subAddress, uint8_t * src, uint8_t count );
         
-        //TODO need to comment 
-        uint16_t batt_sen_read_bytes( uint8_t subAddress, uint8_t * dest, uint8_t count );
+        /**
+         * @brief Wrapper function for reading bytes from the battery sensor
+         * @param \p Address \p Data Array \p Number of bytes to read  
+         * @return True if successful
+         */
+        bool batt_sen_read_bytes( uint8_t subAddress, uint8_t * dest, uint8_t count );
         
-        //TODO need to comment 
+        /**
+         * @brief Set the capacity of the battery
+         * @param \p Capacity 
+         * @return True if successful
+         */
         bool batt_sen_set_capacity( uint16_t capacity );
         
-        //TODO need to comment 
+        /**
+         * @brief Write extended data to the fuel gauge
+         * @param \p Class ID \p Data Offset \p Poiter to Data \p Length of data  
+         * @return True if successful
+         */
         bool batt_sen_write_ext_data( uint8_t classID, uint8_t offset, uint8_t * data, uint8_t len );
         
-        //TODO need to comment 
-        // bool batt_sen_enter_config( bool userControl );
+        /**
+         * @brief Enter into the configuration mode of the battery
+         * @param \p none 
+         * @return True if successful
+         */
         bool batt_sen_enter_config( void );
         
-        //TODO need to comment 
+        /**
+         * @brief Tell the fuel gauge which class we wish to communicate with
+         * @param \p Class ID 
+         * @return True if successful
+         */
         bool batt_sen_block_data_class( uint8_t id );
         
-        //TODO need to comment 
+        /**
+         * @brief Enable writing block data to the fuel gauge
+         * @param \p none 
+         * @return True if successful
+         */
         bool batt_sen_block_data_control( void );
         
-        //TODO need to comment 
+        /**
+         * @brief Seal the battery sensor
+         * @param \p none 
+         * @return True if successful
+         */
         bool batt_sen_sealed(void);
         
-        //TODO need to comment 
+        /**
+         * @brief Get the status word from the fuel gauge
+         * @param \p none 
+         * @return Status word
+         */
         uint16_t batt_sen_status(void);
         
-        //TODO need to comment 
+        /**
+         * @brief Read the contorl word from the fuel gauge
+         * @param \p Function -- type of status to read 
+         * @return Control Word (which one is defined by user)
+         */
         uint16_t batt_sen_read_ctrl_word(uint16_t function);
         
-        //TODO need to comment 
+        /**
+         * @brief Write extended control word to the fuel gauge.  
+         * @param \p Function -- type of status to write 
+         * @return True if successful
+         */
         bool batt_sen_exe_control_word( uint16_t function );
         
-        //TODO need to comment 
+        /**
+         * @brief Exit the configuration mode of the battery sensor
+         * @param \p none 
+         * @return True if successful
+         */
         bool batt_sen_exit_config( bool resim = true );
         
-        //TODO need to comment 
+        /**
+         * @brief Define the offset amount before writing to the fuel gauge
+         * @param \p Offset -- data offset value 
+         * @return True if successful
+         */
         bool batt_sen_block_data_offset(uint8_t offset);
         
-        //TODO need to comment 
+        /**
+         * @brief Compute checksum of data that is to be written to the fuel gauge
+         * @param \p none 
+         * @return checksum 
+         */
         uint8_t batt_sen_compute_checksum(void);
         
-        //TODO need to comment 
+        /**
+         * @brief Compute checksum on a block of data within the fuel gauge
+         * @param \p none 
+         * @return checksum 
+         */
         uint8_t batt_sen_get_block_checksum(void);
         
-        //TODO need to comment 
+        /**
+         * @brief Write a block of data to the fuel gauge
+         * @param \p Offset \p data 
+         * @return True if successful
+         */
         bool batt_sen_write_block_data( uint8_t offset, uint8_t data );
         
-        //TODO need to comment 
+        /**
+         * @brief Unseal the fuel gauge so its memory can be written to
+         * @param \p none
+         * @return True if successful
+         */
         bool batt_sen_unseal( void );
         
-        //TODO need to comment 
+        /**
+         * @brief Seal / protect the fuel gauge's memory 
+         * @param \p none
+         * @return True if successful
+         */
         bool batt_sen_seal( void );
         
-        //TODO need to comment 
+        /**
+         * @brief Command the fuel gauge to perform a software reset 
+         * @param \p none
+         * @return True if successful
+         */
         bool batt_sen_soft_reset( void );
         
-        //TODO need to comment 
+        /**
+         * @brief Ask the fuel gauge to report its status flags
+         * @param \p none
+         * @return Word containing status flags
+         */
         uint16_t batt_sen_get_flags( void );
         
-        //TODO need to comment 
+        /**
+         * @brief Read a word of data from the fuel gauge
+         * @param \p Address 
+         * @return Word of data 
+         */
         uint16_t batt_sen_read_word( uint16_t subAddress );
         
-        //TODO need to comment 
+        /**
+         * @brief Write the block checksum to the fuel gauge
+         * @param \p uint8_t checksum value 
+         * @return True if successful
+         */
         bool batt_sen_write_block_checksum( uint8_t csum );
         
-        //TODO need to comment 
-        uint16_t batt_sen_soc(soc_measure type);
-
-
         /**
-         * @brief Get battery charge percentage 
-         * @param \p none 
-         * @return Battery Capacity in Percent
+         * @brief Ask the fuel gauge to report the stat-of-charge
+         * @param \p Type of measurement to perfor 
+         * @return uint16_t The Value of the State-of-Charge
          */
-        //TODO need to remove
-        // float new_battery_health( void );
-
+        uint16_t batt_sen_soc(soc_measure type);
+        
         /**
          * @brief Set IO expander output pin to defined level 
          * @details The io_num value that is passed 
@@ -212,9 +304,6 @@ class I2C {
          */
         void set_io_expander (uint8_t io_num, bool level);
         
-        //tODO need to remove
-        // void io_set_o_port_to_inputs( void );
-
         /**
          * @brief Toggle IO expander
          * @details The io_num value that is passed 
@@ -284,16 +373,32 @@ class I2C {
          */ 
         void choose_sensor(uint8_t sensor_number);
 
-        //TODO: need to comment
+        /**
+         * @brief Disable the I2C multiplexer
+         * @param \p none
+         * @return nothing
+         */
         void disable_mux(void);
         
-        //TODO need to comment
+        /**
+         * @brief Get data from both sensors
+         * @param \p Instance of Preferences
+         * @return nothing
+         */
         void get_sensor_data(Preferences & pref);
-
-        //TODO need to comment
+        
+        /**
+         * @brief Print uint8_t number (i.e. 10101010)
+         * @param \p Byte to print
+         * @return nothing
+         */
         void print8b_bin(uint8_t aByte);
         
-        //TODO need to comment
+        /**
+         * @brief Print uint16_t number (i.e. 1010101010101010)
+         * @param \p Integer to print
+         * @return nothing
+         */
         void print16b_bin(uint16_t aByte);
 
 };

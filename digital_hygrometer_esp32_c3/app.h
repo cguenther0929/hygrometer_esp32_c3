@@ -46,7 +46,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "0.2.9" 
+#define     SW_VER_STRING       "1.0.0" 
 // ==============================
 // ==============================
 
@@ -56,10 +56,9 @@
  * online source, the maximum sleep time is 
  * 35 minutes.  
  */
-//TODO these need to be set to reasonable times
 # define SLEEP_TIME_MIN               30                          //The value that the user shall modify (max is 35 min?). 
-# define  SLEEPS_UNTIL_DISP_UPDATE    2                           // update the display after this many sleeps 
-# define  SLEEPS_UNTIL_EMAIL          12                          // Send an email after this many sleeps 
+# define SLEEPS_UNTIL_DISP_UPDATE     2                           // update the display after this many sleeps 
+# define SLEEPS_UNTIL_EMAIL           24                          // Send an email after this many sleeps 
 # define SLEEP_TIME_SEC               SLEEP_TIME_MIN * 60.0 
 # define SLEEP_TIME_MICROS            SLEEP_TIME_SEC * 1000000.0  // ESP32 sleep function allows for a 64 bit int  (584,942 years)
 
@@ -95,7 +94,6 @@
 #define LOCAL_BTN_GPIO_PIN        1
 #define SHORT_PRESS_50MS_EVENTS   20      // 20 of these in a second
 #define LONG_PRESS_50MS_EVENTS    60      // 20 of these in a second
-// #define WAKEUP_GPIO               GPIO_NUM_1   //TODO remove 
 
 /**
  * Interrupt / button pin
@@ -176,16 +174,28 @@ class APP
          * @return nothing
          */
         void init(void);
-
-        //TODO: need to comment
+        
+        /**
+         * @brief Apply power to sensors
+         * @param \p none 
+         * @return nothing
+         */
         void sensor_power_on(void);
         
-        //TODO: need to comment
+        /**
+         * @brief Remove power from sensors
+         * @param \p none 
+         * @return nothing
+         */
         void sensor_power_off(void);
         
-        //TODO: need to comment
+        /**
+         * @brief Display one time POST message on display
+         * @param \p none 
+         * @return nothing
+         */
         void display_post_message( void );
-
+        
         /**
          * @brief Display splash screen (i.e. SW ver)
          * @param \p none 
@@ -199,17 +209,33 @@ class APP
          * @return nothing
          */
         void update_display( Preferences & pref );
-
-        //TODO need to comment
+        
+        /**
+         * @brief Apply power to the display
+         * @param \p none 
+         * @return nothing
+         */
         void display_power_on( void );
-
-        //TODO need to comment
+        
+        /**
+         * @brief Remove power from display
+         * @param \p none 
+         * @return nothing
+         */
         void display_power_off( void );
         
-        //TODO need to comment
+        /**
+         * @brief Apply power to the GPIO expander
+         * @param \p none 
+         * @return nothing
+         */
         void gpio_expander_on( void );
         
-        //TODO need to comment
+        /**
+         * @brief Remove power from GPIO expander
+         * @param \p none 
+         * @return nothing
+         */
         void gpio_expander_off( void );
 
         /**
@@ -219,10 +245,18 @@ class APP
          */
         void button_handler ( void );
         
-        //TODO need to comment
+        /**
+         * @brief Process current state or switch to new state   
+         * @param \p Preferences Instance \p Application Instance 
+         * @return nothing 
+         */
         void state_handler (Preferences & pref, APP & app_instance );
         
-        //TODO need to comment
+        /**
+         * @brief Blink the health LED for quick verification   
+         * @param \p none 
+         * @return nothing 
+         */
         void heartbeat_post( void );
 
 

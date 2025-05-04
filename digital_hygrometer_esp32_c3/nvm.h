@@ -50,31 +50,23 @@
 #define PREF_WIFI_SSID                      "wifi_ssid"
 #define PREF_WIFI_PASSWORD                  "wifi_password"
 
-#define PREF_RH_OFFSET1                     "rhoffset_1"
-#define PREF_RH_OFFSET2                     "rhoffset_2"
+#define PREF_RH_OFFSET                      "rhoffset"
 
-#define PREF_TEMP_OFFSET1                   "tempoffset_1"
-#define PREF_TEMP_OFFSET2                   "tempoffset_2"
+#define PREF_TEMP_OFFSET                    "tempoffset"
 
 #define PREF_STATE                          "state"
 
 #define PREF_CAL_KEY                        "cal_stat"
-// #define PREF_NETWORK_VALID_KEY              "net_valid"     //TODO not sure if we'll need this
 
 #define NVM_NAMESPACE                       "HYG_NVM"
-
-//TODO can we do away with these?  
-// TODO "keys" for preferences are defined in lan.h
 
 /**
  * Hardcoded configuration status 
  * words
  */
-#define WORD_EEPROM_INITALIZED                  0x5555  // 16bit initialization sequence //TODO not sure if we still need this
 #define VALID_CAL_VALUE                         0xAAAA  // 16bit calibration sequence 
 
 
-// TODO: do we need to comment functions?
 
 class NVM {
     private:
@@ -99,101 +91,75 @@ class NVM {
         /**
          * @brief NVM store byte
          * @details NVM is 512 bytes
-         * @param \p address (uint 16 bit)  
-         * @param \p Value (8 bit)
+         * @param  \p Instance of Preferences \p Key (const char) \p Value (8 bit)
          * @return nothing
          */
         void nvm_store_byte (Preferences & pref, const char * nvmkey, uint8_t value);
         
-        //TODO need to comment
+        /**
+         * @brief NVM store and integer value
+         * @details NVM is 512 bytes
+         * @param \p Instance of Preferences \p Key (const char) \p Value (16 bit)
+         * @return nothing
+         */
         void nvm_store_int (Preferences & pref, const char * nvmkey, uint16_t value);
-
+        
         /**
          * @brief NVM store float 
          * @details NVM is 512 bytes
-         * @param \p address (uint 16 bit)  
-         * @param \p value (float)s
+         * @param \p Instance of Preferences \p Key (const char) \p Value (float)
          * @return nothing
          */
         void nvm_store_float (Preferences & pref, const char * nvmkey, float value);
-
-        //TODO need to comment
+        
+        /**
+         * @brief NVM retrieve a float value from NVM
+         * @details NVM is 512 bytes
+         * @param \p Instance of Preferences \p Key (const char)
+         * @return The float value
+         */
         float nvm_get_float (Preferences & pref, const char * nvmkey);
         
-        //TODO need to comment
+        /**
+         * @brief NVM store string 
+         * @details NVM is 512 bytes
+         * @param \p Instance of Preferences \p Key (const char) \p Data_buffer (pointer to buffer)
+         * @return nothing
+         */
         void nvm_store_string (Preferences & pref, const char * nvmkey, const char * data_buffer);
         
-
-        //TODO need to comment 
+        /**
+         * @brief Retrieve a string value from NVM 
+         * @details NVM is 512 bytes
+         * @param \p Instance of Preferences \p Key (const char) \p Buffer to populate
+         * @return Nothing
+         */
         void nvm_read_string(Preferences & pref, const char * nvmkey, char (&arr)[PREF_BUFF_ELEMENTS]);
         
-        
-        //TODO need to comment 
-        void load_network_parameters (void);
-        
-        //TODO need to comment 
+        /**
+         * @brief Determine if the network parameters are valid 
+         * @details NVM is 512 bytes
+         * @param \p Instance of Preferences 
+         * @return True if the network parameters are valid
+         */
         bool network_valid(Preferences & pref);
         
         
         /**
          * @brief NVM read byte
          * @details NVM is 512 bytes
-         * @param \p address (uint 16 bit)  
-         * @return The byte the occupies the read address
+         * @param \p Instance of Preferences \p Key (const char)
+         * @return The byte associated with the key
          */
         uint8_t nvm_read_byte (Preferences & pref, const char * nvmkey);
         
-        //TODO need to comment 
+        /**
+         * @brief NVM read int
+         * @details NVM is 512 bytes
+         * @param \p Instance of Preferences \p Key (const char)
+         * @return The uint_16 associated with the key
+         */
         uint16_t nvm_read_int (Preferences & pref, const char * nvmkey);
-        
-        /**
-         * @brief NVM store a string 
-         * @param \p address (uint 16 bit)  
-         * @param \p Sting (const char pointer)  
-         * @return nothing 
-         */
-        // void nvm_store_string(uint16_t address, const char * string_in);
-        
-        /**
-         * @brief NVM read a string 
-         * @param \p address (uint 16 bit)  
-         * @param \p buffer (char pointer to buffer)  
-         * @return nothing 
-         */
-        // void nvm_read_string(uint16_t address, char * string_buffer);
-
-        /**
-         * @brief Breakdown a 32bit float and shove into a four byte array
-         * @details Take a 32 bit floating point value and 
-         * shove it, one byte at a time, into DataArray
-         * @param \p float_value
-         * @param \p four_byte_data_array
-         * @return nothing 
-         */
-        // void nvm_parse_float(float float_value, uint8_t four_byte_data_array[]);
-        
-        /**
-         * @brief Retrieve the 32 bit status word
-         * @param \p address (uint 16b)
-         * @return nothing 
-         */
-        // void nvm_get_status_word( uint16_t address );
-
-        /**
-         * @brief Determine if we are calibrated
-         * @param \p none
-         * @return bool 
-         */
-        // bool nvm_is_calibrated ( void );
-        
-        /**
-         * @brief Determine if the EEPROM has been initialized 
-         * @param \p none
-         * @return bool 
-         */
-        // bool nvm_is_initalized ( void );
-
-        
 };
 
 #endif

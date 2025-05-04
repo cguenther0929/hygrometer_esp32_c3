@@ -76,8 +76,28 @@ bool LAN::WiFiConnect( const char * ssid, const char * password )
       Serial.print("\tMy local IP: ");
       Serial.println(WiFi.localIP());
   }
-    
-  // WiFi.setOutputPower(0);   //TODO: do we want this line in?
+
+  /**
+   * Available ESP32 RF power parameters:
+   * WIFI_POWER_19_5dBm    // 19.5dBm (For 19.5dBm of output, highest. Supply current ~150mA)
+   * WIFI_POWER_19dBm      // 19dBm
+   * WIFI_POWER_18_5dBm    // 18.5dBm
+   * WIFI_POWER_17dBm      // 17dBm
+   * WIFI_POWER_15dBm      // 15dBm
+   * WIFI_POWER_13dBm      // 13dBm
+   * WIFI_POWER_11dBm      // 11dBm
+   * WIFI_POWER_8_5dBm     //  8dBm
+   * WIFI_POWER_7dBm       //  7dBm
+   * WIFI_POWER_5dBm       //  5dBm
+   * WIFI_POWER_2dBm       //  2dBm
+   * WIFI_POWER_MINUS_1dBm // -1dBm( For -1dBm of output, lowest. Supply current ~120mA)
+   * 
+   * Available ESP8266 RF power parameters:
+   * 0    (for lowest RF power output, supply current ~ 70mA
+   * 20.5 (for highest RF power output, supply current ~ 80mA
+   */
+
+  // WiFi.setOutputPower(0);   //This function doesn't work
 
   return true;
 }

@@ -6,7 +6,7 @@
 #define I2C_SCL     9
 
 APP     i2c_app_functions;
-NVM     i2c_nvm_functions; //TODO I think we can remove this
+NVM     i2c_nvm_functions;
 
 I2C::I2C() : _batt_sen_address(BQ72441_I2C_ADDRESS), _batt_sen_seal_flag(false), _batt_sen_usr_ctrl(false)
 {
@@ -14,14 +14,7 @@ I2C::I2C() : _batt_sen_address(BQ72441_I2C_ADDRESS), _batt_sen_seal_flag(false),
 }
 
 void I2C::init( void ) {
-    //TODO Can we remove any of these lines?  How about move them to the constructor?  
-
-    //TODO: Do we want to modify these lines?
-    //TODO: for example, do we instead want to grab 
-    //TODO: rhoffset values from NVM
     this -> sensor_number = 0;
-    this -> rhoffset_1 = 0;
-    this -> rhoffset_2 = 0;
     
     // The following is required to enable I2C lines
     Wire.begin(I2C_SDA, I2C_SCL);
@@ -71,7 +64,7 @@ uint16_t I2C::get_batt_sen_ctrl_word(uint16_t function)
 	return false;
 }
 
-uint16_t I2C::batt_sen_write_bytes(uint8_t subAddress, uint8_t * src, uint8_t count)
+bool I2C::batt_sen_write_bytes(uint8_t subAddress, uint8_t * src, uint8_t count)
 {
 	Wire.beginTransmission(_batt_sen_address);
 	Wire.write(subAddress);
@@ -84,7 +77,7 @@ uint16_t I2C::batt_sen_write_bytes(uint8_t subAddress, uint8_t * src, uint8_t co
 	return true;	
 }
 
-uint16_t I2C::batt_sen_read_bytes(uint8_t subAddress, uint8_t * dest, uint8_t count)
+bool I2C::batt_sen_read_bytes(uint8_t subAddress, uint8_t * dest, uint8_t count)
 {
 	int16_t timeout = BQ72441_I2C_TIMEOUT;	
 	Wire.beginTransmission(_batt_sen_address);
@@ -123,7 +116,7 @@ bool I2C::batt_sen_write_ext_data(uint8_t classID, uint8_t offset, uint8_t * dat
         batt_sen_enter_config();
     } 
 	
-	if (!batt_sen_block_data_control()) // // enable block data memory control
+	if (!batt_sen_block_data_control()) // enable block data memory control
 		return false; // Return false if enable fails
 	if (!batt_sen_block_data_class(classID)) // Write class ID using DataBlockClass()
 		return false;
@@ -379,31 +372,6 @@ void I2C::print16b_bin(uint16_t aByte)
     Serial.print('\n');
 }
 
-//TODO need to remove
-// float I2C::new_battery_health( void ){
-
-// }
-
-// void I2C::io_set_o_port_to_inputs( void )
-// {
-
-//     /**
-//      * Start the transaction with the 
-//      * IO expander -- the "O" ports are
-//      * defined as [8:15]
-//      */
-//     Wire.beginTransmission(IOEXPANDER_7B_8_15_ADDRESS); 
-    
-//     /**
-//      * Set all outputs to high
-//      * in order to set these IO to 
-//      * inputs. 
-//     */
-//    Wire.write(0xFF);        
-//    Wire.endTransmission();
-
-// }
-
 void I2C::set_io_expander(uint8_t io_num, bool level) 
 {
     int temp_address        = 0x00;
@@ -442,7 +410,7 @@ void I2C::set_io_expander(uint8_t io_num, bool level)
 
     /* Determine the value_mask */
     value_mask = (0b00000001) << (shift_value);
-    #if defined(ENABLE_LOGGING)
+    #if(ENABLE_LOGGING)
         Serial.print("^Mask --> ");
         print8b_bin(value_mask);
         Serial.println(" ");
@@ -469,7 +437,7 @@ void I2C::set_io_expander(uint8_t io_num, bool level)
 
     current_value = Wire.read();  
 
-    #if defined(ENABLE_LOGGING)
+    #if(ENABLE_LOGGING)
         if(temp_address = IOEXPANDER_7B_0_7_ADDRESS )
         {
             Serial.print("^[7:0] GPIO Read --> ");
@@ -554,7 +522,7 @@ void I2C::toggle_io_expander(uint8_t io_num)
 
     current_value = Wire.read();  
 
-    #if defined(ENABLE_LOGGING)
+    #if(ENABLE_LOGGING)
         Serial.print("^GPIO Read --> ");
         print8b_bin(current_value);
         Serial.println(" ");
@@ -590,7 +558,7 @@ uint8_t I2C::read_io_expander( void )
 
     Wire.endTransmission();
 
-    #if defined(ENABLE_LOGGING)
+    #if(ENABLE_LOGGING)
         Serial.print("^GPIO Read --> ");
         print8b_bin(uint8_value);
         Serial.println(" ");
@@ -768,7 +736,12 @@ void I2C::get_sensor_data( Preferences & pref )
         msb_byte = Wire.read(); 
         lsb_byte = Wire.read(); 
         temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
-
+        
+        /**
+         * Retrieve the offset values from NVM
+         */
+        this -> temp_offset = i2c_nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET);
+        this -> rh_offset   = i2c_nvm_functions.nvm_get_float(pref,PREF_RH_OFFSET);
 
         /**
          * Assign the value to the correct member 
@@ -777,12 +750,12 @@ void I2C::get_sensor_data( Preferences & pref )
          */
         if(this -> sensor_number == 1)
         {
-            this -> hum_val1 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_1);
+            this -> hum_val1 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rh_offset);
             this -> hum_val1 =  (char)(this -> hum_val1);
         }
         else 
         {
-            this -> hum_val2 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rhoffset_2);
+            this -> hum_val2 =  (float)((125.0 * (uint16_t)temp_uint16t / 65536) - 6.0 + this -> rh_offset);
             this -> hum_val2 =  (char)(this -> hum_val2);
         }
         
@@ -794,32 +767,30 @@ void I2C::get_sensor_data( Preferences & pref )
          * Need to indicate to the sensor which 
          * register to read from 
          * 
-        */
+         */
         Wire.beginTransmission(SI7020_BASE_ADDRESS); 
         Wire.write(SI7020_TEMP_AFTER_HUM);
         Wire.endTransmission();
-
+        
         /**
          * Now extract the data from the sensor. 
          * requestFrom() will create 
          * a repeated start condition on the bus.  
-        */
+         */
         Wire.requestFrom(SI7020_BASE_ADDRESS,2);    // Request 2 byte from the address  
-
+        
         msb_byte = Wire.read(); 
         lsb_byte = Wire.read(); 
         temp_uint16t = (uint16_t)(msb_byte << 8) | (lsb_byte); 
-
+        
         /**
          * Assign the value to the correct member 
          * of the class 
-         * i.e. humidity / temperature
+         * i.e. sensor #1 or #2
          */
-        this -> temp_offset = i2c_nvm_functions.nvm_get_float(pref,PREF_TEMP_OFFSET1);
-        
         if(this -> sensor_number == 1)
         {
-
+            
             
             this -> temp_val1 =  (float)(temp_uint16t/207.1983 - 52.33);  //For Deg F
             this -> temp_val1 -= (float)(this -> temp_offset); 
