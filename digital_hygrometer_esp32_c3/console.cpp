@@ -148,11 +148,12 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )
         Serial.println("13) Overwrite relative humidity offsets.");
         Serial.println("14) Enter temperature offsets.");
         Serial.println("15) Enable/disable email sending.");
-        Serial.println("16) View BQ27427 flags.");
-        Serial.println("17) Turn display power ON.");
-        Serial.println("18) Turn display power OFF.");
-        Serial.println("19) Turn IO Expander ON.");
-        Serial.println("20) Turn IO Expander OFF.");
+        Serial.println("16) View BQ27427 (LiIon Fuel gauge) flags.");
+        Serial.println("17) Define the battery's capacity.");
+        Serial.println("18) Turn display power ON.");
+        Serial.println("19) Turn display power OFF.");
+        Serial.println("20) Turn IO Expander ON.");
+        Serial.println("21) Turn IO Expander OFF.");
 
         Serial.println("99) To exit the console.");
 
@@ -808,9 +809,30 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )
             break;
             
             /************************************/
-            /* Turn display power ON
+            /* Define Battery Capacity
             /************************************/
             case 17:
+                clear_screen();
+                insert_line_feeds(2);
+                insert_line_emphasis();
+
+                Serial.print("Enter the battery's capacity (in mAh): ");
+                temp_float = get_user_float_value();
+                Serial.println();
+                Serial.print("The user entered: ");
+                Serial.print(temp_float);
+                Serial.println(" mAh");
+                i2c_function.batt_sen_set_capacity((uint16_t)temp_float);
+                Serial.println("Battery capacity has been updated.");
+                
+                insert_line_emphasis();
+                insert_line_feeds(2);
+                break;
+        
+            /************************************/
+            /* Turn display power ON
+            /************************************/
+            case 18:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -826,7 +848,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )
                 /************************************/
                 /* Turn display power OFF
                 /************************************/
-                case 18:
+                case 19:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -841,7 +863,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )
             /************************************/
             /* Turn GPIO Expander ON
             /************************************/
-            case 19:
+            case 20:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();
@@ -855,7 +877,7 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )
             /************************************/
             /* Turn GPIO Expander OFF
             /************************************/
-            case 20:
+            case 21:
                 clear_screen();
                 insert_line_feeds(2);
                 insert_line_emphasis();

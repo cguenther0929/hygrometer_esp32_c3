@@ -348,7 +348,7 @@ void loop()
 
     }
     
-    main_i2c.batt_sen_set_capacity(BATTERY_CAPACITY);  //Capacity is in mA
+    main_i2c.batt_sen_set_capacity(DEFAULT_BAT_CAP);  //Capacity is in mAh
 
     rtc_boot_ctr++;
   }

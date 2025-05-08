@@ -77,3 +77,5 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 * v0.2.9 -- Much cleanup has occurred, but there is plenty left to do.  Emails now include the SOC of the battery (this value is no longer hardcoded at 75%).  Email sender name and subject line were cleaned up.  Display and email delay times were set to something reasonable.  This is really close to a release candidate.  
 
 * v1.0.0 -- All of the TODOs have been addressed.  Display and email delay times have bene updated.  A bug has been corrected with the logging feature (logging should be off, but was showing information related to GPIO reads). The SW version string has been updated to match this tag.    
+
+* v1.0.1 -- The battery capacity can now be dynamically changed via the console interface.    

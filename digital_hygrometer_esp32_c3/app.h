@@ -46,7 +46,7 @@
 
 // ==============================
 // ==============================
-#define     SW_VER_STRING       "1.0.0" 
+#define     SW_VER_STRING       "1.0.1" 
 // ==============================
 // ==============================
 
@@ -86,7 +86,7 @@
 /**
  * Capacity of battery
  */
-#define BATTERY_CAPACITY          1000
+#define DEFAULT_BAT_CAP         1700  // 2×850 mAh
 
 /**
  * Button related
