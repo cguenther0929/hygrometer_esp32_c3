@@ -78,4 +78,6 @@ Go to `Sketch > Include Library > Manage Libraries` and search for **ESP Mail Cl
 
 * v1.0.0 -- All of the TODOs have been addressed.  Display and email delay times have bene updated.  A bug has been corrected with the logging feature (logging should be off, but was showing information related to GPIO reads). The SW version string has been updated to match this tag.    
 
-* v1.0.1 -- The battery capacity can now be dynamically changed via the console interface.    
+* v1.0.1 -- The battery capacity can now be dynamically changed via the console interface.   
+
+* v1.0.2 -- The debugging level in the email sending routine has been modified to zero to define no debugging (the value was one, which provided basic-level debugging).  The impetus behind this was to conserve more battery power.  The SW version string has been updated to match this tag.

@@ -131,7 +131,7 @@ void LAN::send_email ( Preferences & pref )
    *
    * Debug port can be changed via ESP_MAIL_DEFAULT_DEBUG_PORT in ESP_Mail_FS.h
    */
-  smtp.debug(1);
+  smtp.debug(0);
 
   /* Declare the Session_Config for user defined session credentials */
   Session_Config config;
