@@ -666,8 +666,8 @@ void CONSOLE::console ( Preferences & pref, APP & app_instance )
                 
                 if(console_buffer[0] == 'y' || console_buffer[0] =='Y')
                 {
-                    Serial.println("User is proceeding with overwriting relative humidity offset values.");
-                    Serial.print("Enter the value for how low (value is percent) RH is: ");
+                    Serial.println("Now modifying RH offset value.");
+                    Serial.print("What is the offset (enter a negative offset here if reading is too high): ");
                     temp_float = get_user_float_value();
                     Serial.println();
                     nvm_function.nvm_store_float(pref, PREF_RH_OFFSET, temp_float);
