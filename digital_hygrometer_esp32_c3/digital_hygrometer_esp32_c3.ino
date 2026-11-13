@@ -349,6 +349,7 @@ void loop()
     }
     
     main_i2c.batt_sen_set_capacity(DEFAULT_BAT_CAP);  //Capacity is in mAh
+    main_i2c.batt_sen_use_internal_temp();
 
     rtc_boot_ctr++;
   }

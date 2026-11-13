@@ -94,6 +94,24 @@ bool I2C::batt_sen_read_bytes(uint8_t subAddress, uint8_t * dest, uint8_t count)
 	return timeout;
 }
 
+bool I2C::batt_sen_use_internal_temp(void)
+{
+    // Read current OpConfig
+    uint16_t opConfig = batt_sen_read_word(BQ27441_EXTENDED_OPCONFIG);
+
+    // Clear TEMPS bit to select internal temperature sensor
+    opConfig &= ~BQ27441_OPCONFIG_TEMPS;
+
+    // OpConfig is in the Registers subclass (64), offset 0
+    // Data memory uses MSB-first byte ordering
+    uint8_t data[2] = {
+        (uint8_t)(opConfig >> 8),
+        (uint8_t)(opConfig & 0xFF)
+    };
+
+    return batt_sen_write_ext_data(BQ27441_ID_REGISTERS, 0, data, 2);
+}
+
 bool I2C::batt_sen_set_capacity(uint16_t capacity)
 {
 	// Write to STATE subclass (82) of BQ27441 extended memory.

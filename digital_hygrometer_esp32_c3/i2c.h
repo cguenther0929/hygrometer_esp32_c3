@@ -153,6 +153,13 @@ class I2C {
          * @return True if successful
          */
         bool batt_sen_set_capacity( uint16_t capacity );
+
+        /**
+         * @brief Tell the sensor to use the internal temp sensor 
+         * @param none 
+         * @return True if successful
+         */
+        bool batt_sen_use_internal_temp(void);
         
         /**
          * @brief Write extended data to the fuel gauge
